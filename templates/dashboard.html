@@ -1,0 +1,135 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Video Share{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Video Dashboard</h1>
+    <p class="lead">Manage your uploaded videos</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        {% if videos %}
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>Your Videos ({{ videos|length }})</h3>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Upload New
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                {% for video in videos %}
+                <div class="col-md-6 col-xl-4 video-card">
+                    <div class="card mb-4">
+                        <div class="position-relative">
+                            {% if video.thumbnail_path %}
+                            <a href="{{ url_for('view_video', slug=video.slug) }}">
+                                <img src="{{ video.thumbnail_path }}" class="card-img-top" alt="{{ video.title or 'Untitled Video' }}">
+                            </a>
+                            {% else %}
+                            <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-film fa-3x text-light"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Video status badge -->
+                            <div class="position-absolute top-0 end-0 m-2">
+                                {% if video.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                                {% elif video.status == 'processing' %}
+                                <span class="badge bg-primary">Processing</span>
+                                {% elif video.status == 'downloading' %}
+                                <span class="badge bg-info">Downloading</span>
+                                {% elif video.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% elif video.status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Duration badge -->
+                            {% if video.duration %}
+                            <div class="position-absolute bottom-0 end-0 m-2">
+                                <span class="badge bg-dark">
+                                    {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-body">
+                            <h5 class="card-title video-title">{{ video.title or 'Untitled Video' }}</h5>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }} 
+                                <i class="fas fa-eye ms-2 me-1"></i> {{ video.views }} views
+                            </p>
+                            <p class="card-text video-description">{{ video.description or '' }}</p>
+                            
+                            <div class="d-flex video-actions">
+                                <a href="{{ url_for('view_video', slug=video.slug) }}" class="btn btn-primary me-2">
+                                    <i class="fas fa-play me-1"></i> Watch
+                                </a>
+                                <button class="btn btn-outline-secondary me-2 edit-video" data-slug="{{ video.slug }}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-outline-danger delete-video" data-slug="{{ video.slug }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer d-flex align-items-center">
+                            <small class="text-muted me-2">Share:</small>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" value="{{ url_for('view_video', slug=video.slug, _external=True) }}" readonly>
+                                <button class="btn btn-outline-secondary btn-copy" type="button" data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-film fa-4x text-muted"></i>
+                </div>
+                <h3>No videos yet</h3>
+                <p class="text-muted">Upload your first video to get started!</p>
+                <a href="/" class="btn btn-primary mt-3">
+                    <i class="fas fa-upload me-2"></i>Upload a Video
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize clipboard functionality for all copy buttons
+    document.querySelectorAll('.btn-copy').forEach(button => {
+        button.addEventListener('click', function() {
+            const text = this.dataset.clipboardText;
+            navigator.clipboard.writeText(text).then(() => {
+                // Change button appearance temporarily
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-check"></i>';
+                this.classList.add('btn-success');
+                this.classList.remove('btn-outline-secondary');
+                
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-outline-secondary');
+                }, 2000);
+            });
+        });
+    });
+</script>
+{% endblock %}

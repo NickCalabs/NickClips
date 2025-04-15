@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ video.title or 'Untitled Video' }} - Video Share{% endblock %}
+
+{% block head %}
+<!-- OpenGraph tags for link previews -->
+<meta property="og:title" content="{{ video.title or 'Untitled Video' }}">
+<meta property="og:type" content="video.other">
+<meta property="og:url" content="{{ request.url }}">
+{% if video.thumbnail_path %}
+<meta property="og:image" content="{{ request.url_root.rstrip('/') ~ video.thumbnail_path }}">
+{% endif %}
+<meta property="og:site_name" content="Video Share">
+{% if video.description %}
+<meta property="og:description" content="{{ video.description }}">
+{% endif %}
+{% if video.duration %}
+<meta property="video:duration" content="{{ video.duration|int }}">
+{% endif %}
+{% if video.width and video.height %}
+<meta property="og:video:width" content="{{ video.width }}">
+<meta property="og:video:height" content="{{ video.height }}">
+{% endif %}
+{% if video.status == 'completed' and video.processed_path %}
+<meta property="og:video" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.processed_path }}">
+<meta property="og:video:type" content="video/mp4">
+{% endif %}
+
+<!-- Twitter card tags -->
+<meta name="twitter:card" content="player">
+<meta name="twitter:title" content="{{ video.title or 'Untitled Video' }}">
+{% if video.description %}
+<meta name="twitter:description" content="{{ video.description }}">
+{% endif %}
+{% if video.thumbnail_path %}
+<meta name="twitter:image" content="{{ request.url_root.rstrip('/') ~ video.thumbnail_path }}">
+{% endif %}
+{% if video.status == 'completed' and video.processed_path %}
+<meta name="twitter:player" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.processed_path }}">
+{% if video.width and video.height %}
+<meta name="twitter:player:width" content="{{ video.width }}">
+<meta name="twitter:player:height" content="{{ video.height }}">
+{% endif %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Video status alert for pending/processing videos -->
+        <div id="video-status" class="video-status">
+            {% if video.status == 'pending' %}
+            <div class="alert alert-info">Your video is pending processing...</div>
+            {% elif video.status == 'downloading' %}
+            <div class="alert alert-info">Downloading video from source...</div>
+            {% elif video.status == 'processing' %}
+            <div class="alert alert-info">
+                <div class="d-flex align-items-center">
+                    <strong>Processing your video...</strong>
+                    <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+                </div>
+            </div>
+            {% elif video.status == 'failed' %}
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">Processing failed</h5>
+                <p>{{ video.error or 'Unknown error' }}</p>
+                {% if 'YouTube' in video.error or 'Reddit' in video.error %}
+                <hr>
+                <p class="mb-0">Note: YouTube and Reddit downloads are often blocked on cloud hosting. The app will work properly when self-hosted on your homelab.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Video player container -->
+        <div id="video-container" 
+            data-slug="{{ video.slug }}" 
+            data-status="{{ video.status }}"
+            {% if video.status == 'completed' %}
+            data-player-type="{% if video.hls_path %}hls{% else %}native{% endif %}"
+            {% if video.hls_path %}data-hls-source="/uploads/{{ video.hls_path }}"{% endif %}
+            {% if video.processed_path %}data-mp4-source="/uploads/{{ video.processed_path }}"{% endif %}
+            {% endif %}
+            class="video-player-container mb-4">
+            
+            {% if video.status == 'completed' %}
+                <!-- Video player will be inserted here by JavaScript -->
+            {% elif video.status == 'failed' %}
+                <div class="text-center p-5 bg-body-tertiary rounded">
+                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Video Processing Failed</h4>
+                    <p class="text-muted">{{ video.error or 'There was an error processing this video.' }}</p>
+                    {% if 'YouTube' in video.error or 'Reddit' in video.error %}
+                    <div class="alert alert-info mt-3">
+                        <p class="mb-0"><strong>Note:</strong> YouTube and Reddit downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <!-- Placeholder while video is processing -->
+                {% if video.thumbnail_path %}
+                    <img src="{{ video.thumbnail_path }}" alt="Video thumbnail" class="img-fluid rounded">
+                {% else %}
+                    <div class="text-center p-5 bg-body-tertiary rounded">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem;"></i>
+                        <h4 class="mt-3">Processing Video</h4>
+                        <p class="text-muted">This may take a few minutes...</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <!-- Video information -->
+        <div class="video-info">
+            <h1 class="video-title">{{ video.title or 'Untitled Video' }}</h1>
+            
+            <div class="video-metadata d-flex flex-wrap gap-3 mb-3">
+                <span><i class="fas fa-eye me-1"></i> {{ video.views }} views</span>
+                <span><i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }}</span>
+                {% if video.duration %}
+                <span><i class="fas fa-clock me-1"></i> {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
+                {% endif %}
+            </div>
+            
+            {% if video.description %}
+            <div class="video-description">
+                {{ video.description }}
+            </div>
+            {% endif %}
+            
+            <!-- Share section -->
+            <div class="share-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-share-alt me-2"></i>Share this video</h5>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" value="{{ request.url }}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="copy-link-btn">
+                                <i class="fas fa-copy me-1"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-download me-2"></i>Download</h5>
+                        {% if video.status == 'completed' and video.processed_path %}
+                        <a href="/uploads/{{ video.processed_path }}" class="btn btn-primary" download>
+                            <i class="fas fa-download me-1"></i> Download MP4
+                        </a>
+                        {% else %}
+                        <button class="btn btn-primary" disabled>
+                            <i class="fas fa-download me-1"></i> Download MP4
+                        </button>
+                        <small class="d-block mt-1 text-muted">Available after processing</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+{% endblock %}
