@@ -247,9 +247,8 @@ def download_with_ytdlp(url, output_template):
             '--no-check-certificate',  # Skip HTTPS certificate validation
             '--geo-bypass',  # Try to bypass geo-restrictions
             '--no-playlist',  # Don't download playlists
-            '--extract-audio',  # Also extract audio
-            '--audio-format', 'mp3',  # Save audio as mp3
-            '--audio-quality', '0',  # Best audio quality
+            # REMOVED: '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '0'
+            # We need to keep the video for thumbnails and playback
             '--verbose'  # Show detailed logs
         ]
         
