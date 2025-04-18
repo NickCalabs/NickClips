@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
         video.controls = true;
         video.autoplay = false;
         video.preload = 'auto';
+        video.playsInline = true; // Better mobile support
         
         videoContainer.appendChild(video);
         
@@ -37,8 +38,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const hls = new Hls({
                 debug: false,
                 enableWorker: true,
-                lowLatencyMode: true,
-                backBufferLength: 90
+                lowLatencyMode: false, // Disable low latency to focus on stability
+                backBufferLength: 30, // Reduced buffer length
+                maxBufferLength: 30, // Maximum buffer size in seconds
+                maxMaxBufferLength: 60, // Maximum buffer size when in ABR algorithm decides to switch to a higher quality level
+                maxBufferHole: 0.5, // Maximum interval holes allowed in buffer
+                maxStarvationDelay: 4, // Maximum delay before playback starvation
+                highBufferWatchdogPeriod: 2, // Time to wait before declaring buffer out-of-bounds
+                nudgeMaxRetry: 5, // Maximum amount of nudge retries allowed for a simple buffer stall
+                startFragPrefetch: true, // Start prefetching the first fragment
+                abrEwmaDefaultEstimate: 500000, // Default bandwidth estimate (500kbps)
+                testBandwidth: true // Test the available bandwidth before loading segments
             });
             
             hls.loadSource(sourceUrl);
@@ -62,7 +72,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             break;
                         default:
                             console.error('Fatal error, cannot recover');
-                            hls.destroy();
+                            // Try falling back to direct MP4 playback
+                            if (videoSourceMp4) {
+                                console.log('Falling back to MP4 playback');
+                                video.src = videoSourceMp4;
+                                video.load();
+                                video.play().catch(e => console.error('Playback error:', e));
+                            } else {
+                                hls.destroy();
+                            }
                             break;
                     }
                 }
@@ -90,7 +108,9 @@ document.addEventListener('DOMContentLoaded', function() {
         video.className = 'w-100';
         video.controls = true;
         video.autoplay = false;
-        video.preload = 'metadata';
+        video.preload = 'auto'; // Changed from 'metadata' to 'auto' for better buffering
+        video.playsInline = true; // Better mobile support
+        video.crossOrigin = 'anonymous'; // Allow CORS
         video.style.maxHeight = '80vh';
         
         const source = document.createElement('source');
@@ -100,10 +120,37 @@ document.addEventListener('DOMContentLoaded', function() {
         video.appendChild(source);
         videoContainer.appendChild(video);
         
+        // Add buffering indicator
+        const bufferingIndicator = document.createElement('div');
+        bufferingIndicator.className = 'buffering-indicator d-none position-absolute top-50 start-50 translate-middle';
+        bufferingIndicator.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>';
+        videoContainer.appendChild(bufferingIndicator);
+        
+        // Show buffering indicator when waiting for data
+        video.addEventListener('waiting', function() {
+            bufferingIndicator.classList.remove('d-none');
+        });
+        
+        // Hide buffering indicator when playing
+        video.addEventListener('playing', function() {
+            bufferingIndicator.classList.add('d-none');
+        });
+        
         // Error handling
-        video.addEventListener('error', function() {
-            console.error('Video playback error');
-            videoContainer.innerHTML += '<div class="alert alert-danger mt-3">Error playing video. Please try again later.</div>';
+        video.addEventListener('error', function(e) {
+            console.error('Video playback error', e);
+            // Try to diagnose the error
+            const errorCode = video.error ? video.error.code : 'unknown';
+            console.error(`Video error code: ${errorCode}`);
+            
+            if (videoSourceHls && !videoContainer.querySelector('.alert')) {
+                console.log('Trying fallback to HLS');
+                // Try HLS fallback if MP4 fails
+                videoContainer.innerHTML = '';
+                initializeHlsPlayer(videoSourceHls);
+            } else {
+                videoContainer.innerHTML += '<div class="alert alert-danger mt-3">Error playing video. Please try again later.</div>';
+            }
         });
     }
     

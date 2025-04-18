@@ -276,8 +276,15 @@ def create_hls_stream(input_path, output_dir):
         '-profile:v', 'baseline',  # H.264 profile
         '-level', '3.0',  # H.264 level
         '-start_number', '0',  # Start number for segments
-        '-hls_time', '10',  # Segment duration in seconds
+        '-hls_time', '4',  # Segment duration in seconds (reduced from 10)
         '-hls_list_size', '0',  # All segments in playlist
+        '-hls_segment_type', 'mpegts',  # More compatible segment type
+        '-hls_flags', 'independent_segments',  # Each segment can be decoded independently
+        '-g', '48',  # Keyframe interval (reduced for more stable playback)
+        '-sc_threshold', '0',  # Disable scene change detection
+        '-c:v', 'libx264',  # Video codec
+        '-c:a', 'aac',  # Audio codec
+        '-b:a', '128k',  # Audio bitrate
         '-f', 'hls',  # Format
         playlist_path
     ]
