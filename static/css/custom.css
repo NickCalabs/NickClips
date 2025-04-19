@@ -14,7 +14,7 @@ body {
 html[data-bs-theme="light"] {
     --card-bg: #ffffff;
     --card-header-bg: #f8f9fa;
-    --body-bg: #ffffff;
+    --body-bg: #f4f4f4;
     --text-color: #333333;
     --border-color: rgba(0, 0, 0, 0.125);
     --navbar-bg: #ffffff;
@@ -26,12 +26,12 @@ html[data-bs-theme="light"] {
     --active-tab-color: #ffffff;
     --accent-color: #1e88e5;
     --form-bg: #f8f9fa;
-    --upload-area-bg: #f8f9fa;
+    --upload-area-bg: #ffffff;
 }
 
 /* Direct overrides for light mode */
 html[data-bs-theme="light"] body {
-    background-color: #ffffff;
+    background-color: #f4f4f4;
     color: #333333;
 }
 
@@ -256,32 +256,33 @@ body {
     margin-bottom: 20px;
 }
 
-/* Tab navigation styling */
+/* Tab navigation styling - Streamable style */
 .nav-tabs {
     margin-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: none;
+    background-color: transparent;
+    display: inline-flex;
 }
 
 .nav-tabs .nav-link {
-    color: var(--text-color);
+    color: #555;
     background-color: transparent;
     border: none;
-    border-bottom: 3px solid transparent;
-    border-radius: 0;
-    padding: 0.75rem 1.25rem;
+    border-radius: 20px;
+    padding: 0.5rem 1.25rem;
     font-weight: 500;
     transition: all 0.2s ease;
+    margin-right: 8px;
 }
 
 .nav-tabs .nav-link:hover {
-    border-color: rgba(30, 136, 229, 0.5);
-    background-color: transparent;
+    background-color: rgba(30, 136, 229, 0.05);
 }
 
 .nav-tabs .nav-link.active {
-    color: #1e88e5;
-    background-color: transparent;
-    border-bottom: 3px solid #1e88e5;
+    color: white;
+    background-color: #1e88e5;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Upload tabs styling */

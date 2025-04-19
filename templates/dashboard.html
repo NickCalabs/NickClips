@@ -5,17 +5,18 @@
 {% block content %}
 <div class="dashboard-header bg-white p-4 rounded-3 shadow-sm mb-4">
     <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="mb-1">Video Dashboard</h1>
-            <p class="lead mb-0">Manage your uploaded videos</p>
-        </div>
+        <h2 class="mb-0">All videos ({{ videos|length }})</h2>
         <div class="d-flex gap-2">
-            <a href="/" class="btn btn-outline-primary">
-                <i class="fas fa-upload me-1"></i> Upload File
-            </a>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#linkModal">
-                <i class="fas fa-link me-1"></i> Paste URL
+            <button class="btn btn-primary rounded-pill" id="upload-btn">
+                <i class="fas fa-upload me-2"></i>Upload video
             </button>
+            
+            <div class="input-group" style="width: 350px;">
+                <input type="url" class="form-control" id="dashboard-url-input" placeholder="Paste a video URL" aria-label="Video URL">
+                <button class="btn btn-outline-primary" type="button" id="dashboard-paste-url-btn">
+                    <i class="fas fa-paste me-1"></i>Paste URL
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -48,11 +49,6 @@
 <div class="row">
     <div class="col-md-12">
         {% if videos %}
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3>Your Videos ({{ videos|length }})</h3>
-                </div>
-            </div>
             
             <div class="row g-4">
                 {% for video in videos %}
@@ -177,6 +173,102 @@
 
 {% block scripts %}
 <script>
+    // DOM elements 
+    const dashboardUrlInput = document.getElementById('dashboard-url-input');
+    const dashboardPasteUrlBtn = document.getElementById('dashboard-paste-url-btn');
+    const uploadBtn = document.getElementById('upload-btn');
+    
+    // Upload button redirects to home page
+    uploadBtn.addEventListener('click', function() {
+        window.location.href = '/';
+    });
+    
+    // Dashboard URL paste button
+    dashboardPasteUrlBtn.addEventListener('click', function() {
+        navigator.clipboard.readText()
+            .then(text => {
+                dashboardUrlInput.value = text;
+                handleDashboardUrlSubmit();
+            })
+            .catch(err => {
+                console.error('Failed to read clipboard contents: ', err);
+                showAlert('Please paste the URL manually.', 'warning');
+            });
+    });
+    
+    // Dashboard URL input for auto-submission
+    dashboardUrlInput.addEventListener('paste', function(e) {
+        // Wait a moment to get the pasted content
+        setTimeout(() => {
+            if (dashboardUrlInput.value.trim()) {
+                handleDashboardUrlSubmit();
+            }
+        }, 100);
+    });
+    
+    // Handle dashboard URL submission on Enter key
+    dashboardUrlInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && dashboardUrlInput.value.trim()) {
+            e.preventDefault();
+            handleDashboardUrlSubmit();
+        }
+    });
+    
+    function handleDashboardUrlSubmit() {
+        const url = dashboardUrlInput.value.trim();
+        if (!url) return;
+        
+        // Show alert
+        showAlert('<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Validating and downloading URL...</div>', 'info');
+        
+        // Call API to download video from URL
+        fetch('/api/download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: url })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(`<strong>Success!</strong> Video is being downloaded and processed. <a href="/video/${data.slug}" class="alert-link">View video page</a>`, 'success');
+                dashboardUrlInput.value = '';
+                
+                // Refresh page after a short delay to show the new video
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            } else {
+                showAlert(`Error: ${data.error}`, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while processing your request.', 'danger');
+        });
+    }
+    
+    // Helper function to show alerts
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('alerts-container');
+        const alertEl = document.createElement('div');
+        alertEl.className = `alert alert-${type} alert-dismissible fade show`;
+        alertEl.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        alertContainer.appendChild(alertEl);
+        
+        // Auto-dismiss after 5 seconds for info/success alerts
+        if (type === 'info' || type === 'success') {
+            setTimeout(() => {
+                alertEl.classList.remove('show');
+                setTimeout(() => alertEl.remove(), 300);
+            }, 5000);
+        }
+    }
+
     // Initialize clipboard functionality for all copy buttons
     document.querySelectorAll('.btn-copy').forEach(button => {
         button.addEventListener('click', function() {
@@ -194,6 +286,57 @@
                     this.classList.add('btn-outline-secondary');
                 }, 2000);
             });
+        });
+    });
+    
+    // Edit video
+    document.querySelectorAll('.edit-video').forEach(button => {
+        button.addEventListener('click', function() {
+            const slug = this.dataset.slug;
+            window.location.href = `/video/${slug}`;
+        });
+    });
+    
+    // Delete video
+    document.querySelectorAll('.delete-video').forEach(button => {
+        button.addEventListener('click', function() {
+            const slug = this.dataset.slug;
+            if (confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
+                fetch(`/api/video/${slug}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the video card from the UI
+                        const card = this.closest('.video-card');
+                        card.classList.add('fade-out');
+                        setTimeout(() => {
+                            card.remove();
+                            
+                            // Update video count
+                            const headerCount = document.querySelector('h2.mb-0');
+                            if (headerCount) {
+                                const currentVideos = document.querySelectorAll('.video-card').length;
+                                headerCount.textContent = `All videos (${currentVideos})`;
+                            }
+                            
+                            // Show empty state if no videos left
+                            if (document.querySelectorAll('.video-card').length === 0) {
+                                location.reload();
+                            }
+                        }, 300);
+                        
+                        showAlert('Video deleted successfully', 'success');
+                    } else {
+                        showAlert(`Error: ${data.error}`, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('An error occurred while deleting the video', 'danger');
+                });
+            }
         });
     });
 </script>

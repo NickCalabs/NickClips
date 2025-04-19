@@ -14,85 +14,59 @@
 </div>
 
 <div class="row">
-    <div class="col-md-10 mx-auto">
-        <ul class="nav nav-tabs" id="uploadTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="link-tab" data-bs-toggle="tab" data-bs-target="#link-content" type="button" role="tab" aria-controls="link-content" aria-selected="true">
-                    <i class="fas fa-link me-2"></i>From URL
+    <div class="col-md-10 mx-auto bg-white rounded p-4">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <button class="btn btn-primary rounded-pill" id="upload-btn">
+                <i class="fas fa-upload me-2"></i>Upload video
+            </button>
+            
+            <div class="input-group flex-grow-1">
+                <input type="url" class="form-control" id="url-input" placeholder="Paste a video URL" aria-label="Video URL">
+                <button class="btn btn-outline-primary" type="button" id="paste-url-btn">
+                    <i class="fas fa-paste me-1"></i>Paste URL
                 </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-content" type="button" role="tab" aria-controls="upload-content" aria-selected="false">
+            </div>
+        </div>
+        
+        <div id="upload-container" class="d-none">
+            <div class="upload-area" id="drop-area">
+                <i class="fas fa-cloud-upload-alt mb-3" style="font-size: 3rem;"></i>
+                <h4>Drag and drop your video file here</h4>
+                <p>or</p>
+                <div class="mb-3">
+                    <input class="form-control" type="file" id="file-input" name="file" accept=".mp4,.mov,.avi,.mkv,.webm,.flv,.wmv">
+                </div>
+                <button type="button" id="upload-file-btn" class="btn btn-primary px-4 py-2">
                     <i class="fas fa-upload me-2"></i>Upload Video
                 </button>
-            </li>
-        </ul>
-        
-        <div class="tab-content" id="uploadTabsContent">
-            <!-- URL Tab -->
-            <div class="tab-pane fade show active" id="link-content" role="tabpanel" aria-labelledby="link-tab">
-                <div class="p-4 rounded-bottom" style="background-color: var(--form-bg);">
-                    <form id="download-form">
-                        <div class="mb-3">
-                            <label for="url-input" class="form-label">Video URL</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-link"></i></span>
-                                <input type="url" class="form-control" id="url-input" placeholder="https://youtube.com/watch?v=..." required autofocus>
-                                <button class="btn btn-primary" type="submit">Download</button>
-                            </div>
-                            <div class="form-text">
-                                Enter a URL from YouTube, Twitter, Vimeo, and many other platforms.
-                            </div>
-                        </div>
-                    </form>
-                    
-                    <div id="download-status" class="alert alert-info d-none"></div>
-                    
-                    <div class="mt-4">
-                        <h5>Supported platforms include:</h5>
-                        <div class="d-flex flex-wrap gap-2 mt-3">
-                            <span class="badge text-bg-light border"><i class="fab fa-youtube me-1 text-danger"></i>YouTube</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-twitter me-1 text-info"></i>Twitter</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-vimeo me-1 text-primary"></i>Vimeo</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-facebook me-1 text-primary"></i>Facebook</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-instagram me-1 text-danger"></i>Instagram</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-tiktok me-1"></i>TikTok</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-twitch me-1 text-purple"></i>Twitch</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-reddit me-1 text-danger"></i>Reddit</span>
-                            <span class="badge text-bg-light border"><i class="fas fa-ellipsis-h me-1"></i>Many more...</span>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-muted small mt-3">
+                    Maximum file size: 1GB<br>
+                    Supported formats: MP4, MOV, AVI, MKV, WEBM, FLV, WMV
+                </p>
             </div>
-            
-            <!-- Upload Tab -->
-            <div class="tab-pane fade" id="upload-content" role="tabpanel" aria-labelledby="upload-tab">
-                <div class="p-4 rounded-bottom" style="background-color: var(--form-bg);">
-                    <form id="upload-form" enctype="multipart/form-data">
-                        <div class="upload-area" id="drop-area">
-                            <i class="fas fa-cloud-upload-alt mb-3" style="font-size: 3rem;"></i>
-                            <h4>Drag and drop your video file here</h4>
-                            <p>or</p>
-                            <div class="mb-3">
-                                <input class="form-control" type="file" id="file-input" name="file" accept=".mp4,.mov,.avi,.mkv,.webm,.flv,.wmv">
-                            </div>
-                            <button type="submit" class="btn btn-primary px-4 py-2">
-                                <i class="fas fa-upload me-2"></i>Upload Video
-                            </button>
-                            <p class="text-muted small mt-3">
-                                Maximum file size: 1GB<br>
-                                Supported formats: MP4, MOV, AVI, MKV, WEBM, FLV, WMV
-                            </p>
-                        </div>
-                        
-                        <div id="upload-progress" class="mt-4 d-none">
-                            <div class="progress" style="height: 25px;">
-                                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
-                            </div>
-                            <p id="upload-status" class="text-center mt-2">Uploading...</p>
-                        </div>
-                    </form>
-                </div>
+        </div>
+        
+        <div id="upload-progress" class="mt-4 d-none">
+            <div class="progress" style="height: 25px;">
+                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+            </div>
+            <p id="upload-status" class="text-center mt-2">Uploading...</p>
+        </div>
+        
+        <div id="download-status" class="alert alert-info d-none"></div>
+        
+        <div class="mt-4 d-none" id="platforms-container">
+            <h5>Supported platforms include:</h5>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <span class="badge text-bg-light border"><i class="fab fa-youtube me-1 text-danger"></i>YouTube</span>
+                <span class="badge text-bg-light border"><i class="fab fa-twitter me-1 text-info"></i>Twitter</span>
+                <span class="badge text-bg-light border"><i class="fab fa-vimeo me-1 text-primary"></i>Vimeo</span>
+                <span class="badge text-bg-light border"><i class="fab fa-facebook me-1 text-primary"></i>Facebook</span>
+                <span class="badge text-bg-light border"><i class="fab fa-instagram me-1 text-danger"></i>Instagram</span>
+                <span class="badge text-bg-light border"><i class="fab fa-tiktok me-1"></i>TikTok</span>
+                <span class="badge text-bg-light border"><i class="fab fa-twitch me-1 text-purple"></i>Twitch</span>
+                <span class="badge text-bg-light border"><i class="fab fa-reddit me-1 text-danger"></i>Reddit</span>
+                <span class="badge text-bg-light border"><i class="fas fa-ellipsis-h me-1"></i>Many more...</span>
             </div>
         </div>
     </div>
@@ -131,10 +105,173 @@
 
 {% block scripts %}
 <script>
-    // Drag and drop handling
+    // DOM elements
     const dropArea = document.getElementById('drop-area');
     const fileInput = document.getElementById('file-input');
+    const urlInput = document.getElementById('url-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const pasteUrlBtn = document.getElementById('paste-url-btn');
+    const uploadFileBtn = document.getElementById('upload-file-btn');
+    const uploadContainer = document.getElementById('upload-container');
+    const downloadStatus = document.getElementById('download-status');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressBar = document.getElementById('progress-bar');
+    const uploadStatus = document.getElementById('upload-status');
+    const platformsContainer = document.getElementById('platforms-container');
+
+    // Show/hide upload area
+    uploadBtn.addEventListener('click', function() {
+        uploadContainer.classList.toggle('d-none');
+        if (!uploadContainer.classList.contains('d-none')) {
+            // Focus the file input when showing the upload area
+            fileInput.focus();
+        }
+    });
     
+    // Paste URL button
+    pasteUrlBtn.addEventListener('click', function() {
+        navigator.clipboard.readText()
+            .then(text => {
+                urlInput.value = text;
+                handleUrlSubmit();
+            })
+            .catch(err => {
+                console.error('Failed to read clipboard contents: ', err);
+                showAlert('Please paste the URL manually.', 'warning');
+            });
+    });
+    
+    // URL input for auto-submission
+    urlInput.addEventListener('paste', function(e) {
+        // Wait a moment to get the pasted content
+        setTimeout(() => {
+            if (urlInput.value.trim()) {
+                handleUrlSubmit();
+            }
+        }, 100);
+    });
+    
+    // Handle URL input changes
+    urlInput.addEventListener('input', function() {
+        // If URL field is not empty, show the platforms container
+        if (urlInput.value.trim()) {
+            platformsContainer.classList.remove('d-none');
+        } else {
+            platformsContainer.classList.add('d-none');
+        }
+    });
+    
+    // Handle URL submission
+    urlInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && urlInput.value.trim()) {
+            e.preventDefault();
+            handleUrlSubmit();
+        }
+    });
+    
+    function handleUrlSubmit() {
+        const url = urlInput.value.trim();
+        if (!url) return;
+        
+        // Show download status
+        downloadStatus.classList.remove('d-none');
+        downloadStatus.classList.remove('alert-danger');
+        downloadStatus.classList.add('alert-info');
+        downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Validating URL...</div>';
+        
+        // Call API to download video from URL
+        fetch('/api/download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: url })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                downloadStatus.classList.remove('alert-info');
+                downloadStatus.classList.add('alert-success');
+                downloadStatus.innerHTML = `<strong>Success!</strong> Video is being downloaded and processed. <a href="/video/${data.slug}" class="alert-link">View video page</a>`;
+                urlInput.value = '';
+            } else {
+                downloadStatus.classList.remove('alert-info');
+                downloadStatus.classList.add('alert-danger');
+                downloadStatus.textContent = `Error: ${data.error}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            downloadStatus.classList.remove('alert-info');
+            downloadStatus.classList.add('alert-danger');
+            downloadStatus.textContent = 'An error occurred while processing your request.';
+        });
+    }
+    
+    // File upload handling
+    uploadFileBtn.addEventListener('click', function() {
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showAlert('Please select a file to upload.', 'warning');
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Show upload progress
+        uploadProgress.classList.remove('d-none');
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', 0);
+        uploadStatus.textContent = 'Uploading...';
+        
+        // Upload the file
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload', true);
+        
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percentComplete = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percentComplete + '%';
+                progressBar.setAttribute('aria-valuenow', percentComplete);
+                uploadStatus.textContent = `Uploading: ${percentComplete}%`;
+            }
+        };
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    uploadStatus.textContent = 'Upload complete!';
+                    progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                    progressBar.classList.add('bg-success');
+                    
+                    // Redirect to video page after a short delay
+                    setTimeout(() => {
+                        window.location.href = `/video/${response.slug}`;
+                    }, 1000);
+                } else {
+                    uploadStatus.textContent = `Error: ${response.error}`;
+                    progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                    progressBar.classList.add('bg-danger');
+                }
+            } else {
+                uploadStatus.textContent = 'Upload failed.';
+                progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                progressBar.classList.add('bg-danger');
+            }
+        };
+        
+        xhr.onerror = function() {
+            uploadStatus.textContent = 'Upload failed.';
+            progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+            progressBar.classList.add('bg-danger');
+        };
+        
+        xhr.send(formData);
+    });
+    
+    // Drag and drop handling
     if (dropArea && fileInput) {
         // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -180,6 +317,24 @@
                 }
             }
         }
+    }
+    
+    // Helper function to show alerts
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('alerts-container');
+        const alertEl = document.createElement('div');
+        alertEl.className = `alert alert-${type} alert-dismissible fade show`;
+        alertEl.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        alertContainer.appendChild(alertEl);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            alertEl.classList.remove('show');
+            setTimeout(() => alertEl.remove(), 300);
+        }, 5000);
     }
 </script>
 {% endblock %}
