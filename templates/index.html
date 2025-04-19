@@ -181,7 +181,11 @@
         downloadStatus.classList.remove('d-none');
         downloadStatus.classList.remove('alert-danger');
         downloadStatus.classList.add('alert-info');
-        downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Validating URL...</div>';
+        downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Validating and downloading URL...</div>';
+        
+        // Disable the button
+        downloadUrlBtn.disabled = true;
+        downloadUrlBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
         
         // Call API to download video from URL
         fetch('/api/download', {
@@ -193,15 +197,17 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                downloadStatus.classList.remove('alert-info');
-                downloadStatus.classList.add('alert-success');
-                downloadStatus.innerHTML = `<strong>Success!</strong> Video is being downloaded and processed. <a href="/video/${data.slug}" class="alert-link">View video page</a>`;
-                urlInput.value = '';
-            } else {
+            if (data.error) {
                 downloadStatus.classList.remove('alert-info');
                 downloadStatus.classList.add('alert-danger');
-                downloadStatus.textContent = `Error: ${data.error}`;
+                downloadStatus.textContent = data.error || 'An error occurred';
+                
+                // Re-enable the button
+                downloadUrlBtn.disabled = false;
+                downloadUrlBtn.textContent = 'Download';
+            } else {
+                // Success - redirect to dashboard instead of showing error
+                window.location.href = '/dashboard';
             }
         })
         .catch(error => {
@@ -209,6 +215,10 @@
             downloadStatus.classList.remove('alert-info');
             downloadStatus.classList.add('alert-danger');
             downloadStatus.textContent = 'An error occurred while processing your request.';
+            
+            // Re-enable the button
+            downloadUrlBtn.disabled = false;
+            downloadUrlBtn.textContent = 'Download';
         });
     }
     
