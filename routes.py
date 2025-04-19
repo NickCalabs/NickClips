@@ -5,7 +5,7 @@ import datetime
 import logging
 from flask import request, render_template, redirect, url_for, jsonify, flash, send_from_directory
 from werkzeug.utils import secure_filename
-from app import db
+from app import db, csrf
 from models import User, Video, ProcessingQueue
 from downloader import validate_url, queue_download
 import video_processor
@@ -43,6 +43,7 @@ def register_routes(app):
         return redirect(url_for('login'))
     
     @app.route('/api/upload', methods=['POST'])
+    @csrf.exempt
     def upload_file():
         """Handle direct file upload"""
         try:
@@ -109,6 +110,7 @@ def register_routes(app):
             return jsonify({'error': 'Server error occurred during upload'}), 500
     
     @app.route('/api/download', methods=['POST'])
+    @csrf.exempt
     def download_video():
         """Handle video download from URL"""
         try:
@@ -164,12 +166,14 @@ def register_routes(app):
         return render_template('video.html', video=video)
     
     @app.route('/api/video/<slug>')
+    @csrf.exempt
     def get_video_status(slug):
         """API endpoint to check video processing status"""
         video = Video.query.filter_by(slug=slug).first_or_404()
         return jsonify(video.to_dict())
     
     @app.route('/api/video/<slug>/update', methods=['POST'])
+    @csrf.exempt
     @login_required
     def update_video(slug):
         """API endpoint to update video title and description"""
@@ -190,6 +194,7 @@ def register_routes(app):
         return jsonify({'success': True, 'video': video.to_dict()})
     
     @app.route('/api/video/<slug>', methods=['DELETE'])
+    @csrf.exempt
     @login_required
     def delete_video(slug):
         """API endpoint to delete a video"""
