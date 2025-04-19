@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (videoSourceMp4) {
             initializeNativePlayer(videoSourceMp4);
         }
+        
+        // Update the volume icon based on muted state (now unmuted by default)
+        setTimeout(() => {
+            const volumeBtn = document.querySelector('.volume-btn');
+            if (volumeBtn) {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        }, 500);
     }
     
     /**
@@ -399,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
         video.className = 'streamable-player';
         video.controls = false; // We'll use custom controls
         video.autoplay = true; // Enable autoplay
-        video.muted = true; // Muted by default to allow autoplay
+        video.muted = false; // Unmuted by default
         video.preload = 'auto';
         video.playsInline = true; // Better mobile support
         video.crossOrigin = 'anonymous'; // Allow CORS
@@ -541,6 +549,14 @@ document.addEventListener('DOMContentLoaded', function() {
         bufferingIndicator.className = 'buffering-indicator d-none position-absolute top-50 start-50 translate-middle';
         bufferingIndicator.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>';
         videoContainer.appendChild(bufferingIndicator);
+        
+        // Update volume button display to reflect unmuted state
+        video.addEventListener('loadedmetadata', function() {
+            if (!video.muted) {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                volumeLevel.style.width = (video.volume * 100) + '%';
+            }
+        });
         
         // Control event listeners
         playPauseBtn.addEventListener('click', function() {
