@@ -24,15 +24,112 @@ document.addEventListener('DOMContentLoaded', function() {
      * Initialize HLS.js player for adaptive streaming
      */
     function initializeHlsPlayer(sourceUrl) {
+        // Create custom player container
         const video = document.createElement('video');
         video.id = 'video-player';
-        video.className = 'video-js vjs-default-skin vjs-big-play-centered';
-        video.controls = true;
-        video.autoplay = false;
+        video.className = 'streamable-player';
+        video.controls = false; // We'll create custom controls
+        video.autoplay = true; // Enable autoplay
+        video.muted = true; // Muted by default to allow autoplay
         video.preload = 'auto';
         video.playsInline = true; // Better mobile support
         
         videoContainer.appendChild(video);
+        
+        // Create custom controls
+        const controls = document.createElement('div');
+        controls.className = 'video-player-controls';
+        
+        // Create progress bar
+        const progressBar = document.createElement('div');
+        progressBar.className = 'video-progress-bar';
+        const progressValue = document.createElement('div');
+        progressValue.className = 'video-progress-value';
+        progressBar.appendChild(progressValue);
+        
+        // Create play/pause button
+        const playPauseBtn = document.createElement('button');
+        playPauseBtn.className = 'custom-video-control play-pause-btn';
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        
+        // Create time display
+        const timeDisplay = document.createElement('span');
+        timeDisplay.className = 'time-display';
+        timeDisplay.textContent = '0:00 / 0:00';
+        
+        // Create volume button
+        const volumeBtn = document.createElement('button');
+        volumeBtn.className = 'custom-video-control volume-btn';
+        volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        
+        // Create fullscreen button
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'custom-video-control video-fullscreen-btn';
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        
+        // Add controls to container
+        controls.appendChild(playPauseBtn);
+        controls.appendChild(timeDisplay);
+        controls.appendChild(volumeBtn);
+        controls.appendChild(fullscreenBtn);
+        
+        videoContainer.appendChild(progressBar);
+        videoContainer.appendChild(controls);
+        
+        // Control event listeners
+        playPauseBtn.addEventListener('click', function() {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                video.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+        
+        volumeBtn.addEventListener('click', function() {
+            video.muted = !video.muted;
+            if (video.muted) {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        });
+        
+        fullscreenBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                document.exitFullscreen();
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        });
+        
+        // Progress bar update
+        video.addEventListener('timeupdate', function() {
+            if (video.duration) {
+                const progress = (video.currentTime / video.duration) * 100;
+                progressValue.style.width = `${progress}%`;
+                
+                // Update time display
+                const currentMinutes = Math.floor(video.currentTime / 60);
+                const currentSeconds = Math.floor(video.currentTime % 60);
+                const durationMinutes = Math.floor(video.duration / 60);
+                const durationSeconds = Math.floor(video.duration % 60);
+                
+                timeDisplay.textContent = `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds} / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+            }
+        });
+        
+        // Progress bar click handling
+        progressBar.addEventListener('click', function(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        });
         
         // Check if HLS.js is supported
         if (Hls.isSupported()) {
@@ -57,6 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             hls.on(Hls.Events.MANIFEST_PARSED, function() {
                 console.log('HLS manifest parsed, ready to play');
+                video.play().catch(error => {
+                    console.log('Autoplay prevented by browser, waiting for user interaction');
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                });
             });
             
             hls.on(Hls.Events.ERROR, function(event, data) {
@@ -104,15 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
      * Initialize native HTML5 video player
      */
     function initializeNativePlayer(sourceUrl) {
+        // Create custom player container similar to HLS player
         const video = document.createElement('video');
         video.id = 'video-player';
-        video.className = 'w-100';
-        video.controls = true;
-        video.autoplay = false;
-        video.preload = 'auto'; // Changed from 'metadata' to 'auto' for better buffering
+        video.className = 'streamable-player';
+        video.controls = false; // We'll use custom controls
+        video.autoplay = true; // Enable autoplay
+        video.muted = true; // Muted by default to allow autoplay
+        video.preload = 'auto';
         video.playsInline = true; // Better mobile support
         video.crossOrigin = 'anonymous'; // Allow CORS
-        video.style.maxHeight = '80vh';
         
         const source = document.createElement('source');
         source.src = sourceUrl;
@@ -121,11 +223,106 @@ document.addEventListener('DOMContentLoaded', function() {
         video.appendChild(source);
         videoContainer.appendChild(video);
         
+        // Create custom controls
+        const controls = document.createElement('div');
+        controls.className = 'video-player-controls';
+        
+        // Create progress bar
+        const progressBar = document.createElement('div');
+        progressBar.className = 'video-progress-bar';
+        const progressValue = document.createElement('div');
+        progressValue.className = 'video-progress-value';
+        progressBar.appendChild(progressValue);
+        
+        // Create play/pause button
+        const playPauseBtn = document.createElement('button');
+        playPauseBtn.className = 'custom-video-control play-pause-btn';
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        
+        // Create time display
+        const timeDisplay = document.createElement('span');
+        timeDisplay.className = 'time-display';
+        timeDisplay.textContent = '0:00 / 0:00';
+        
+        // Create volume button
+        const volumeBtn = document.createElement('button');
+        volumeBtn.className = 'custom-video-control volume-btn';
+        volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        
+        // Create fullscreen button
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'custom-video-control video-fullscreen-btn';
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        
+        // Add controls to container
+        controls.appendChild(playPauseBtn);
+        controls.appendChild(timeDisplay);
+        controls.appendChild(volumeBtn);
+        controls.appendChild(fullscreenBtn);
+        
+        videoContainer.appendChild(progressBar);
+        videoContainer.appendChild(controls);
+        
         // Add buffering indicator
         const bufferingIndicator = document.createElement('div');
         bufferingIndicator.className = 'buffering-indicator d-none position-absolute top-50 start-50 translate-middle';
         bufferingIndicator.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>';
         videoContainer.appendChild(bufferingIndicator);
+        
+        // Control event listeners
+        playPauseBtn.addEventListener('click', function() {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                video.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+        
+        volumeBtn.addEventListener('click', function() {
+            video.muted = !video.muted;
+            if (video.muted) {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        });
+        
+        fullscreenBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                document.exitFullscreen();
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        });
+        
+        // Progress bar update
+        video.addEventListener('timeupdate', function() {
+            if (video.duration) {
+                const progress = (video.currentTime / video.duration) * 100;
+                progressValue.style.width = `${progress}%`;
+                
+                // Update time display
+                const currentMinutes = Math.floor(video.currentTime / 60);
+                const currentSeconds = Math.floor(video.currentTime % 60);
+                const durationMinutes = Math.floor(video.duration / 60);
+                const durationSeconds = Math.floor(video.duration % 60);
+                
+                timeDisplay.textContent = `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds} / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+            }
+        });
+        
+        // Progress bar click handling
+        progressBar.addEventListener('click', function(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        });
         
         // Show buffering indicator when waiting for data
         video.addEventListener('waiting', function() {
@@ -135,6 +332,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide buffering indicator when playing
         video.addEventListener('playing', function() {
             bufferingIndicator.classList.add('d-none');
+        });
+        
+        // Start playing when loaded
+        video.addEventListener('loadedmetadata', function() {
+            video.play().catch(error => {
+                console.log('Autoplay prevented by browser, waiting for user interaction');
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            });
         });
         
         // Error handling

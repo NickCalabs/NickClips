@@ -45,8 +45,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-10 mx-auto">
+<!-- Full-width video section with dark background -->
+<div class="video-main-container bg-dark py-2">
+    <div class="container-fluid">
         <!-- Video status alert for pending/processing videos -->
         <div id="video-status" class="video-status">
             {% if video.status == 'pending' %}
@@ -72,7 +73,7 @@
             {% endif %}
         </div>
         
-        <!-- Video player container -->
+        <!-- Video player container - fullscreen width -->
         <div id="video-container" 
             data-slug="{{ video.slug }}" 
             data-status="{{ video.status }}"
@@ -81,7 +82,7 @@
             {% if video.hls_path %}data-hls-source="/uploads/{{ video.hls_path }}"{% endif %}
             {% if video.processed_path %}data-mp4-source="/uploads/{{ video.processed_path }}"{% endif %}
             {% endif %}
-            class="video-player-container mb-4">
+            class="video-player-container mb-0 mx-auto" style="max-width: 1200px;">
             
             {% if video.status == 'completed' %}
                 <!-- Video player will be inserted here by JavaScript -->
@@ -110,49 +111,56 @@
             {% endif %}
         </div>
         
-        <!-- Video information -->
-        <div class="video-info">
-            <h1 class="video-title">{{ video.title or 'Untitled Video' }}</h1>
-            
-            <div class="video-metadata d-flex flex-wrap gap-3 mb-3">
-                <span><i class="fas fa-eye me-1"></i> {{ video.views }} views</span>
-                <span><i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }}</span>
-                {% if video.duration %}
-                <span><i class="fas fa-clock me-1"></i> {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
+    </div>
+</div>
+
+<!-- Video information in standard container -->
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="video-info">
+                <h1 class="video-title mb-2">{{ video.title or 'Untitled Video' }}</h1>
+                
+                <div class="video-metadata d-flex flex-wrap gap-3 mb-3">
+                    <span><i class="fas fa-eye me-1"></i> {{ video.views }} views</span>
+                    <span><i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }}</span>
+                    {% if video.duration %}
+                    <span><i class="fas fa-clock me-1"></i> {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
+                    {% endif %}
+                </div>
+                
+                {% if video.description %}
+                <div class="video-description mb-4">
+                    {{ video.description }}
+                </div>
                 {% endif %}
-            </div>
-            
-            {% if video.description %}
-            <div class="video-description">
-                {{ video.description }}
-            </div>
-            {% endif %}
-            
-            <!-- Share section -->
-            <div class="share-section">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5><i class="fas fa-share-alt me-2"></i>Share this video</h5>
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" value="{{ request.url }}" readonly>
-                            <button class="btn btn-outline-secondary" type="button" id="copy-link-btn">
-                                <i class="fas fa-copy me-1"></i> Copy
-                            </button>
+                
+                <!-- Share section -->
+                <div class="share-section pt-3 border-top">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-share-alt me-2"></i>Share this video</h5>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" value="{{ request.url }}" readonly>
+                                <button class="btn btn-outline-secondary" type="button" id="copy-link-btn">
+                                    <i class="fas fa-copy me-1"></i> Copy
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <h5><i class="fas fa-download me-2"></i>Download</h5>
-                        {% if video.status == 'completed' and video.processed_path %}
-                        <a href="/uploads/{{ video.processed_path }}" class="btn btn-primary" download>
-                            <i class="fas fa-download me-1"></i> Download MP4
-                        </a>
-                        {% else %}
-                        <button class="btn btn-primary" disabled>
-                            <i class="fas fa-download me-1"></i> Download MP4
-                        </button>
-                        <small class="d-block mt-1 text-muted">Available after processing</small>
-                        {% endif %}
+                        
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-download me-2"></i>Download</h5>
+                            {% if video.status == 'completed' and video.processed_path %}
+                            <a href="/uploads/{{ video.processed_path }}" class="btn btn-primary" download>
+                                <i class="fas fa-download me-1"></i> Download MP4
+                            </a>
+                            {% else %}
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-download me-1"></i> Download MP4
+                            </button>
+                            <small class="d-block mt-1 text-muted">Available after processing</small>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
