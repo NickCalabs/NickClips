@@ -300,9 +300,10 @@ def register_routes(app):
     @login_required
     def profile():
         """User profile and settings page"""
-        from forms import ChangePasswordForm
-        form = ChangePasswordForm()
-        return render_template('profile.html', form=form)
+        from forms import ChangePasswordForm, ThemePreferenceForm
+        password_form = ChangePasswordForm()
+        theme_form = ThemePreferenceForm()
+        return render_template('profile.html', form=password_form, theme_form=theme_form)
     
     @app.route('/profile/change-password', methods=['POST'])
     @login_required
@@ -328,3 +329,23 @@ def register_routes(app):
                 for error in errors:
                     flash(f'{getattr(form, field).label.text}: {error}', 'danger')
             return redirect(url_for('profile', _anchor='security-section'))
+            
+    @app.route('/profile/update-theme', methods=['POST'])
+    @login_required
+    def update_theme():
+        """Update theme preference"""
+        from forms import ThemePreferenceForm
+        form = ThemePreferenceForm()
+        
+        if form.validate_on_submit():
+            theme_preference = form.theme.data
+            # Note: In a real application, we would save this to the user's preferences in the database
+            # For now, we'll just use local storage which is updated via JavaScript
+            
+            flash('Theme preferences saved successfully.', 'success')
+            return redirect(url_for('profile', _anchor='appearance-section'))
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'{getattr(form, field).label.text}: {error}', 'danger')
+            return redirect(url_for('profile', _anchor='appearance-section'))

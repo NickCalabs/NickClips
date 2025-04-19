@@ -7,9 +7,18 @@
 
 body {
     padding-bottom: 40px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Theme specific styles - will be applied based on data-bs-theme attribute */
+html[data-bs-theme="light"] body {
     color: #333;
     background-color: #f4f4f4;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html[data-bs-theme="dark"] body {
+    color: #e5e5e5;
+    background-color: #121212;
 }
 
 .video-thumbnail {
@@ -123,9 +132,17 @@ body {
 /* HLS video container position */
 /* Streamable-like player styles */
 .video-main-container {
+    padding: 0;
+}
+
+html[data-bs-theme="light"] .video-main-container {
     background-color: #f8f9fa;
     color: #212529;
-    padding: 0;
+}
+
+html[data-bs-theme="dark"] .video-main-container {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
 }
 
 #video-container {
