@@ -515,6 +515,11 @@
         button.addEventListener('click', function() {
             currentVideoSlug = this.dataset.slug;
             updateEmbedCode();
+            
+            // Set modal theme based on current page theme
+            const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            document.getElementById('embedModal').setAttribute('data-bs-theme', isDarkMode ? 'dark' : 'light');
+            
             embedModal.show();
         });
     });
