@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Upload the file
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload', true);
+            xhr.open('POST', '/api/upload', true);
             
             xhr.upload.onprogress = function(e) {
                 if (e.lengthComputable) {
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
             
             // Send the request
-            fetch('/download', {
+            fetch('/api/download', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -234,8 +234,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
                 const videoSlug = this.dataset.slug;
                 
-                fetch(`/api/video/${videoSlug}/delete`, {
-                    method: 'POST'
+                fetch(`/api/video/${videoSlug}`, {
+                    method: 'DELETE'
                 })
                 .then(response => response.json())
                 .then(data => {

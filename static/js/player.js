@@ -768,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (videoStatus !== 'completed' && videoStatus !== 'failed') {
         console.log('Video still processing, starting status polling');
         const pollInterval = setInterval(function() {
-            fetch(`/api/videos/${videoSlug}/status`)
+            fetch(`/api/video/${videoSlug}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'completed') {
