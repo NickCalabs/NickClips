@@ -129,11 +129,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoSlug = videoContainer ? videoContainer.dataset.slug : null;
     
     if (videoSlug && videoStatus) {
+        // Check if the video is already completed to avoid unnecessary polling
+        if (videoContainer.dataset.status === 'completed') {
+            // Video is already processed, don't need to poll
+            console.log('Video already processed, no polling needed');
+            return;
+        }
+        
         // Poll for video status updates
         let pollInterval = setInterval(function() {
             fetch(`/api/video/${videoSlug}`)
                 .then(response => response.json())
                 .then(data => {
+                    // Update status display
                     updateVideoStatus(data);
                     
                     // If video is completed, stop polling and update UI
@@ -143,9 +151,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Update UI without reloading the page
                         videoStatus.innerHTML = `<div class="alert alert-success">Processing complete!</div>`;
                         
-                        // Update the video container with player
-                        const videoContainer = document.getElementById('video-container');
-                        if (videoContainer) {
+                        // Don't reload the page - just update the player
+                        if (!videoContainer.querySelector('video')) {
                             // Set the necessary data attributes
                             videoContainer.dataset.status = 'completed';
                             videoContainer.dataset.playerType = data.hls_path ? 'hls' : 'native';
@@ -158,14 +165,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                 videoContainer.dataset.mp4Source = `/uploads/${data.processed_path}`;
                             }
                             
-                            // Initialize the appropriate player
-                            if (typeof initializeHlsPlayer === 'function' && data.hls_path) {
-                                initializeHlsPlayer(`/uploads/${data.hls_path}`);
-                            } else if (typeof initializeNativePlayer === 'function' && data.processed_path) {
-                                initializeNativePlayer(`/uploads/${data.processed_path}`);
-                            } else {
-                                // If player.js functions aren't available, reload the page as fallback
-                                location.reload();
+                            try {
+                                // Initialize the appropriate player
+                                if (typeof initializeHlsPlayer === 'function' && data.hls_path) {
+                                    console.log('Initializing HLS player without page reload');
+                                    initializeHlsPlayer(`/uploads/${data.hls_path}`);
+                                } else if (typeof initializeNativePlayer === 'function' && data.processed_path) {
+                                    console.log('Initializing native player without page reload');
+                                    initializeNativePlayer(`/uploads/${data.processed_path}`);
+                                }
+                            } catch (e) {
+                                console.error('Error initializing player:', e);
+                                // Don't reload the page, just show an error
+                                videoStatus.innerHTML += `<div class="alert alert-warning">Error initializing player. Please refresh the page.</div>`;
                             }
                         }
                     } else if (data.status === 'failed') {

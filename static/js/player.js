@@ -10,8 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoSourceHls = videoContainer.dataset.hlsSource;
     const videoSourceMp4 = videoContainer.dataset.mp4Source;
     
-    // Only initialize player if video is completed
-    if (videoStatus === 'completed') {
+    // Initialize player if video is completed and player hasn't been loaded yet
+    if (videoStatus === 'completed' && !videoContainer.querySelector('video')) {
+        console.log('Initializing player for completed video');
         if (playerType === 'hls' && videoSourceHls) {
             initializeHlsPlayer(videoSourceHls);
         } else if (videoSourceMp4) {
