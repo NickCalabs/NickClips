@@ -1,4 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Apply theme from localStorage
+    applyTheme();
+    
+    // Theme handling function
+    function applyTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme === 'dark' || (savedTheme === 'auto' && prefersDark)) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+        }
+    }
+    
+    // Listen for system theme changes if auto is selected
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (localStorage.getItem('theme') === 'auto') {
+            applyTheme();
+        }
+    });
     // File upload form handling
     const uploadForm = document.getElementById('upload-form');
     const uploadProgress = document.getElementById('upload-progress');

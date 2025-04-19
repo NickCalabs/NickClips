@@ -36,6 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         videoContainer.appendChild(video);
         
+        // Create wrapper for controls and progress bar
+        const controlWrapper = document.createElement('div');
+        controlWrapper.className = 'video-control-wrapper';
+        
         // Create custom controls
         const controls = document.createElement('div');
         controls.className = 'video-player-controls';
@@ -379,6 +383,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         video.appendChild(source);
         videoContainer.appendChild(video);
+        
+        // Create wrapper for controls and progress bar
+        const controlWrapper = document.createElement('div');
+        controlWrapper.className = 'video-control-wrapper';
         
         // Create custom controls
         const controls = document.createElement('div');
