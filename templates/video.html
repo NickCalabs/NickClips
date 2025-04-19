@@ -124,7 +124,7 @@
             <div class="video-info pt-3">
                 <h1 class="video-title h2 mb-1" style="font-size: 1.5rem; font-weight: 500;">{{ video.title or 'Untitled Video' }}</h1>
                 
-                <div class="video-metadata d-flex flex-wrap gap-3 mb-3" style="color: var(--bs-secondary-color) !important; font-size: 0.85rem;">
+                <div class="video-metadata d-flex flex-wrap gap-3 mb-3" style="font-size: 0.85rem;">
                     <span><i class="fas fa-eye me-1"></i>{{ video.views }} views</span>
                     <span><i class="fas fa-calendar me-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</span>
                     {% if video.duration %}
@@ -196,8 +196,8 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/player.js') }}"></script>
 <script>
-    // Read more/less functionality for video description
     document.addEventListener('DOMContentLoaded', function() {
+        // Read more/less functionality for video description
         const readMoreBtn = document.getElementById('read-more-btn');
         const readLessBtn = document.getElementById('read-less-btn');
         const descPreview = document.getElementById('description-preview');
@@ -216,6 +216,27 @@
                 descFull.classList.add('d-none');
                 readMoreBtn.classList.remove('d-none');
                 readLessBtn.classList.add('d-none');
+            });
+        }
+        
+        // Copy link button functionality
+        const copyLinkBtn = document.getElementById('copy-link-btn');
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', function() {
+                const linkInput = this.closest('.input-group').querySelector('input');
+                navigator.clipboard.writeText(linkInput.value).then(() => {
+                    // Visual feedback
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+                    this.classList.add('btn-success');
+                    this.classList.remove('btn-outline-secondary');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-secondary');
+                    }, 2000);
+                });
             });
         }
     });
