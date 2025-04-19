@@ -3,22 +3,23 @@
 {% block title %}Dashboard - Video Share{% endblock %}
 
 {% block content %}
-<div class="dashboard-header bg-white p-4 rounded-3 shadow-sm mb-4">
+<div class="dashboard-top-bar bg-white p-3 rounded-3 shadow-sm mb-3">
     <div class="d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">All videos ({{ videos|length }})</h2>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary rounded-pill" id="upload-btn">
-                <i class="fas fa-upload me-2"></i>Upload video
+        <button class="btn btn-primary" id="upload-btn" style="border-radius: 4px;">
+            <i class="fas fa-upload me-2"></i>Upload video
+        </button>
+        
+        <div class="input-group" style="width: 60%; max-width: 650px;">
+            <input type="url" class="form-control" id="dashboard-url-input" placeholder="Paste a video URL" aria-label="Video URL">
+            <button class="btn btn-outline-primary" type="button" id="dashboard-paste-url-btn" style="border-radius: 0 4px 4px 0;">
+                <i class="fas fa-paste me-1"></i>Paste URL
             </button>
-            
-            <div class="input-group" style="width: 350px;">
-                <input type="url" class="form-control" id="dashboard-url-input" placeholder="Paste a video URL" aria-label="Video URL">
-                <button class="btn btn-outline-primary" type="button" id="dashboard-paste-url-btn">
-                    <i class="fas fa-paste me-1"></i>Paste URL
-                </button>
-            </div>
         </div>
     </div>
+</div>
+
+<div class="videos-header mb-3 ps-1">
+    <h6 class="text-muted mb-2">All videos ({{ videos|length }})</h6>
 </div>
 
 <!-- URL Paste Modal -->
@@ -42,6 +43,88 @@
                     <button type="submit" class="btn btn-primary">Download Video</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Embed Modal -->
+<div class="modal fade" id="embedModal" tabindex="-1" aria-labelledby="embedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="embedModalLabel">Embed Video</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="embed-code" class="form-label">Embed Code</label>
+                    <textarea class="form-control font-monospace" id="embed-code" rows="4" readonly></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex mb-2">
+                        <div class="form-check me-3">
+                            <input class="form-check-input embed-type-radio" type="radio" name="embedType" id="embedResponsive" value="responsive" checked>
+                            <label class="form-check-label" for="embedResponsive">
+                                Responsive
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input embed-type-radio" type="radio" name="embedType" id="embedFixed" value="fixed">
+                            <label class="form-check-label" for="embedFixed">
+                                Fixed Size
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="fixedSizeOptions" class="d-none">
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label for="embed-width" class="form-label small">Width</label>
+                                <input type="number" class="form-control form-control-sm" id="embed-width" value="560">
+                            </div>
+                            <div class="col-6">
+                                <label for="embed-height" class="form-label small">Height</label>
+                                <input type="number" class="form-control form-control-sm" id="embed-height" value="315">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="embed-options">
+                    <h6 class="mb-2">Embed Options</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input embed-option" type="checkbox" id="embedAutoplay">
+                        <label class="form-check-label" for="embedAutoplay">
+                            Autoplay
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input embed-option" type="checkbox" id="embedLoop">
+                        <label class="form-check-label" for="embedLoop">
+                            Loop Video
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input embed-option" type="checkbox" id="embedMute">
+                        <label class="form-check-label" for="embedMute">
+                            Mute Audio
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input embed-option" type="checkbox" id="embedControls" checked>
+                        <label class="form-check-label" for="embedControls">
+                            Show Player Controls
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="copy-embed-code">
+                    <i class="fas fa-clipboard me-1"></i>Copy Code
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -130,27 +213,28 @@
                             
                             <div class="mt-auto">
                                 <div class="share-link-container mb-3">
-                                    <a href="{{ url_for('view_video', slug=video.slug, _external=True) }}" class="text-primary small video-link" target="_blank">
+                                    <a href="{{ url_for('view_video', slug=video.slug, _external=True) }}" class="text-primary small video-link" target="_blank" style="max-width: 150px; font-size: 12px;">
                                         {{ url_for('view_video', slug=video.slug, _external=True) }}
                                     </a>
-                                    <button class="btn btn-sm btn-light btn-copy ms-2" type="button" 
-                                            data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
-                                        <i class="fas fa-clipboard me-1"></i>Copy Link
+                                    <button class="btn btn-sm btn-light btn-copy ms-1" type="button" 
+                                            data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}"
+                                            style="font-size: 11px; padding: 2px 6px;">
+                                        <i class="fas fa-clipboard me-1"></i>Copy
                                     </button>
                                 </div>
                                 
-                                <div class="d-flex flex-wrap gap-2">
-                                    <a href="{{ url_for('view_video', slug=video.slug) }}" class="btn btn-sm btn-primary">
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a href="{{ url_for('view_video', slug=video.slug) }}" class="btn btn-sm btn-primary" style="font-size: 11px; padding: 2px 6px;">
                                         <i class="fas fa-play me-1"></i> Watch
                                     </a>
-                                    <button class="btn btn-sm btn-outline-secondary btn-embed" data-slug="{{ video.slug }}">
+                                    <button class="btn btn-sm btn-outline-secondary btn-embed" data-slug="{{ video.slug }}" style="font-size: 11px; padding: 2px 6px;">
                                         <i class="fas fa-code me-1"></i> Embed
                                     </button>
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" style="font-size: 11px; padding: 2px 6px;">
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
-                                        <ul class="dropdown-menu">
+                                        <ul class="dropdown-menu dropdown-menu-end">
                                             <li><button class="dropdown-item edit-video-page" data-slug="{{ video.slug }}">
                                                 <i class="fas fa-edit me-2"></i>Edit Details
                                             </button></li>
@@ -375,8 +459,8 @@
         }
         
         // Update the title via API
-        fetch(`/api/video/${slug}`, {
-            method: 'PUT',
+        fetch(`/api/video/${slug}/update`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
