@@ -300,34 +300,31 @@ def register_routes(app):
     @login_required
     def profile():
         """User profile and settings page"""
-        return render_template('profile.html')
+        from forms import ChangePasswordForm
+        form = ChangePasswordForm()
+        return render_template('profile.html', form=form)
     
     @app.route('/profile/change-password', methods=['POST'])
     @login_required
     def change_password():
         """Change user password"""
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
+        from forms import ChangePasswordForm
+        form = ChangePasswordForm()
         
-        # Validate current password
-        if not current_user.check_password(current_password):
-            flash('Current password is incorrect.', 'danger')
+        if form.validate_on_submit():
+            # Validate current password
+            if not current_user.check_password(form.current_password.data):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('profile', _anchor='security-section'))
+            
+            # Update password
+            current_user.set_password(form.new_password.data)
+            db.session.commit()
+            
+            flash('Password updated successfully.', 'success')
             return redirect(url_for('profile', _anchor='security-section'))
-        
-        # Validate new password
-        if len(new_password) < 8:
-            flash('Password must be at least 8 characters long.', 'danger')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'{getattr(form, field).label.text}: {error}', 'danger')
             return redirect(url_for('profile', _anchor='security-section'))
-        
-        # Confirm passwords match
-        if new_password != confirm_password:
-            flash('Passwords do not match.', 'danger')
-            return redirect(url_for('profile', _anchor='security-section'))
-        
-        # Update password
-        current_user.set_password(new_password)
-        db.session.commit()
-        
-        flash('Password updated successfully.', 'success')
-        return redirect(url_for('profile', _anchor='security-section'))
