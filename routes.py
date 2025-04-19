@@ -42,7 +42,7 @@ def register_routes(app):
             return render_template('dashboard.html', videos=videos)
         return redirect(url_for('login'))
     
-    @app.route('/upload', methods=['POST'])
+    @app.route('/api/upload', methods=['POST'])
     def upload_file():
         """Handle direct file upload"""
         try:
@@ -108,7 +108,7 @@ def register_routes(app):
             logger.error(f"Unexpected error in upload_file: {e}")
             return jsonify({'error': 'Server error occurred during upload'}), 500
     
-    @app.route('/download', methods=['POST'])
+    @app.route('/api/download', methods=['POST'])
     def download_video():
         """Handle video download from URL"""
         try:
@@ -189,7 +189,7 @@ def register_routes(app):
         db.session.commit()
         return jsonify({'success': True, 'video': video.to_dict()})
     
-    @app.route('/api/video/<slug>/delete', methods=['POST'])
+    @app.route('/api/video/<slug>', methods=['DELETE'])
     @login_required
     def delete_video(slug):
         """API endpoint to delete a video"""
