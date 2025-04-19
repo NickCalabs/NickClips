@@ -15,7 +15,7 @@ html[data-bs-theme="light"] {
     --card-bg: #ffffff;
     --card-header-bg: #f8f9fa;
     --body-bg: #ffffff;
-    --text-color: #333;
+    --text-color: #333333;
     --border-color: rgba(0, 0, 0, 0.125);
     --navbar-bg: #ffffff;
     --nav-panel-bg: #ffffff;
@@ -27,6 +27,50 @@ html[data-bs-theme="light"] {
     --accent-color: #1e88e5;
     --form-bg: #f8f9fa;
     --upload-area-bg: #f8f9fa;
+}
+
+/* Direct overrides for light mode */
+html[data-bs-theme="light"] body {
+    background-color: #ffffff;
+    color: #333333;
+}
+
+html[data-bs-theme="light"] .card {
+    background-color: #ffffff;
+}
+
+html[data-bs-theme="light"] .list-group-item {
+    background-color: #f8f9fa;
+    color: #333333;
+}
+
+html[data-bs-theme="light"] .tab-pane {
+    background-color: #f8f9fa;
+    color: #333333;
+}
+
+html[data-bs-theme="light"] .upload-area {
+    background-color: #f8f9fa;
+    color: #333333;
+}
+
+html[data-bs-theme="light"] .nav-link {
+    color: #1e88e5;
+}
+
+html[data-bs-theme="light"] .nav-link:hover {
+    color: #1565c0;
+}
+
+html[data-bs-theme="light"] .form-control,
+html[data-bs-theme="light"] .input-group-text {
+    background-color: #f8f9fa;
+    color: #333333;
+}
+
+html[data-bs-theme="light"] .form-control:focus {
+    background-color: #f8f9fa;
+    color: #333333;
 }
 
 html[data-bs-theme="dark"] {
