@@ -52,6 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
         progressValue.className = 'video-progress-value';
         progressBar.appendChild(progressValue);
         
+        // Create time preview element for scrubber
+        const timePreview = document.createElement('div');
+        timePreview.className = 'video-time-preview';
+        progressBar.appendChild(timePreview);
+        
         // Create play/pause button
         const playPauseBtn = document.createElement('button');
         playPauseBtn.className = 'custom-video-control play-pause-btn';
@@ -286,6 +291,23 @@ document.addEventListener('DOMContentLoaded', function() {
             video.currentTime = pos * video.duration;
         });
         
+        // Progress bar hover for time preview
+        progressBar.addEventListener('mousemove', function(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = Math.min(Math.max(0, (e.clientX - rect.left) / rect.width), 1);
+            
+            if (video.duration) {
+                // Calculate time at cursor position
+                const previewTime = pos * video.duration;
+                const previewMinutes = Math.floor(previewTime / 60);
+                const previewSeconds = Math.floor(previewTime % 60);
+                
+                // Update time preview text and position
+                timePreview.textContent = `${previewMinutes}:${previewSeconds < 10 ? '0' : ''}${previewSeconds}`;
+                timePreview.style.left = `${pos * 100}%`;
+            }
+        });
+        
         // Check if HLS.js is supported
         if (Hls.isSupported()) {
             const hls = new Hls({
@@ -404,6 +426,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const progressValue = document.createElement('div');
         progressValue.className = 'video-progress-value';
         progressBar.appendChild(progressValue);
+        
+        // Create time preview element for scrubber
+        const timePreview = document.createElement('div');
+        timePreview.className = 'video-time-preview';
+        progressBar.appendChild(timePreview);
         
         // Create play/pause button
         const playPauseBtn = document.createElement('button');
@@ -645,6 +672,23 @@ document.addEventListener('DOMContentLoaded', function() {
             video.currentTime = pos * video.duration;
         });
         
+        // Progress bar hover for time preview
+        progressBar.addEventListener('mousemove', function(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = Math.min(Math.max(0, (e.clientX - rect.left) / rect.width), 1);
+            
+            if (video.duration) {
+                // Calculate time at cursor position
+                const previewTime = pos * video.duration;
+                const previewMinutes = Math.floor(previewTime / 60);
+                const previewSeconds = Math.floor(previewTime % 60);
+                
+                // Update time preview text and position
+                timePreview.textContent = `${previewMinutes}:${previewSeconds < 10 ? '0' : ''}${previewSeconds}`;
+                timePreview.style.left = `${pos * 100}%`;
+            }
+        });
+        
         // Show buffering indicator when waiting for data
         video.addEventListener('waiting', function() {
             bufferingIndicator.classList.remove('d-none');
@@ -678,43 +722,64 @@ document.addEventListener('DOMContentLoaded', function() {
         video.addEventListener('error', function(e) {
             console.error('Video playback error', e);
             // Try to diagnose the error
-            const errorCode = video.error ? video.error.code : 'unknown';
-            console.error(`Video error code: ${errorCode}`);
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'alert alert-danger mt-3';
             
-            if (videoSourceHls && !videoContainer.querySelector('.alert')) {
-                console.log('Trying fallback to HLS');
-                // Try HLS fallback if MP4 fails
-                videoContainer.innerHTML = '';
-                initializeHlsPlayer(videoSourceHls);
-            } else {
-                videoContainer.innerHTML += '<div class="alert alert-danger mt-3">Error playing video. Please try again later.</div>';
+            switch (e.target.error.code) {
+                case e.target.error.MEDIA_ERR_ABORTED:
+                    errorMessage.textContent = 'You aborted the video playback.';
+                    break;
+                case e.target.error.MEDIA_ERR_NETWORK:
+                    errorMessage.textContent = 'A network error caused the video download to fail.';
+                    break;
+                case e.target.error.MEDIA_ERR_DECODE:
+                    errorMessage.textContent = 'The video playback was aborted due to a corruption problem or because the video used features your browser did not support.';
+                    break;
+                case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    errorMessage.textContent = 'The video format is not supported by your browser.';
+                    break;
+                default:
+                    errorMessage.textContent = 'An unknown error occurred.';
+                    break;
             }
+            
+            // Append error message after video container
+            videoContainer.parentNode.insertBefore(errorMessage, videoContainer.nextSibling);
         });
     }
     
-    // Copy link to clipboard functionality
-    const copyLinkBtn = document.getElementById('copy-link-btn');
-    if (copyLinkBtn) {
-        copyLinkBtn.addEventListener('click', function() {
-            const videoUrl = window.location.href;
-            
-            // Use the clipboard API if available
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(videoUrl)
-                    .then(() => {
-                        showCopySuccess(copyLinkBtn);
-                    })
-                    .catch(err => {
-                        console.error('Could not copy text: ', err);
-                        fallbackCopy(videoUrl);
-                    });
-            } else {
-                fallbackCopy(videoUrl);
-            }
-        });
+    // Check status of the video periodically if still processing
+    if (videoStatus !== 'completed' && videoStatus !== 'failed') {
+        console.log('Video still processing, starting status polling');
+        const pollInterval = setInterval(function() {
+            fetch(`/api/videos/${videoSlug}/status`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed') {
+                        console.log('Video processing completed, reloading page');
+                        clearInterval(pollInterval);
+                        window.location.reload();
+                    } else if (data.status === 'failed') {
+                        console.error('Video processing failed:', data.error);
+                        clearInterval(pollInterval);
+                        // Show error message
+                        const errorContainer = document.getElementById('video-status');
+                        if (errorContainer) {
+                            errorContainer.innerHTML = `<div class="alert alert-danger">Processing failed: ${data.error || 'Unknown error'}</div>`;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking video status:', error);
+                });
+        }, 5000);
+    } else {
+        console.log('Video already processed, no polling needed');
     }
     
-    // Fallback copy method using textarea
+    /**
+     * Copy text to clipboard
+     */
     function fallbackCopy(text) {
         const textArea = document.createElement('textarea');
         textArea.value = text;
@@ -726,28 +791,49 @@ document.addEventListener('DOMContentLoaded', function() {
         textArea.select();
         
         try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                showCopySuccess(copyLinkBtn);
-            }
+            document.execCommand('copy');
         } catch (err) {
-            console.error('Fallback: Could not copy text: ', err);
+            console.error('Fallback: Oops, unable to copy', err);
         }
         
         document.body.removeChild(textArea);
     }
     
-    // Show copy success message
+    /**
+     * Show copy success message
+     */
     function showCopySuccess(button) {
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        button.classList.remove('btn-outline-secondary');
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
         button.classList.add('btn-success');
+        button.classList.remove('btn-primary');
         
         setTimeout(() => {
-            button.innerHTML = originalText;
+            button.textContent = originalText;
+            button.classList.add('btn-primary');
             button.classList.remove('btn-success');
-            button.classList.add('btn-outline-secondary');
         }, 2000);
     }
+    
+    // Initialize copy button functionality
+    const copyButtons = document.querySelectorAll('.copy-link-btn');
+    copyButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const text = this.dataset.copyText || window.location.href;
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopySuccess(this);
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                    fallbackCopy(text);
+                    showCopySuccess(this);
+                });
+            } else {
+                fallbackCopy(text);
+                showCopySuccess(this);
+            }
+        });
+    });
 });
