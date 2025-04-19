@@ -129,6 +129,33 @@
     </div>
 </div>
 
+<style>
+/* Make embed modal match theme */
+#embedModal .modal-content {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+#embedModal .modal-header {
+    border-bottom-color: var(--bs-border-color);
+}
+
+#embedModal .modal-footer {
+    border-top-color: var(--bs-border-color);
+}
+
+#embedModal .form-control,
+#embedModal .form-check-input {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+#embedModal .form-check-label {
+    color: var(--bs-body-color);
+}
+</style>
+
 <div class="row">
     <div class="col-md-12">
         {% if videos %}
