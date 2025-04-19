@@ -13,20 +13,20 @@ body {
 /* Theme specific styles - will be applied based on data-bs-theme attribute */
 html[data-bs-theme="light"] {
     --card-bg: #ffffff;
-    --card-header-bg: #ffffff;
+    --card-header-bg: #f8f9fa;
     --body-bg: #ffffff;
     --text-color: #333;
     --border-color: rgba(0, 0, 0, 0.125);
     --navbar-bg: #ffffff;
     --nav-panel-bg: #ffffff;
-    --input-bg: #ffffff;
+    --input-bg: #f8f9fa;
     --video-container-bg: #000000; /* Always black for proper video display */
     --tab-bg: #f8f9fa;
     --active-tab-bg: #1e88e5;
     --active-tab-color: #ffffff;
     --accent-color: #1e88e5;
-    --form-bg: #ffffff;
-    --upload-area-bg: #ffffff;
+    --form-bg: #f8f9fa;
+    --upload-area-bg: #f8f9fa;
 }
 
 html[data-bs-theme="dark"] {
@@ -522,6 +522,12 @@ html[data-bs-theme="dark"] .video-main-container {
     cursor: pointer;
     padding: 5px 8px;
     font-size: 0.9rem;
+}
+
+/* Profile page styles */
+.list-group-item {
+    background-color: var(--form-bg) !important;
+    color: var(--text-color) !important;
 }
 
 /* Dashboard styles */
