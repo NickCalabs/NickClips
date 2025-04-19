@@ -25,21 +25,25 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set appropriate dimensions based on video aspect ratio
         if (videoWidth && videoHeight) {
             const aspectRatio = videoWidth / videoHeight;
+            console.log('Video dimensions:', videoWidth, 'x', videoHeight, 'Aspect ratio:', aspectRatio);
             
             // For vertical videos (portrait mode)
             if (aspectRatio < 1) {
+                console.log('Vertical video detected');
                 // Calculate appropriate width based on container height and aspect ratio
-                const containerHeight = window.innerHeight * 0.6; // Use 60% of viewport height
-                const calculatedWidth = containerHeight * aspectRatio;
+                const containerHeight = window.innerHeight * 0.7; // Use 70% of viewport height
+                const calculatedWidth = Math.ceil(containerHeight * aspectRatio);
                 
                 // Set fixed width based on aspect ratio
                 videoWrapper.style.width = calculatedWidth + 'px';
+                videoWrapper.style.height = containerHeight + 'px';
                 videoWrapper.style.maxWidth = '100%';
                 videoWrapper.style.margin = '0 auto';
                 
-                // Set data attribute for player scripts
+                // Set data attribute for player scripts and CSS
                 videoWrapper.dataset.isVertical = 'true';
             } else {
+                console.log('Horizontal video detected');
                 // For horizontal videos, allow them to be responsive
                 videoWrapper.style.width = '100%';
                 videoWrapper.style.maxWidth = '1200px';
@@ -69,8 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
      * Initialize HLS.js player for adaptive streaming
      */
     function initializeHlsPlayer(sourceUrl, videoWrapper) {
-        // Set the controlWrapper to videoWrapper for better positioning
-        const useVideoWrapperForControls = true;
+        // Set flag to add controls to wrapper instead of container
+        const addControlsToWrapper = true;
         // Create custom player container
         const video = document.createElement('video');
         video.id = 'video-player';
@@ -207,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         controlWrapper.appendChild(controls);
         
         // Add control wrapper to video container
-        videoContainer.appendChild(controlWrapper);
+        videoWrapper.appendChild(controlWrapper);
         
         // Control event listeners
         playPauseBtn.addEventListener('click', function() {
@@ -582,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
         controlWrapper.appendChild(controls);
         
         // Add control wrapper to video container
-        videoContainer.appendChild(controlWrapper);
+        videoWrapper.appendChild(controlWrapper);
         
         // Add buffering indicator
         const bufferingIndicator = document.createElement('div');
