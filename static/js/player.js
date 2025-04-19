@@ -51,26 +51,97 @@ document.addEventListener('DOMContentLoaded', function() {
         const playPauseBtn = document.createElement('button');
         playPauseBtn.className = 'custom-video-control play-pause-btn';
         playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        playPauseBtn.title = "Play/Pause";
+        
+        // Create backward skip button (10s)
+        const backwardBtn = document.createElement('button');
+        backwardBtn.className = 'skip-button backward-btn';
+        backwardBtn.innerHTML = '<i class="fas fa-undo"></i>';
+        backwardBtn.title = "Back 10 seconds";
+        
+        // Create forward skip button (10s)
+        const forwardBtn = document.createElement('button');
+        forwardBtn.className = 'skip-button forward-btn';
+        forwardBtn.innerHTML = '<i class="fas fa-redo"></i>';
+        forwardBtn.title = "Forward 10 seconds";
         
         // Create time display
         const timeDisplay = document.createElement('span');
         timeDisplay.className = 'time-display';
         timeDisplay.textContent = '0:00 / 0:00';
         
+        // Create volume container with slider
+        const volumeContainer = document.createElement('div');
+        volumeContainer.className = 'volume-container';
+        
         // Create volume button
         const volumeBtn = document.createElement('button');
         volumeBtn.className = 'custom-video-control volume-btn';
         volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        volumeBtn.title = "Toggle mute";
+        
+        // Create volume slider
+        const volumeSlider = document.createElement('div');
+        volumeSlider.className = 'volume-slider';
+        
+        const volumeLevel = document.createElement('div');
+        volumeLevel.className = 'volume-level';
+        volumeSlider.appendChild(volumeLevel);
+        volumeContainer.appendChild(volumeBtn);
+        volumeContainer.appendChild(volumeSlider);
+        
+        // Create speed control
+        const speedContainer = document.createElement('div');
+        speedContainer.className = 'speed-container';
+        
+        const speedButton = document.createElement('button');
+        speedButton.className = 'speed-button';
+        speedButton.innerHTML = '1x';
+        speedButton.title = "Playback speed";
+        
+        const speedDropdown = document.createElement('div');
+        speedDropdown.className = 'speed-dropdown';
+        
+        const speedOptions = [
+            { text: '0.5x', value: 0.5 },
+            { text: '0.75x', value: 0.75 },
+            { text: 'Normal', value: 1 },
+            { text: '1.25x', value: 1.25 },
+            { text: '1.5x', value: 1.5 },
+            { text: '2x', value: 2 }
+        ];
+        
+        speedOptions.forEach(option => {
+            const speedOption = document.createElement('div');
+            speedOption.className = 'speed-option' + (option.value === 1 ? ' active' : '');
+            speedOption.textContent = option.text;
+            speedOption.dataset.speed = option.value;
+            speedDropdown.appendChild(speedOption);
+        });
+        
+        speedContainer.appendChild(speedButton);
+        speedContainer.appendChild(speedDropdown);
+        
+        // Create PiP button if supported
+        const pipButton = document.createElement('button');
+        pipButton.className = 'pip-button';
+        pipButton.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+        pipButton.title = "Picture in Picture";
         
         // Create fullscreen button
         const fullscreenBtn = document.createElement('button');
         fullscreenBtn.className = 'custom-video-control video-fullscreen-btn';
         fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        fullscreenBtn.title = "Fullscreen";
         
         // Add controls to container
         controls.appendChild(playPauseBtn);
+        controls.appendChild(backwardBtn);
+        controls.appendChild(forwardBtn);
         controls.appendChild(timeDisplay);
-        controls.appendChild(volumeBtn);
+        controls.appendChild(volumeContainer);
+        controls.appendChild(speedContainer);
+        controls.appendChild(pipButton);
         controls.appendChild(fullscreenBtn);
         
         videoContainer.appendChild(progressBar);
@@ -87,15 +158,90 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // Skip backward 10 seconds
+        backwardBtn.addEventListener('click', function() {
+            video.currentTime = Math.max(0, video.currentTime - 10);
+        });
+        
+        // Skip forward 10 seconds
+        forwardBtn.addEventListener('click', function() {
+            video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        });
+        
+        // Volume controls
         volumeBtn.addEventListener('click', function() {
             video.muted = !video.muted;
             if (video.muted) {
                 volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                volumeLevel.style.width = '0%';
             } else {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                volumeLevel.style.width = (video.volume * 100) + '%';
+            }
+        });
+        
+        // Volume slider
+        volumeSlider.addEventListener('click', function(e) {
+            const rect = volumeSlider.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.volume = Math.max(0, Math.min(1, pos));
+            volumeLevel.style.width = (video.volume * 100) + '%';
+            if (video.volume === 0) {
+                video.muted = true;
+                volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                video.muted = false;
                 volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             }
         });
         
+        // Speed control
+        speedButton.addEventListener('click', function() {
+            if (speedDropdown.style.display === 'flex') {
+                speedDropdown.style.display = 'none';
+            } else {
+                speedDropdown.style.display = 'flex';
+            }
+        });
+        
+        // Hide speed dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!speedContainer.contains(e.target)) {
+                speedDropdown.style.display = 'none';
+            }
+        });
+        
+        // Speed options
+        speedDropdown.querySelectorAll('.speed-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const speed = parseFloat(this.dataset.speed);
+                video.playbackRate = speed;
+                speedButton.innerHTML = speed === 1 ? '1x' : this.textContent;
+                
+                // Update active status
+                speedDropdown.querySelectorAll('.speed-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                speedDropdown.style.display = 'none';
+            });
+        });
+        
+        // Picture-in-Picture
+        if ('pictureInPictureEnabled' in document) {
+            pipButton.addEventListener('click', function() {
+                if (document.pictureInPictureElement) {
+                    document.exitPictureInPicture();
+                } else {
+                    video.requestPictureInPicture();
+                }
+            });
+        } else {
+            pipButton.style.display = 'none';
+        }
+        
+        // Fullscreen
         fullscreenBtn.addEventListener('click', function() {
             if (!document.fullscreenElement) {
                 videoContainer.requestFullscreen().catch(err => {
@@ -249,26 +395,97 @@ document.addEventListener('DOMContentLoaded', function() {
         const playPauseBtn = document.createElement('button');
         playPauseBtn.className = 'custom-video-control play-pause-btn';
         playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        playPauseBtn.title = "Play/Pause";
+        
+        // Create backward skip button (10s)
+        const backwardBtn = document.createElement('button');
+        backwardBtn.className = 'skip-button backward-btn';
+        backwardBtn.innerHTML = '<i class="fas fa-undo"></i>';
+        backwardBtn.title = "Back 10 seconds";
+        
+        // Create forward skip button (10s)
+        const forwardBtn = document.createElement('button');
+        forwardBtn.className = 'skip-button forward-btn';
+        forwardBtn.innerHTML = '<i class="fas fa-redo"></i>';
+        forwardBtn.title = "Forward 10 seconds";
         
         // Create time display
         const timeDisplay = document.createElement('span');
         timeDisplay.className = 'time-display';
         timeDisplay.textContent = '0:00 / 0:00';
         
+        // Create volume container with slider
+        const volumeContainer = document.createElement('div');
+        volumeContainer.className = 'volume-container';
+        
         // Create volume button
         const volumeBtn = document.createElement('button');
         volumeBtn.className = 'custom-video-control volume-btn';
         volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        volumeBtn.title = "Toggle mute";
+        
+        // Create volume slider
+        const volumeSlider = document.createElement('div');
+        volumeSlider.className = 'volume-slider';
+        
+        const volumeLevel = document.createElement('div');
+        volumeLevel.className = 'volume-level';
+        volumeSlider.appendChild(volumeLevel);
+        volumeContainer.appendChild(volumeBtn);
+        volumeContainer.appendChild(volumeSlider);
+        
+        // Create speed control
+        const speedContainer = document.createElement('div');
+        speedContainer.className = 'speed-container';
+        
+        const speedButton = document.createElement('button');
+        speedButton.className = 'speed-button';
+        speedButton.innerHTML = '1x';
+        speedButton.title = "Playback speed";
+        
+        const speedDropdown = document.createElement('div');
+        speedDropdown.className = 'speed-dropdown';
+        
+        const speedOptions = [
+            { text: '0.5x', value: 0.5 },
+            { text: '0.75x', value: 0.75 },
+            { text: 'Normal', value: 1 },
+            { text: '1.25x', value: 1.25 },
+            { text: '1.5x', value: 1.5 },
+            { text: '2x', value: 2 }
+        ];
+        
+        speedOptions.forEach(option => {
+            const speedOption = document.createElement('div');
+            speedOption.className = 'speed-option' + (option.value === 1 ? ' active' : '');
+            speedOption.textContent = option.text;
+            speedOption.dataset.speed = option.value;
+            speedDropdown.appendChild(speedOption);
+        });
+        
+        speedContainer.appendChild(speedButton);
+        speedContainer.appendChild(speedDropdown);
+        
+        // Create PiP button if supported
+        const pipButton = document.createElement('button');
+        pipButton.className = 'pip-button';
+        pipButton.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+        pipButton.title = "Picture in Picture";
         
         // Create fullscreen button
         const fullscreenBtn = document.createElement('button');
         fullscreenBtn.className = 'custom-video-control video-fullscreen-btn';
         fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        fullscreenBtn.title = "Fullscreen";
         
         // Add controls to container
         controls.appendChild(playPauseBtn);
+        controls.appendChild(backwardBtn);
+        controls.appendChild(forwardBtn);
         controls.appendChild(timeDisplay);
-        controls.appendChild(volumeBtn);
+        controls.appendChild(volumeContainer);
+        controls.appendChild(speedContainer);
+        controls.appendChild(pipButton);
         controls.appendChild(fullscreenBtn);
         
         videoContainer.appendChild(progressBar);
@@ -291,15 +508,90 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // Skip backward 10 seconds
+        backwardBtn.addEventListener('click', function() {
+            video.currentTime = Math.max(0, video.currentTime - 10);
+        });
+        
+        // Skip forward 10 seconds
+        forwardBtn.addEventListener('click', function() {
+            video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        });
+        
+        // Volume controls
         volumeBtn.addEventListener('click', function() {
             video.muted = !video.muted;
             if (video.muted) {
                 volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                volumeLevel.style.width = '0%';
             } else {
+                volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                volumeLevel.style.width = (video.volume * 100) + '%';
+            }
+        });
+        
+        // Volume slider
+        volumeSlider.addEventListener('click', function(e) {
+            const rect = volumeSlider.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.volume = Math.max(0, Math.min(1, pos));
+            volumeLevel.style.width = (video.volume * 100) + '%';
+            if (video.volume === 0) {
+                video.muted = true;
+                volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                video.muted = false;
                 volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             }
         });
         
+        // Speed control
+        speedButton.addEventListener('click', function() {
+            if (speedDropdown.style.display === 'flex') {
+                speedDropdown.style.display = 'none';
+            } else {
+                speedDropdown.style.display = 'flex';
+            }
+        });
+        
+        // Hide speed dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!speedContainer.contains(e.target)) {
+                speedDropdown.style.display = 'none';
+            }
+        });
+        
+        // Speed options
+        speedDropdown.querySelectorAll('.speed-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const speed = parseFloat(this.dataset.speed);
+                video.playbackRate = speed;
+                speedButton.innerHTML = speed === 1 ? '1x' : this.textContent;
+                
+                // Update active status
+                speedDropdown.querySelectorAll('.speed-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                speedDropdown.style.display = 'none';
+            });
+        });
+        
+        // Picture-in-Picture
+        if ('pictureInPictureEnabled' in document) {
+            pipButton.addEventListener('click', function() {
+                if (document.pictureInPictureElement) {
+                    document.exitPictureInPicture();
+                } else {
+                    video.requestPictureInPicture();
+                }
+            });
+        } else {
+            pipButton.style.display = 'none';
+        }
+        
+        // Fullscreen
         fullscreenBtn.addEventListener('click', function() {
             if (!document.fullscreenElement) {
                 videoContainer.requestFullscreen().catch(err => {
