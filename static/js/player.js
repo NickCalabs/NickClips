@@ -160,6 +160,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
             
+            // Make the entire video clickable for play/pause
+            video.addEventListener('click', function() {
+                if (video.paused) {
+                    video.play();
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                } else {
+                    video.pause();
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            });
+            
             hls.on(Hls.Events.ERROR, function(event, data) {
                 console.error('HLS error:', data);
                 if (data.fatal) {
@@ -340,6 +351,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Autoplay prevented by browser, waiting for user interaction');
                 playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
             });
+        });
+        
+        // Make the entire video clickable for play/pause
+        video.addEventListener('click', function() {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                video.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
         });
         
         // Error handling

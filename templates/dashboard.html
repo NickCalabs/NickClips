@@ -3,9 +3,46 @@
 {% block title %}Dashboard - Video Share{% endblock %}
 
 {% block content %}
-<div class="dashboard-header">
-    <h1>Video Dashboard</h1>
-    <p class="lead">Manage your uploaded videos</p>
+<div class="dashboard-header bg-light p-4 rounded mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="mb-1">Video Dashboard</h1>
+            <p class="lead mb-0">Manage your uploaded videos</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fas fa-upload me-1"></i> Upload File
+            </a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#linkModal">
+                <i class="fas fa-link me-1"></i> Paste URL
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- URL Paste Modal -->
+<div class="modal fade" id="linkModal" tabindex="-1" aria-labelledby="linkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="linkModalLabel">Download Video from URL</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/download" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="video-url" class="form-label">Video URL</label>
+                        <input type="url" class="form-control" id="video-url" name="url" placeholder="https://..." required>
+                        <div class="form-text">Paste a valid video URL from YouTube, Vimeo, Twitter, etc.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Download Video</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <div class="row">
@@ -14,41 +51,53 @@
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <h3>Your Videos ({{ videos|length }})</h3>
-                    <a href="/" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i> Upload New
-                    </a>
                 </div>
             </div>
             
-            <div class="row">
+            <div class="row g-4">
                 {% for video in videos %}
                 <div class="col-md-6 col-xl-4 video-card">
-                    <div class="card mb-4">
-                        <div class="position-relative">
+                    <div class="card border-0 shadow-sm rounded-3 mb-0 h-100">
+                        <div class="position-relative thumbnail-container">
                             {% if video.thumbnail_path %}
-                            <a href="{{ url_for('view_video', slug=video.slug) }}">
-                                <img src="{{ video.thumbnail_path }}" class="card-img-top" alt="{{ video.title or 'Untitled Video' }}">
+                            <a href="{{ url_for('view_video', slug=video.slug) }}" class="video-thumbnail-link">
+                                <img src="{{ video.thumbnail_path }}" class="card-img-top rounded-top" alt="{{ video.title or 'Untitled Video' }}">
+                                
+                                <!-- Processing overlay -->
+                                {% if video.status != 'completed' and video.status != 'failed' %}
+                                <div class="processing-overlay">
+                                    <div class="processing-content">
+                                        {% if video.status == 'processing' %}
+                                            <div class="spinner-border text-light mb-2" role="status">
+                                                <span class="visually-hidden">Processing...</span>
+                                            </div>
+                                            <div>Processing...</div>
+                                        {% elif video.status == 'downloading' %}
+                                            <div class="spinner-border text-light mb-2" role="status">
+                                                <span class="visually-hidden">Downloading...</span>
+                                            </div>
+                                            <div>Downloading...</div>
+                                        {% elif video.status == 'pending' %}
+                                            <div>Pending...</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
                             </a>
                             {% else %}
-                            <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="fas fa-film fa-3x text-light"></i>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Video status badge -->
-                            <div class="position-absolute top-0 end-0 m-2">
-                                {% if video.status == 'completed' %}
-                                <span class="badge bg-success">Completed</span>
-                                {% elif video.status == 'processing' %}
-                                <span class="badge bg-primary">Processing</span>
-                                {% elif video.status == 'downloading' %}
-                                <span class="badge bg-info">Downloading</span>
-                                {% elif video.status == 'pending' %}
-                                <span class="badge bg-warning">Pending</span>
-                                {% elif video.status == 'failed' %}
-                                <span class="badge bg-danger">Failed</span>
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center rounded-top" style="height: 180px;">
+                                {% if video.status != 'completed' and video.status != 'failed' %}
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary mb-2" role="status">
+                                        <span class="visually-hidden">Processing...</span>
+                                    </div>
+                                    <div class="text-muted">{{ video.status|capitalize }}...</div>
+                                </div>
+                                {% else %}
+                                <i class="fas fa-film fa-3x text-muted"></i>
                                 {% endif %}
                             </div>
+                            {% endif %}
                             
                             <!-- Duration badge -->
                             {% if video.duration %}
@@ -60,34 +109,45 @@
                             {% endif %}
                         </div>
                         
-                        <div class="card-body">
-                            <h5 class="card-title video-title">{{ video.title or 'Untitled Video' }}</h5>
-                            <p class="card-text text-muted small">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title video-title mb-0 text-truncate">{{ video.title or 'Untitled Video' }}</h5>
+                                
+                                <!-- Status badge -->
+                                {% if video.status != 'completed' %}
+                                <span class="badge {% if video.status == 'failed' %}bg-danger{% else %}bg-primary{% endif %} ms-2">
+                                    {{ video.status|capitalize }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <p class="card-text text-muted small mb-3">
                                 <i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }} 
                                 <i class="fas fa-eye ms-2 me-1"></i> {{ video.views }} views
                             </p>
-                            <p class="card-text video-description">{{ video.description or '' }}</p>
                             
-                            <div class="d-flex video-actions">
-                                <a href="{{ url_for('view_video', slug=video.slug) }}" class="btn btn-primary me-2">
-                                    <i class="fas fa-play me-1"></i> Watch
-                                </a>
-                                <button class="btn btn-outline-secondary me-2 edit-video" data-slug="{{ video.slug }}">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-outline-danger delete-video" data-slug="{{ video.slug }}">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="card-footer d-flex align-items-center">
-                            <small class="text-muted me-2">Share:</small>
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control form-control-sm" value="{{ url_for('view_video', slug=video.slug, _external=True) }}" readonly>
-                                <button class="btn btn-outline-secondary btn-copy" type="button" data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
-                                    <i class="fas fa-copy"></i>
-                                </button>
+                            <div class="mt-auto">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <a href="{{ url_for('view_video', slug=video.slug) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-play me-1"></i> Watch
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-secondary edit-video" data-slug="{{ video.slug }}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-video" data-slug="{{ video.slug }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light border-light">
+                                        <i class="fas fa-link text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control form-control-sm bg-light" value="{{ url_for('view_video', slug=video.slug, _external=True) }}" readonly>
+                                    <button class="btn btn-outline-secondary btn-copy" type="button" data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -95,15 +155,20 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-film fa-4x text-muted"></i>
+            <div class="text-center py-5 bg-light rounded-3">
+                <div class="mb-4 empty-state-icon">
+                    <i class="fas fa-film fa-4x text-muted opacity-50"></i>
                 </div>
-                <h3>No videos yet</h3>
-                <p class="text-muted">Upload your first video to get started!</p>
-                <a href="/" class="btn btn-primary mt-3">
-                    <i class="fas fa-upload me-2"></i>Upload a Video
-                </a>
+                <h3>Your library is empty</h3>
+                <p class="text-muted mb-4">Upload your first video or paste a URL to get started!</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="/" class="btn btn-outline-primary">
+                        <i class="fas fa-upload me-2"></i>Upload a Video
+                    </a>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#linkModal">
+                        <i class="fas fa-link me-2"></i>Paste URL
+                    </button>
+                </div>
             </div>
         {% endif %}
     </div>

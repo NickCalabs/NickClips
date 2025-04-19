@@ -131,7 +131,16 @@
                 
                 {% if video.description %}
                 <div class="video-description mb-4">
-                    {{ video.description }}
+                    <div id="description-preview" class="description-preview">
+                        {{ video.description[:150] }}{% if video.description|length > 150 %}...{% endif %}
+                    </div>
+                    {% if video.description|length > 150 %}
+                    <div id="description-full" class="description-full d-none">
+                        {{ video.description }}
+                    </div>
+                    <button id="read-more-btn" class="btn btn-sm btn-link p-0">Read more</button>
+                    <button id="read-less-btn" class="btn btn-sm btn-link p-0 d-none">Show less</button>
+                    {% endif %}
                 </div>
                 {% endif %}
                 
@@ -171,4 +180,29 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+<script>
+    // Read more/less functionality for video description
+    document.addEventListener('DOMContentLoaded', function() {
+        const readMoreBtn = document.getElementById('read-more-btn');
+        const readLessBtn = document.getElementById('read-less-btn');
+        const descPreview = document.getElementById('description-preview');
+        const descFull = document.getElementById('description-full');
+        
+        if (readMoreBtn && readLessBtn && descPreview && descFull) {
+            readMoreBtn.addEventListener('click', function() {
+                descPreview.classList.add('d-none');
+                descFull.classList.remove('d-none');
+                readMoreBtn.classList.add('d-none');
+                readLessBtn.classList.remove('d-none');
+            });
+            
+            readLessBtn.addEventListener('click', function() {
+                descPreview.classList.remove('d-none');
+                descFull.classList.add('d-none');
+                readMoreBtn.classList.remove('d-none');
+                readLessBtn.classList.add('d-none');
+            });
+        }
+    });
+</script>
 {% endblock %}
