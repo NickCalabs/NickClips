@@ -209,6 +209,14 @@ body {
     border-radius: 10px; /* Add corner radius to video */
 }
 
+/* For vertical videos (portrait) in the appropriate container */
+.video-wrapper[data-is-vertical="true"] #video-player,
+.video-wrapper[data-is-vertical="true"] .streamable-player {
+    max-height: 80vh;
+    width: auto; /* Width is auto to respect the aspect ratio */
+    height: 100%; /* Height fills the container */
+}
+
 /* Fix letterboxing */
 #video-container {
     width: 100%;
@@ -232,6 +240,14 @@ body {
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     max-width: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Special styling for vertical videos */
+.video-wrapper[data-is-vertical="true"] {
+    max-height: 80vh;
+    margin: 0 auto;
+    border-radius: 10px;
 }
 
 #video-container video {
