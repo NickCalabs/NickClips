@@ -17,20 +17,56 @@
     <div class="col-md-10 mx-auto">
         <ul class="nav nav-tabs" id="uploadTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-content" type="button" role="tab" aria-controls="upload-content" aria-selected="true">
-                    <i class="fas fa-upload me-2"></i>Upload Video
+                <button class="nav-link active" id="link-tab" data-bs-toggle="tab" data-bs-target="#link-content" type="button" role="tab" aria-controls="link-content" aria-selected="true">
+                    <i class="fas fa-link me-2"></i>From URL
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="link-tab" data-bs-toggle="tab" data-bs-target="#link-content" type="button" role="tab" aria-controls="link-content" aria-selected="false">
-                    <i class="fas fa-link me-2"></i>From URL
+                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-content" type="button" role="tab" aria-controls="upload-content" aria-selected="false">
+                    <i class="fas fa-upload me-2"></i>Upload Video
                 </button>
             </li>
         </ul>
         
         <div class="tab-content" id="uploadTabsContent">
+            <!-- URL Tab -->
+            <div class="tab-pane fade show active" id="link-content" role="tabpanel" aria-labelledby="link-tab">
+                <div class="p-4 bg-body-tertiary rounded-bottom">
+                    <form id="download-form">
+                        <div class="mb-3">
+                            <label for="url-input" class="form-label">Video URL</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                <input type="url" class="form-control" id="url-input" placeholder="https://youtube.com/watch?v=..." required autofocus>
+                                <button class="btn btn-primary" type="submit">Download</button>
+                            </div>
+                            <div class="form-text">
+                                Enter a URL from YouTube, Twitter, Vimeo, and many other platforms.
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="download-status" class="alert alert-info d-none"></div>
+                    
+                    <div class="mt-4">
+                        <h5>Supported platforms include:</h5>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <span class="badge text-bg-light border"><i class="fab fa-youtube me-1 text-danger"></i>YouTube</span>
+                            <span class="badge text-bg-light border"><i class="fab fa-twitter me-1 text-info"></i>Twitter</span>
+                            <span class="badge text-bg-light border"><i class="fab fa-vimeo me-1 text-primary"></i>Vimeo</span>
+                            <span class="badge text-bg-light border"><i class="fab fa-facebook me-1 text-primary"></i>Facebook</span>
+                            <span class="badge text-bg-light border"><i class="fab fa-instagram me-1 text-danger"></i>Instagram</span>
+                            <span class="badge text-bg-light border"><i class="fab fa-tiktok me-1"></i>TikTok</span>
+                            <span class="badge text-bg-light border"><i class="fab fa-twitch me-1 text-purple"></i>Twitch</span>
+                            <span class="badge text-bg-light border"><i class="fab fa-reddit me-1 text-danger"></i>Reddit</span>
+                            <span class="badge text-bg-light border"><i class="fas fa-ellipsis-h me-1"></i>Many more...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Upload Tab -->
-            <div class="tab-pane fade show active" id="upload-content" role="tabpanel" aria-labelledby="upload-tab">
+            <div class="tab-pane fade" id="upload-content" role="tabpanel" aria-labelledby="upload-tab">
                 <div class="p-4 bg-body-tertiary rounded-bottom">
                     <form id="upload-form" enctype="multipart/form-data">
                         <div class="upload-area" id="drop-area">
@@ -56,42 +92,6 @@
                             <p id="upload-status" class="text-center mt-2">Uploading...</p>
                         </div>
                     </form>
-                </div>
-            </div>
-            
-            <!-- URL Tab -->
-            <div class="tab-pane fade" id="link-content" role="tabpanel" aria-labelledby="link-tab">
-                <div class="p-4 bg-body-tertiary rounded-bottom">
-                    <form id="download-form">
-                        <div class="mb-3">
-                            <label for="url-input" class="form-label">Video URL</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-link"></i></span>
-                                <input type="url" class="form-control" id="url-input" placeholder="https://youtube.com/watch?v=..." required>
-                                <button class="btn btn-primary" type="submit">Download</button>
-                            </div>
-                            <div class="form-text">
-                                Enter a URL from YouTube, Twitter, Vimeo, and many other platforms.
-                            </div>
-                        </div>
-                    </form>
-                    
-                    <div id="download-status" class="alert alert-info d-none"></div>
-                    
-                    <div class="mt-4">
-                        <h5>Supported platforms include:</h5>
-                        <div class="d-flex flex-wrap gap-2 mt-3">
-                            <span class="badge text-bg-light border"><i class="fab fa-youtube me-1 text-danger"></i>YouTube</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-twitter me-1 text-info"></i>Twitter</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-vimeo me-1 text-primary"></i>Vimeo</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-facebook me-1 text-primary"></i>Facebook</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-instagram me-1 text-danger"></i>Instagram</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-tiktok me-1"></i>TikTok</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-twitch me-1 text-purple"></i>Twitch</span>
-                            <span class="badge text-bg-light border"><i class="fab fa-reddit me-1 text-danger"></i>Reddit</span>
-                            <span class="badge text-bg-light border"><i class="fas fa-ellipsis-h me-1"></i>Many more...</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

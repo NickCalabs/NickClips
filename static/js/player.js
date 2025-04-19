@@ -148,8 +148,12 @@ document.addEventListener('DOMContentLoaded', function() {
         controls.appendChild(pipButton);
         controls.appendChild(fullscreenBtn);
         
-        videoContainer.appendChild(progressBar);
-        videoContainer.appendChild(controls);
+        // Build control wrapper
+        controlWrapper.appendChild(progressBar);
+        controlWrapper.appendChild(controls);
+        
+        // Add control wrapper to video container
+        videoContainer.appendChild(controlWrapper);
         
         // Control event listeners
         playPauseBtn.addEventListener('click', function() {
@@ -496,8 +500,12 @@ document.addEventListener('DOMContentLoaded', function() {
         controls.appendChild(pipButton);
         controls.appendChild(fullscreenBtn);
         
-        videoContainer.appendChild(progressBar);
-        videoContainer.appendChild(controls);
+        // Build control wrapper
+        controlWrapper.appendChild(progressBar);
+        controlWrapper.appendChild(controls);
+        
+        // Add control wrapper to video container
+        videoContainer.appendChild(controlWrapper);
         
         // Add buffering indicator
         const bufferingIndicator = document.createElement('div');
