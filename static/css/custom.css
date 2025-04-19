@@ -205,14 +205,14 @@ body {
     display: block;
     background-color: #000;
     box-shadow: none;
-    object-fit: contain;
-    aspect-ratio: 16/9;
+    object-fit: contain; /* Maintain aspect ratio */
+    border-radius: 10px; /* Add corner radius to video */
 }
 
 /* Fix letterboxing */
 #video-container {
     width: 100%;
-    background-color: var(--video-container-bg);
+    background-color: transparent; /* Changed to transparent */
     position: relative;
     padding: 0;
     overflow: hidden;
@@ -220,11 +220,24 @@ body {
     justify-content: center;
     align-items: center;
     margin: 0 auto;
+    border-radius: 10px; /* Add corner radius to container */
+}
+
+/* This container wraps around the actual player and controls */
+.video-wrapper {
+    position: relative;
+    display: inline-block;
+    background-color: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    max-width: 100%;
 }
 
 #video-container video {
-    width: 100%;
+    display: block;
     max-height: 80vh;
+    border-radius: 10px; /* Add corner radius to video */
 }
 
 .video-info {

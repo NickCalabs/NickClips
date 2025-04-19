@@ -10,13 +10,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoSourceHls = videoContainer.dataset.hlsSource;
     const videoSourceMp4 = videoContainer.dataset.mp4Source;
     
+    // Get video dimensions if available
+    const videoWidth = parseInt(videoContainer.dataset.videoWidth) || 0;
+    const videoHeight = parseInt(videoContainer.dataset.videoHeight) || 0;
+    
     // Initialize player if video is completed and player hasn't been loaded yet
     if (videoStatus === 'completed' && !videoContainer.querySelector('video')) {
         console.log('Initializing player for completed video');
+        
+        // Create an appropriate wrapper with correct aspect ratio
+        const videoWrapper = document.createElement('div');
+        videoWrapper.className = 'video-wrapper';
+        
+        // Set appropriate dimensions based on video aspect ratio
+        if (videoWidth && videoHeight) {
+            const aspectRatio = videoWidth / videoHeight;
+            
+            // For vertical videos (portrait mode)
+            if (aspectRatio < 1) {
+                // Calculate appropriate width based on container height and aspect ratio
+                const containerHeight = window.innerHeight * 0.6; // Use 60% of viewport height
+                const calculatedWidth = containerHeight * aspectRatio;
+                
+                // Set fixed width based on aspect ratio
+                videoWrapper.style.width = calculatedWidth + 'px';
+                videoWrapper.style.maxWidth = '100%';
+                videoWrapper.style.margin = '0 auto';
+                
+                // Set data attribute for player scripts
+                videoWrapper.dataset.isVertical = 'true';
+            } else {
+                // For horizontal videos, allow them to be responsive
+                videoWrapper.style.width = '100%';
+                videoWrapper.style.maxWidth = '1200px';
+                videoWrapper.style.margin = '0 auto';
+            }
+        }
+        
+        // Append wrapper to container
+        videoContainer.appendChild(videoWrapper);
+        
         if (playerType === 'hls' && videoSourceHls) {
-            initializeHlsPlayer(videoSourceHls);
+            initializeHlsPlayer(videoSourceHls, videoWrapper);
         } else if (videoSourceMp4) {
-            initializeNativePlayer(videoSourceMp4);
+            initializeNativePlayer(videoSourceMp4, videoWrapper);
         }
         
         // Update the volume icon based on muted state (now unmuted by default)

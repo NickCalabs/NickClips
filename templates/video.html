@@ -81,11 +81,14 @@
             data-player-type="{% if video.hls_path %}hls{% else %}native{% endif %}"
             {% if video.hls_path %}data-hls-source="/uploads/{{ video.hls_path }}"{% endif %}
             {% if video.processed_path %}data-mp4-source="/uploads/{{ video.processed_path }}"{% endif %}
+            {% if video.width %}data-video-width="{{ video.width }}"{% endif %}
+            {% if video.height %}data-video-height="{{ video.height }}"{% endif %}
             {% endif %}
             class="video-player-container mb-0 mx-auto" style="max-width: 1200px;">
             
             {% if video.status == 'completed' %}
                 <!-- Video player will be inserted here by JavaScript -->
+                <!-- Video wrapper will be created to size player correctly -->
             {% elif video.status == 'failed' %}
                 <div class="text-center p-5 bg-body-tertiary rounded">
                     <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
