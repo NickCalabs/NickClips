@@ -18,6 +18,12 @@ html[data-bs-theme="light"] {
     --text-color: #333;
     --border-color: rgba(0, 0, 0, 0.125);
     --navbar-bg: #f8f9fa;
+    --nav-panel-bg: #ffffff;
+    --input-bg: #ffffff;
+    --video-container-bg: #000000; /* Always black for proper video display */
+    --tab-bg: #f0f0f0;
+    --active-tab-bg: #1e88e5;
+    --active-tab-color: #ffffff;
 }
 
 html[data-bs-theme="dark"] {
@@ -27,6 +33,12 @@ html[data-bs-theme="dark"] {
     --text-color: #e5e5e5;
     --border-color: rgba(255, 255, 255, 0.125);
     --navbar-bg: #141618;
+    --nav-panel-bg: #1e2124;
+    --input-bg: #2c2f33;
+    --video-container-bg: #000000;
+    --tab-bg: #1e2124;
+    --active-tab-bg: #1e88e5;
+    --active-tab-color: #ffffff;
 }
 
 body {
@@ -59,9 +71,7 @@ body {
     background-color: var(--card-bg);
 }
 
-.navbar {
-    background-color: var(--navbar-bg);
-}
+/* Navbar styling handled by theme-specific selectors */
 
 .form-control, .input-group-text {
     background-color: var(--card-bg);
@@ -131,7 +141,7 @@ body {
 /* Fix letterboxing */
 #video-container {
     width: 100%;
-    background-color: #000;
+    background-color: var(--video-container-bg);
     position: relative;
     padding: 0;
     overflow: hidden;
@@ -206,9 +216,19 @@ body {
     padding: 0;
 }
 
+html[data-bs-theme="light"] header {
+    background-color: white !important;
+    border-bottom: 1px solid #eaeaea;
+}
+
 html[data-bs-theme="light"] .video-main-container {
-    background-color: #f8f9fa;
+    background-color: white;
     color: #212529;
+}
+
+html[data-bs-theme="dark"] header {
+    background-color: #1a1d21 !important;
+    border-bottom: 1px solid #2c2f33;
 }
 
 html[data-bs-theme="dark"] .video-main-container {
@@ -218,7 +238,6 @@ html[data-bs-theme="dark"] .video-main-container {
 
 #video-container {
     position: relative;
-    background-color: #000;
     border-radius: 0;
     overflow: hidden;
     display: flex;
