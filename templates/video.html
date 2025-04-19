@@ -124,30 +124,37 @@
             <div class="video-info pt-3">
                 <h1 class="video-title h3 mb-1">{{ video.title or 'Untitled Video' }}</h1>
                 
-                <div class="video-metadata d-flex flex-wrap gap-3 mb-2">
-                    <span><i class="fas fa-eye me-1"></i> {{ video.views }} views</span>
-                    <span><i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }}</span>
+                <div class="video-metadata d-flex flex-wrap gap-3 mb-2" style="color: var(--bs-secondary-color);">
+                    <span class="small"><i class="fas fa-eye me-1"></i> {{ video.views }} views</span>
+                    <span class="small"><i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }}</span>
                     {% if video.duration %}
-                    <span><i class="fas fa-clock me-1"></i> {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
+                    <span class="small"><i class="fas fa-clock me-1"></i> {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
                     {% endif %}
                 </div>
                 
                 {% if video.description %}
                 <div class="video-description mb-3">
                     <div class="description-container position-relative">
-                        <div id="description-preview" class="description-preview">
-                            {{ video.description.split('\n')[0] }}
-                            {% if video.description.split('\n')|length > 1 or video.description|length > 100 %}
-                            <span class="text-truncate d-inline-block" style="max-width: 400px;">{{ video.description.split('\n')[1:][0] }}</span>
+                        <div id="description-preview" class="description-preview" style="max-height: 3.6em; overflow: hidden;">
+                            {{ video.description }}
+                            {% if video.description|length > 100 %}
+                            <div class="fade-overlay position-absolute" style="bottom: 0; left: 0; right: 0; height: 25px;"></div>
                             {% endif %}
                         </div>
-                        {% if video.description.split('\n')|length > 1 or video.description|length > 100 %}
+                        
+                        {% if video.description|length > 100 %}
                         <div id="description-full" class="description-full d-none">
                             {{ video.description }}
                         </div>
-                        <div class="fade-overlay position-absolute" style="bottom: 0; left: 0; right: 0; height: 20px; background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,1)); pointer-events: none;"></div>
-                        <button id="read-more-btn" class="btn btn-sm btn-link p-0 text-muted">Read more</button>
-                        <button id="read-less-btn" class="btn btn-sm btn-link p-0 d-none text-muted">Show less</button>
+                        
+                        <div class="mt-1">
+                            <button id="read-more-btn" class="btn btn-sm btn-link p-0 text-decoration-none">
+                                <small>Read more</small>
+                            </button>
+                            <button id="read-less-btn" class="btn btn-sm btn-link p-0 text-decoration-none d-none">
+                                <small>Show less</small>
+                            </button>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
