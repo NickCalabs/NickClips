@@ -1,8 +1,14 @@
 /* Custom styles for the video sharing platform */
 
+:root {
+    --bs-primary: #1E88E5;
+    --bs-primary-rgb: 30, 136, 229;
+}
+
 body {
-    padding-top: 20px;
     padding-bottom: 40px;
+    color: #333;
+    background-color: #f9f9f9;
 }
 
 .video-thumbnail {
@@ -121,17 +127,13 @@ body {
 
 /* Streamable-like player styles */
 .video-main-container {
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: #f8f9fa;
+    color: #212529;
     padding: 0;
 }
 
-.video-main-container .video-info {
-    padding: 15px;
-    background-color: #fff;
-    color: #333;
-    margin-top: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+#video-container {
+    background-color: #000; /* Keep video background black for contrast */
 }
 
 .video-player-controls {
