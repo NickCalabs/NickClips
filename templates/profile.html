@@ -1,0 +1,245 @@
+{% extends "layout.html" %}
+
+{% block title %}Profile Settings - {{ current_user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-12 col-md-3 mb-4">
+            <div class="list-group">
+                <a href="#profile-section" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-user me-2"></i> My Profile
+                </a>
+                <a href="#appearance-section" class="list-group-item list-group-item-action">
+                    <i class="fas fa-palette me-2"></i> Appearance
+                </a>
+                <a href="#security-section" class="list-group-item list-group-item-action">
+                    <i class="fas fa-lock me-2"></i> Security
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div class="col-12 col-md-9">
+            <!-- Profile section -->
+            <section id="profile-section" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h3 class="mb-0">Profile Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>Username</strong>
+                            </div>
+                            <div class="col-md-9">
+                                {{ current_user.username }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>Email</strong>
+                            </div>
+                            <div class="col-md-9">
+                                {{ current_user.email }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>Joined</strong>
+                            </div>
+                            <div class="col-md-9">
+                                {{ current_user.created_at.strftime('%B %d, %Y') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Appearance section -->
+            <section id="appearance-section" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h3 class="mb-0">Appearance Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                            <label class="form-check-label" for="darkModeToggle">
+                                Dark Mode
+                            </label>
+                            <div class="form-text text-muted">
+                                Enable dark mode to reduce eye strain in low-light environments.
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="themePreference" id="themeLight" checked>
+                            <label class="form-check-label" for="themeLight">
+                                Light theme
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="themePreference" id="themeDark">
+                            <label class="form-check-label" for="themeDark">
+                                Dark theme
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="themePreference" id="themeAuto">
+                            <label class="form-check-label" for="themeAuto">
+                                Auto (follow system preferences)
+                            </label>
+                        </div>
+                        
+                        <button id="saveAppearanceBtn" class="btn btn-primary mt-3">Save Preferences</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Security section -->
+            <section id="security-section" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h3 class="mb-0">Security Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <h5>Change Password</h5>
+                        <form id="changePasswordForm" method="post" action="/profile/change-password">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                                <div class="form-text">
+                                    Password must be at least 8 characters long.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize dark mode toggle based on saved preference
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const themeLight = document.getElementById('themeLight');
+        const themeDark = document.getElementById('themeDark');
+        const themeAuto = document.getElementById('themeAuto');
+        
+        // Get saved theme preference from localStorage
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme === 'dark' || (savedTheme === 'auto' && prefersDark)) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+            darkModeToggle.checked = true;
+        }
+        
+        // Set radio buttons based on saved preference
+        if (savedTheme === 'dark') {
+            themeDark.checked = true;
+        } else if (savedTheme === 'auto') {
+            themeAuto.checked = true;
+        } else {
+            themeLight.checked = true;
+        }
+        
+        // Handle dark mode toggle
+        darkModeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                themeDark.checked = true;
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+                themeLight.checked = true;
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Handle theme radio buttons
+        themeLight.addEventListener('change', function() {
+            if (this.checked) {
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+                darkModeToggle.checked = false;
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        themeDark.addEventListener('change', function() {
+            if (this.checked) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                darkModeToggle.checked = true;
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+        
+        themeAuto.addEventListener('change', function() {
+            if (this.checked) {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
+                darkModeToggle.checked = prefersDark;
+                localStorage.setItem('theme', 'auto');
+            }
+        });
+        
+        // Handle save button (for future additional settings)
+        document.getElementById('saveAppearanceBtn').addEventListener('click', function() {
+            // Show success message
+            const alertsContainer = document.getElementById('alerts-container');
+            alertsContainer.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    Appearance settings saved successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        });
+        
+        // Activate correct section based on hash
+        const activateSection = () => {
+            const hash = window.location.hash || '#profile-section';
+            
+            // Remove active class from all links
+            document.querySelectorAll('.list-group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to current link
+            const activeLink = document.querySelector(`.list-group-item[href="${hash}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+            
+            // Scroll to the section
+            const section = document.querySelector(hash);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+        
+        // Initial activation
+        activateSection();
+        
+        // Listen for hash changes
+        window.addEventListener('hashchange', activateSection);
+    });
+</script>
+{% endblock %}
