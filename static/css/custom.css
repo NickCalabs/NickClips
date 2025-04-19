@@ -54,14 +54,15 @@ body {
 
 #video-player,
 .streamable-player {
-    width: 100%;
-    aspect-ratio: 16/9;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 80vh;
     margin: 0 auto;
     display: block;
     background-color: #000;
     box-shadow: none;
     object-fit: contain;
-    max-height: 80vh;
 }
 
 .video-info {
@@ -195,7 +196,107 @@ body {
 }
 
 .video-fullscreen-btn {
-    margin-left: auto;
+    margin-left: 5px;
+}
+
+/* Volume slider */
+.volume-container {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.volume-slider {
+    width: 80px;
+    height: 4px;
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    cursor: pointer;
+    margin-left: 5px;
+    position: relative;
+    display: none;
+}
+
+.volume-container:hover .volume-slider {
+    display: block;
+}
+
+.volume-level {
+    height: 100%;
+    background-color: #1E88E5;
+    border-radius: 2px;
+    width: 100%;
+}
+
+/* Speed control */
+.speed-container {
+    position: relative;
+    margin-left: 5px;
+}
+
+.speed-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 5px 8px;
+}
+
+.speed-dropdown {
+    position: absolute;
+    bottom: 40px;
+    right: 0;
+    background-color: rgba(0,0,0,0.9);
+    border-radius: 4px;
+    padding: 8px 0;
+    display: none;
+    flex-direction: column;
+    min-width: 120px;
+    z-index: 10;
+}
+
+.speed-option {
+    padding: 8px 15px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: left;
+    transition: background-color 0.2s;
+}
+
+.speed-option:hover,
+.speed-option.active {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.speed-option.active::before {
+    content: "✓";
+    margin-right: 5px;
+}
+
+/* Skip buttons */
+.skip-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px 8px;
+    font-size: 1.2rem;
+}
+
+.skip-button:hover {
+    color: #1E88E5;
+}
+
+/* PiP button */
+.pip-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px 8px;
+    font-size: 0.9rem;
 }
 
 /* Dashboard styles */
