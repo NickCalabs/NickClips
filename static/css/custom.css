@@ -8,7 +8,8 @@
 body {
     padding-bottom: 40px;
     color: #333;
-    background-color: #f9f9f9;
+    background-color: #f4f4f4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .video-thumbnail {
