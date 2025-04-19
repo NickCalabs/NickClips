@@ -57,7 +57,7 @@
                         <div class="position-relative thumbnail-container">
                             {% if video.thumbnail_path %}
                             <a href="{{ url_for('view_video', slug=video.slug) }}" class="video-thumbnail-link">
-                                <img src="{{ video.thumbnail_path }}" class="card-img-top rounded-top" alt="{{ video.title or 'Untitled Video' }}">
+                                <img src="/uploads/{{ video.thumbnail_path }}" class="card-img-top rounded-top" alt="{{ video.title or 'Untitled Video' }}">
                                 
                                 <!-- Processing overlay -->
                                 {% if video.status != 'completed' and video.status != 'failed' %}

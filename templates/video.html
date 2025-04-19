@@ -8,7 +8,7 @@
 <meta property="og:type" content="video.other">
 <meta property="og:url" content="{{ request.url }}">
 {% if video.thumbnail_path %}
-<meta property="og:image" content="{{ request.url_root.rstrip('/') ~ video.thumbnail_path }}">
+<meta property="og:image" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.thumbnail_path }}">
 {% endif %}
 <meta property="og:site_name" content="Video Share">
 {% if video.description %}
@@ -33,7 +33,7 @@
 <meta name="twitter:description" content="{{ video.description }}">
 {% endif %}
 {% if video.thumbnail_path %}
-<meta name="twitter:image" content="{{ request.url_root.rstrip('/') ~ video.thumbnail_path }}">
+<meta name="twitter:image" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.thumbnail_path }}">
 {% endif %}
 {% if video.status == 'completed' and video.processed_path %}
 <meta name="twitter:player" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.processed_path }}">
@@ -100,7 +100,7 @@
             {% else %}
                 <!-- Placeholder while video is processing -->
                 {% if video.thumbnail_path %}
-                    <img src="{{ video.thumbnail_path }}" alt="Video thumbnail" class="img-fluid rounded">
+                    <img src="/uploads/{{ video.thumbnail_path }}" alt="Video thumbnail" class="img-fluid rounded">
                 {% else %}
                     <div class="text-center p-5 bg-body-tertiary rounded">
                         <i class="fas fa-spinner fa-spin" style="font-size: 3rem;"></i>
