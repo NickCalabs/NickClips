@@ -78,25 +78,26 @@
                             </div>
                             
                             <div class="form-check mb-3">
-                                {{ theme_form.theme(class="form-check-input", id="themeLight", value="light") }}
+                                <input class="form-check-input" type="radio" name="theme" id="themeLight" value="light">
                                 <label class="form-check-label" for="themeLight">
                                     Light theme
                                 </label>
                             </div>
                             
                             <div class="form-check mb-3">
-                                {{ theme_form.theme(class="form-check-input", id="themeDark", value="dark") }}
+                                <input class="form-check-input" type="radio" name="theme" id="themeDark" value="dark">
                                 <label class="form-check-label" for="themeDark">
                                     Dark theme
                                 </label>
                             </div>
                             
                             <div class="form-check mb-3">
-                                {{ theme_form.theme(class="form-check-input", id="themeAuto", value="auto") }}
+                                <input class="form-check-input" type="radio" name="theme" id="themeAuto" value="auto">
                                 <label class="form-check-label" for="themeAuto">
                                     Auto (follow system preferences)
                                 </label>
                             </div>
+                            {{ theme_form.hidden_tag() }}
                             
                             {{ theme_form.submit(class="btn btn-primary mt-3", id="saveAppearanceBtn") }}
                         </form>

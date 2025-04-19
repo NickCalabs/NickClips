@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         video.muted = true; // Muted by default to allow autoplay
         video.preload = 'auto';
         video.playsInline = true; // Better mobile support
+        video.loop = true; // Enable looping
         
         videoContainer.appendChild(video);
         
@@ -380,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
         video.preload = 'auto';
         video.playsInline = true; // Better mobile support
         video.crossOrigin = 'anonymous'; // Allow CORS
+        video.loop = true; // Enable looping
         
         const source = document.createElement('source');
         source.src = sourceUrl;

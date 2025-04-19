@@ -11,14 +11,67 @@ body {
 }
 
 /* Theme specific styles - will be applied based on data-bs-theme attribute */
-html[data-bs-theme="light"] body {
-    color: #333;
-    background-color: #f4f4f4;
+html[data-bs-theme="light"] {
+    --card-bg: #ffffff;
+    --card-header-bg: #f8f9fa;
+    --body-bg: #f4f4f4;
+    --text-color: #333;
+    --border-color: rgba(0, 0, 0, 0.125);
+    --navbar-bg: #f8f9fa;
 }
 
-html[data-bs-theme="dark"] body {
-    color: #e5e5e5;
-    background-color: #121212;
+html[data-bs-theme="dark"] {
+    --card-bg: #1e2124;
+    --card-header-bg: #141618;
+    --body-bg: #121212;
+    --text-color: #e5e5e5;
+    --border-color: rgba(255, 255, 255, 0.125);
+    --navbar-bg: #141618;
+}
+
+body {
+    background-color: var(--body-bg);
+    color: var(--text-color);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.card-header {
+    background-color: var(--card-header-bg);
+    border-color: var(--border-color);
+}
+
+.list-group-item {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.video-main-container {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.video-card .card {
+    background-color: var(--card-bg);
+}
+
+.navbar {
+    background-color: var(--navbar-bg);
+}
+
+.form-control, .input-group-text {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.form-control:focus {
+    background-color: var(--card-bg);
+    color: var(--text-color);
 }
 
 .video-thumbnail {
@@ -73,6 +126,24 @@ html[data-bs-theme="dark"] body {
     box-shadow: none;
     object-fit: contain;
     aspect-ratio: 16/9;
+}
+
+/* Fix letterboxing */
+#video-container {
+    width: 100%;
+    background-color: #000;
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+#video-container video {
+    width: 100%;
+    max-height: 80vh;
 }
 
 .video-info {
@@ -196,10 +267,15 @@ html[data-bs-theme="dark"] .video-main-container {
 
 .video-progress-bar {
     position: relative;
-    height: 4px;
+    height: 8px;
     background-color: rgba(255,255,255,0.2);
     cursor: pointer;
     margin-bottom: 0;
+    transition: height 0.2s;
+}
+
+.video-progress-bar:hover {
+    height: 12px;
 }
 
 .video-progress-value {
@@ -207,6 +283,39 @@ html[data-bs-theme="dark"] .video-main-container {
     background-color: #1E88E5;
     width: 0%;
     transition: width 0.1s;
+    position: relative;
+}
+
+/* Scrubber dot on hover */
+.video-progress-bar:hover .video-progress-value::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background-color: #1E88E5;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* Time preview on hover */
+.video-time-preview {
+    position: absolute;
+    bottom: 20px;
+    background-color: rgba(0,0,0,0.8);
+    color: white;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    transform: translateX(-50%);
+    display: none;
+    pointer-events: none;
+}
+
+.video-progress-bar:hover .video-time-preview {
+    display: block;
 }
 
 .time-display {
