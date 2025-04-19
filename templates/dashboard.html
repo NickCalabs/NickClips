@@ -135,12 +135,11 @@
                                     </button>
                                 </div>
                                 
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-light border-light">
-                                        <i class="fas fa-link text-muted"></i>
-                                    </span>
-                                    <input type="text" class="form-control form-control-sm bg-light" value="{{ url_for('view_video', slug=video.slug, _external=True) }}" readonly>
-                                    <button class="btn btn-outline-secondary btn-copy" type="button" data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1 bg-light rounded-start border border-end-0 d-flex ps-2 pe-1 py-1">
+                                        <input type="text" class="form-control form-control-sm border-0 bg-transparent p-1" value="{{ url_for('view_video', slug=video.slug, _external=True) }}" readonly>
+                                    </div>
+                                    <button class="btn btn-sm btn-light rounded-end border border-start-0 btn-copy" type="button" data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
@@ -278,12 +277,12 @@
                 const originalHTML = this.innerHTML;
                 this.innerHTML = '<i class="fas fa-check"></i>';
                 this.classList.add('btn-success');
-                this.classList.remove('btn-outline-secondary');
+                this.classList.remove('btn-light');
                 
                 setTimeout(() => {
                     this.innerHTML = originalHTML;
                     this.classList.remove('btn-success');
-                    this.classList.add('btn-outline-secondary');
+                    this.classList.add('btn-light');
                 }, 2000);
             });
         });

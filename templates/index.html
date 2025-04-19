@@ -15,34 +15,66 @@
 
 <div class="row">
     <div class="col-md-10 mx-auto bg-white rounded p-4">
-        <div class="d-flex align-items-center gap-3 mb-4">
-            <button class="btn btn-primary rounded-pill" id="upload-btn">
-                <i class="fas fa-upload me-2"></i>Upload video
-            </button>
-            
-            <div class="input-group flex-grow-1">
-                <input type="url" class="form-control" id="url-input" placeholder="Paste a video URL" aria-label="Video URL">
-                <button class="btn btn-outline-primary" type="button" id="paste-url-btn">
-                    <i class="fas fa-paste me-1"></i>Paste URL
-                </button>
-            </div>
-        </div>
-        
-        <div id="upload-container" class="d-none">
-            <div class="upload-area" id="drop-area">
-                <i class="fas fa-cloud-upload-alt mb-3" style="font-size: 3rem;"></i>
-                <h4>Drag and drop your video file here</h4>
-                <p>or</p>
-                <div class="mb-3">
-                    <input class="form-control" type="file" id="file-input" name="file" accept=".mp4,.mov,.avi,.mkv,.webm,.flv,.wmv">
-                </div>
-                <button type="button" id="upload-file-btn" class="btn btn-primary px-4 py-2">
+        <ul class="nav nav-tabs upload-nav mb-4" id="uploadTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button" role="tab" aria-controls="upload-panel" aria-selected="true">
                     <i class="fas fa-upload me-2"></i>Upload Video
                 </button>
-                <p class="text-muted small mt-3">
-                    Maximum file size: 1GB<br>
-                    Supported formats: MP4, MOV, AVI, MKV, WEBM, FLV, WMV
-                </p>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-panel" type="button" role="tab" aria-controls="url-panel" aria-selected="false">
+                    <i class="fas fa-link me-2"></i>From URL
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="uploadTabsContent">
+            <!-- Upload Tab Panel -->
+            <div class="tab-pane fade show active" id="upload-panel" role="tabpanel" aria-labelledby="upload-tab">
+                <div class="upload-area" id="drop-area">
+                    <i class="fas fa-cloud-upload-alt mb-3" style="font-size: 3rem;"></i>
+                    <h4>Drag and drop your video file here</h4>
+                    <p>or</p>
+                    <div class="mb-3">
+                        <input class="form-control" type="file" id="file-input" name="file" accept=".mp4,.mov,.avi,.mkv,.webm,.flv,.wmv">
+                    </div>
+                    <button type="button" id="upload-file-btn" class="btn btn-primary px-4 py-2">
+                        <i class="fas fa-upload me-2"></i>Upload Video
+                    </button>
+                    <p class="text-muted small mt-3">
+                        Maximum file size: 1GB<br>
+                        Supported formats: MP4, MOV, AVI, MKV, WEBM, FLV, WMV
+                    </p>
+                </div>
+            </div>
+            
+            <!-- URL Tab Panel -->
+            <div class="tab-pane fade" id="url-panel" role="tabpanel" aria-labelledby="url-tab">
+                <div class="mb-3">
+                    <label for="url-input" class="form-label">Video URL</label>
+                    <div class="input-group">
+                        <input type="url" class="form-control" id="url-input" placeholder="https://youtube.com/watch?v=..." aria-label="Video URL">
+                        <button class="btn btn-primary" type="button" id="download-url-btn">Download</button>
+                    </div>
+                    <div class="form-text">
+                        Enter a URL from YouTube, Twitter, Vimeo, and many other platforms.
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h5>Supported platforms include:</h5>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <span class="badge text-bg-light border"><i class="fab fa-youtube me-1 text-danger"></i>YouTube</span>
+                        <span class="badge text-bg-light border"><i class="fab fa-twitter me-1 text-info"></i>Twitter</span>
+                        <span class="badge text-bg-light border"><i class="fab fa-vimeo me-1 text-primary"></i>Vimeo</span>
+                        <span class="badge text-bg-light border"><i class="fab fa-facebook me-1 text-primary"></i>Facebook</span>
+                        <span class="badge text-bg-light border"><i class="fab fa-instagram me-1 text-danger"></i>Instagram</span>
+                        <span class="badge text-bg-light border"><i class="fab fa-tiktok me-1"></i>TikTok</span>
+                        <span class="badge text-bg-light border"><i class="fab fa-twitch me-1 text-purple"></i>Twitch</span>
+                        <span class="badge text-bg-light border"><i class="fab fa-reddit me-1 text-danger"></i>Reddit</span>
+                        <span class="badge text-bg-light border"><i class="fas fa-ellipsis-h me-1"></i>Many more...</span>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -109,37 +141,19 @@
     const dropArea = document.getElementById('drop-area');
     const fileInput = document.getElementById('file-input');
     const urlInput = document.getElementById('url-input');
-    const uploadBtn = document.getElementById('upload-btn');
-    const pasteUrlBtn = document.getElementById('paste-url-btn');
     const uploadFileBtn = document.getElementById('upload-file-btn');
-    const uploadContainer = document.getElementById('upload-container');
+    const downloadUrlBtn = document.getElementById('download-url-btn');
     const downloadStatus = document.getElementById('download-status');
     const uploadProgress = document.getElementById('upload-progress');
     const progressBar = document.getElementById('progress-bar');
     const uploadStatus = document.getElementById('upload-status');
-    const platformsContainer = document.getElementById('platforms-container');
-
-    // Show/hide upload area
-    uploadBtn.addEventListener('click', function() {
-        uploadContainer.classList.toggle('d-none');
-        if (!uploadContainer.classList.contains('d-none')) {
-            // Focus the file input when showing the upload area
-            fileInput.focus();
-        }
-    });
     
-    // Paste URL button
-    pasteUrlBtn.addEventListener('click', function() {
-        navigator.clipboard.readText()
-            .then(text => {
-                urlInput.value = text;
-                handleUrlSubmit();
-            })
-            .catch(err => {
-                console.error('Failed to read clipboard contents: ', err);
-                showAlert('Please paste the URL manually.', 'warning');
-            });
-    });
+    // Download URL button
+    if (downloadUrlBtn) {
+        downloadUrlBtn.addEventListener('click', function() {
+            handleUrlSubmit();
+        });
+    }
     
     // URL input for auto-submission
     urlInput.addEventListener('paste', function(e) {
@@ -151,17 +165,7 @@
         }, 100);
     });
     
-    // Handle URL input changes
-    urlInput.addEventListener('input', function() {
-        // If URL field is not empty, show the platforms container
-        if (urlInput.value.trim()) {
-            platformsContainer.classList.remove('d-none');
-        } else {
-            platformsContainer.classList.add('d-none');
-        }
-    });
-    
-    // Handle URL submission
+    // Handle URL submission on Enter key
     urlInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && urlInput.value.trim()) {
             e.preventDefault();
@@ -322,6 +326,11 @@
     // Helper function to show alerts
     function showAlert(message, type = 'info') {
         const alertContainer = document.getElementById('alerts-container');
+        if (!alertContainer) {
+            console.error('Alerts container not found');
+            return;
+        }
+        
         const alertEl = document.createElement('div');
         alertEl.className = `alert alert-${type} alert-dismissible fade show`;
         alertEl.innerHTML = `

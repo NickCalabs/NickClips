@@ -259,30 +259,51 @@ body {
 /* Tab navigation styling - Streamable style */
 .nav-tabs {
     margin-bottom: 20px;
-    border-bottom: none;
+    border-bottom: 1px solid #e5e5e5;
     background-color: transparent;
-    display: inline-flex;
+    display: flex;
 }
 
 .nav-tabs .nav-link {
-    color: #555;
+    color: #1e88e5;
     background-color: transparent;
-    border: none;
-    border-radius: 20px;
-    padding: 0.5rem 1.25rem;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    padding: 0.75rem 1.5rem;
     font-weight: 500;
     transition: all 0.2s ease;
     margin-right: 8px;
+    margin-bottom: -1px;
 }
 
 .nav-tabs .nav-link:hover {
     background-color: rgba(30, 136, 229, 0.05);
+    border-color: #e5e5e5 #e5e5e5 transparent;
 }
 
 .nav-tabs .nav-link.active {
-    color: white;
-    background-color: #1e88e5;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: #333;
+    background-color: #fff;
+    border-color: #e5e5e5 #e5e5e5 #fff;
+}
+
+/* Special styling for upload tabs navigation */
+.upload-nav {
+    border-bottom: none;
+}
+
+.upload-nav .nav-link {
+    border: 1px solid #e5e5e5;
+    background-color: #f8f9fa;
+}
+
+.upload-nav .nav-link.active {
+    background-color: #fff;
+    border-color: #e5e5e5;
+    color: #333;
+    border-bottom: 1px solid #e5e5e5;
+    font-weight: 600;
 }
 
 /* Upload tabs styling */
