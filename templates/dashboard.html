@@ -106,40 +106,59 @@
                         </div>
                         
                         <div class="card-body d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title video-title mb-0 text-truncate">{{ video.title or 'Untitled Video' }}</h5>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <div class="editable-title-container" data-slug="{{ video.slug }}">
+                                        <h5 class="card-title video-title mb-0 text-truncate video-title-text">{{ video.title or 'Untitled Video' }}</h5>
+                                        <input type="text" class="form-control form-control-sm d-none video-title-input" 
+                                               value="{{ video.title or 'Untitled Video' }}" maxlength="255">
+                                    </div>
+                                    
+                                    <!-- Status badge -->
+                                    {% if video.status != 'completed' %}
+                                    <span class="badge {% if video.status == 'failed' %}bg-danger{% else %}bg-primary{% endif %} ms-2">
+                                        {{ video.status|capitalize }}
+                                    </span>
+                                    {% endif %}
+                                </div>
                                 
-                                <!-- Status badge -->
-                                {% if video.status != 'completed' %}
-                                <span class="badge {% if video.status == 'failed' %}bg-danger{% else %}bg-primary{% endif %} ms-2">
-                                    {{ video.status|capitalize }}
-                                </span>
-                                {% endif %}
+                                <p class="card-text text-muted small mb-2">
+                                    <span class="view-count"><i class="fas fa-eye me-1"></i> {{ video.views }} views</span>
+                                    <span class="ms-2"><i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }}</span>
+                                </p>
                             </div>
                             
-                            <p class="card-text text-muted small mb-3">
-                                <i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }} 
-                                <i class="fas fa-eye ms-2 me-1"></i> {{ video.views }} views
-                            </p>
-                            
                             <div class="mt-auto">
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <a href="{{ url_for('view_video', slug=video.slug) }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-play me-1"></i> Watch
+                                <div class="share-link-container mb-3">
+                                    <a href="{{ url_for('view_video', slug=video.slug, _external=True) }}" class="text-primary small video-link" target="_blank">
+                                        {{ url_for('view_video', slug=video.slug, _external=True) }}
                                     </a>
-                                    <button class="btn btn-sm btn-outline-secondary edit-video" data-slug="{{ video.slug }}">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger delete-video" data-slug="{{ video.slug }}">
-                                        <i class="fas fa-trash"></i> Delete
+                                    <button class="btn btn-sm btn-light btn-copy ms-2" type="button" 
+                                            data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
+                                        <i class="fas fa-clipboard me-1"></i>Copy Link
                                     </button>
                                 </div>
                                 
-                                <div class="d-flex mt-2">
-                                    <input type="text" class="form-control form-control-sm bg-light" value="{{ url_for('view_video', slug=video.slug, _external=True) }}" readonly style="border-radius: 0.25rem 0 0 0.25rem; border-right: none;">
-                                    <button class="btn btn-sm btn-light border-start-0 btn-copy" type="button" style="border-radius: 0 0.25rem 0.25rem 0;" data-clipboard-text="{{ url_for('view_video', slug=video.slug, _external=True) }}">
-                                        <i class="fas fa-copy"></i>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{{ url_for('view_video', slug=video.slug) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-play me-1"></i> Watch
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-secondary btn-embed" data-slug="{{ video.slug }}">
+                                        <i class="fas fa-code me-1"></i> Embed
                                     </button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><button class="dropdown-item edit-video-page" data-slug="{{ video.slug }}">
+                                                <i class="fas fa-edit me-2"></i>Edit Details
+                                            </button></li>
+                                            <li><button class="dropdown-item delete-video text-danger" data-slug="{{ video.slug }}">
+                                                <i class="fas fa-trash me-2"></i>Delete Video
+                                            </button></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -286,13 +305,106 @@
         });
     });
     
-    // Edit video
-    document.querySelectorAll('.edit-video').forEach(button => {
+    // Edit video on page
+    document.querySelectorAll('.edit-video-page').forEach(button => {
         button.addEventListener('click', function() {
             const slug = this.dataset.slug;
             window.location.href = `/video/${slug}`;
         });
     });
+    
+    // Embed button
+    document.querySelectorAll('.btn-embed').forEach(button => {
+        button.addEventListener('click', function() {
+            const slug = this.dataset.slug;
+            const embedCode = `<iframe width="560" height="315" src="${window.location.origin}/video/${slug}/embed" frameborder="0" allowfullscreen></iframe>`;
+            navigator.clipboard.writeText(embedCode).then(() => {
+                showAlert('Embed code copied to clipboard!', 'success');
+            });
+        });
+    });
+    
+    // Inline title editing
+    document.querySelectorAll('.editable-title-container').forEach(container => {
+        const titleElement = container.querySelector('.video-title-text');
+        const titleInput = container.querySelector('.video-title-input');
+        const slug = container.dataset.slug;
+        
+        // Make the title clickable
+        titleElement.addEventListener('click', function() {
+            titleElement.classList.add('d-none');
+            titleInput.classList.remove('d-none');
+            titleInput.focus();
+            titleInput.select();
+        });
+        
+        // Handle input blur
+        titleInput.addEventListener('blur', function() {
+            updateVideoTitle(slug, titleInput.value.trim());
+        });
+        
+        // Handle Enter key
+        titleInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                titleInput.blur();
+            }
+        });
+        
+        // Handle Escape key
+        titleInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                titleInput.value = titleElement.textContent;
+                titleInput.classList.add('d-none');
+                titleElement.classList.remove('d-none');
+            }
+        });
+    });
+    
+    // Function to update video title
+    function updateVideoTitle(slug, newTitle) {
+        const container = document.querySelector(`.editable-title-container[data-slug="${slug}"]`);
+        const titleElement = container.querySelector('.video-title-text');
+        const titleInput = container.querySelector('.video-title-input');
+        
+        // Don't update if the title didn't change
+        if (titleElement.textContent.trim() === newTitle) {
+            titleInput.classList.add('d-none');
+            titleElement.classList.remove('d-none');
+            return;
+        }
+        
+        // Update the title via API
+        fetch(`/api/video/${slug}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: newTitle })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the UI
+                titleElement.textContent = newTitle || 'Untitled Video';
+                showAlert('Title updated successfully', 'success');
+            } else {
+                showAlert(`Error: ${data.error}`, 'danger');
+                titleInput.value = titleElement.textContent; // Restore original value
+            }
+            
+            // Show the text element again
+            titleInput.classList.add('d-none');
+            titleElement.classList.remove('d-none');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while updating the title', 'danger');
+            titleInput.value = titleElement.textContent; // Restore original value
+            titleInput.classList.add('d-none');
+            titleElement.classList.remove('d-none');
+        });
+    }
     
     // Delete video
     document.querySelectorAll('.delete-video').forEach(button => {

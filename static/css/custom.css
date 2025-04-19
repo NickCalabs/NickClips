@@ -269,6 +269,31 @@ body {
     margin-bottom: 20px;
 }
 
+.description-container {
+    position: relative;
+}
+
+.description-preview {
+    position: relative;
+    overflow: hidden;
+}
+
+.description-full {
+    white-space: pre-line;
+}
+
+.fade-overlay {
+    display: none;
+}
+
+html[data-bs-theme="light"] .fade-overlay {
+    background: linear-gradient(rgba(255,255,255,0), var(--body-bg)) !important;
+}
+
+html[data-bs-theme="dark"] .fade-overlay {
+    background: linear-gradient(rgba(0,0,0,0), var(--body-bg)) !important;
+}
+
 .share-section {
     margin-top: 15px;
     padding-top: 15px;
@@ -692,6 +717,48 @@ html[data-bs-theme="dark"] .video-main-container {
 .video-title {
     line-height: 1.3;
     font-weight: 500;
+}
+
+/* Editable title styling */
+.editable-title-container {
+    position: relative;
+    cursor: pointer;
+    flex-grow: 1;
+}
+
+.video-title-text {
+    padding: 0.25rem;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.editable-title-container:hover .video-title-text {
+    border-color: #ddd;
+    background-color: #f9f9f9;
+}
+
+.video-title-input {
+    width: 100%;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+/* Share link styling */
+.share-link-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.video-link {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #1e88e5;
+    text-decoration: none;
 }
 
 /* Improved buttons */

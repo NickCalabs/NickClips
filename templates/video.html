@@ -46,23 +46,23 @@
 
 {% block content %}
 <!-- Full-width video section with light gray background, Streamable-style -->
-<div class="video-main-container bg-body-tertiary py-2">
-    <div class="container-fluid">
+<div class="video-main-container bg-body-tertiary py-0">
+    <div class="container-fluid px-0">
         <!-- Video status alert for pending/processing videos -->
         <div id="video-status" class="video-status">
             {% if video.status == 'pending' %}
-            <div class="alert alert-info">Your video is pending processing...</div>
+            <div class="alert alert-info m-2">Your video is pending processing...</div>
             {% elif video.status == 'downloading' %}
-            <div class="alert alert-info">Downloading video from source...</div>
+            <div class="alert alert-info m-2">Downloading video from source...</div>
             {% elif video.status == 'processing' %}
-            <div class="alert alert-info">
+            <div class="alert alert-info m-2">
                 <div class="d-flex align-items-center">
                     <strong>Processing your video...</strong>
                     <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
                 </div>
             </div>
             {% elif video.status == 'failed' %}
-            <div class="alert alert-danger">
+            <div class="alert alert-danger m-2">
                 <h5 class="alert-heading">Processing failed</h5>
                 <p>{{ video.error or 'Unknown error' }}</p>
                 {% if 'YouTube' in video.error or 'Reddit' in video.error %}
@@ -84,13 +84,13 @@
             {% if video.width %}data-video-width="{{ video.width }}"{% endif %}
             {% if video.height %}data-video-height="{{ video.height }}"{% endif %}
             {% endif %}
-            class="video-player-container mb-0 mx-auto" style="max-width: 1200px;">
+            class="video-player-container mb-0 mx-auto px-0" style="max-width: 1200px;">
             
             {% if video.status == 'completed' %}
                 <!-- Video player will be inserted here by JavaScript -->
                 <!-- Video wrapper will be created to size player correctly -->
             {% elif video.status == 'failed' %}
-                <div class="text-center p-5 bg-body-tertiary rounded">
+                <div class="text-center p-4 bg-body-tertiary rounded">
                     <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
                     <h4 class="mt-3">Video Processing Failed</h4>
                     <p class="text-muted">{{ video.error or 'There was an error processing this video.' }}</p>
@@ -105,7 +105,7 @@
                 {% if video.thumbnail_path %}
                     <img src="/uploads/{{ video.thumbnail_path }}" alt="Video thumbnail" class="img-fluid rounded">
                 {% else %}
-                    <div class="text-center p-5 bg-body-tertiary rounded">
+                    <div class="text-center p-4 bg-body-tertiary rounded">
                         <i class="fas fa-spinner fa-spin" style="font-size: 3rem;"></i>
                         <h4 class="mt-3">Processing Video</h4>
                         <p class="text-muted">This may take a few minutes...</p>
@@ -117,14 +117,14 @@
     </div>
 </div>
 
-<!-- Video information in standard container -->
-<div class="container mt-4">
+<!-- Video information in standard container with reduced spacing -->
+<div class="container">
     <div class="row">
         <div class="col-lg-10 mx-auto">
-            <div class="video-info">
-                <h1 class="video-title mb-2">{{ video.title or 'Untitled Video' }}</h1>
+            <div class="video-info pt-3">
+                <h1 class="video-title h3 mb-1">{{ video.title or 'Untitled Video' }}</h1>
                 
-                <div class="video-metadata d-flex flex-wrap gap-3 mb-3">
+                <div class="video-metadata d-flex flex-wrap gap-3 mb-2">
                     <span><i class="fas fa-eye me-1"></i> {{ video.views }} views</span>
                     <span><i class="fas fa-calendar me-1"></i> {{ video.created_at.strftime('%b %d, %Y') }}</span>
                     {% if video.duration %}
@@ -133,17 +133,23 @@
                 </div>
                 
                 {% if video.description %}
-                <div class="video-description mb-4">
-                    <div id="description-preview" class="description-preview">
-                        {{ video.description[:150] }}{% if video.description|length > 150 %}...{% endif %}
+                <div class="video-description mb-3">
+                    <div class="description-container position-relative">
+                        <div id="description-preview" class="description-preview">
+                            {{ video.description.split('\n')[0] }}
+                            {% if video.description.split('\n')|length > 1 or video.description|length > 100 %}
+                            <span class="text-truncate d-inline-block" style="max-width: 400px;">{{ video.description.split('\n')[1:][0] }}</span>
+                            {% endif %}
+                        </div>
+                        {% if video.description.split('\n')|length > 1 or video.description|length > 100 %}
+                        <div id="description-full" class="description-full d-none">
+                            {{ video.description }}
+                        </div>
+                        <div class="fade-overlay position-absolute" style="bottom: 0; left: 0; right: 0; height: 20px; background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,1)); pointer-events: none;"></div>
+                        <button id="read-more-btn" class="btn btn-sm btn-link p-0 text-muted">Read more</button>
+                        <button id="read-less-btn" class="btn btn-sm btn-link p-0 d-none text-muted">Show less</button>
+                        {% endif %}
                     </div>
-                    {% if video.description|length > 150 %}
-                    <div id="description-full" class="description-full d-none">
-                        {{ video.description }}
-                    </div>
-                    <button id="read-more-btn" class="btn btn-sm btn-link p-0">Read more</button>
-                    <button id="read-less-btn" class="btn btn-sm btn-link p-0 d-none">Show less</button>
-                    {% endif %}
                 </div>
                 {% endif %}
                 
