@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         video.className = 'streamable-player';
         video.controls = false; // We'll create custom controls
         video.autoplay = true; // Enable autoplay
-        video.muted = true; // Muted by default to allow autoplay
+        video.muted = false; // Unmuted by default
         video.preload = 'auto';
         video.playsInline = true; // Better mobile support
         video.loop = true; // Enable looping
