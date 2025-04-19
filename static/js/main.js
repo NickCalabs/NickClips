@@ -7,11 +7,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const savedTheme = localStorage.getItem('theme') || 'light';
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        if (savedTheme === 'dark' || (savedTheme === 'auto' && prefersDark)) {
-            document.documentElement.setAttribute('data-bs-theme', 'dark');
-        } else {
-            document.documentElement.setAttribute('data-bs-theme', 'light');
+        // Determine the actual theme to apply
+        let themeToApply = 'light';
+        
+        if (savedTheme === 'dark') {
+            themeToApply = 'dark';
+        } else if (savedTheme === 'auto') {
+            themeToApply = prefersDark ? 'dark' : 'light';
         }
+        
+        // Remove any existing theme classes
+        document.documentElement.classList.remove('theme-light', 'theme-dark');
+        
+        // Apply the theme to the html element
+        document.documentElement.setAttribute('data-bs-theme', themeToApply);
+        document.documentElement.classList.add(`theme-${themeToApply}`);
+        
+        // Store the applied theme for reference
+        window.currentTheme = themeToApply;
     }
     
     // Listen for system theme changes if auto is selected
