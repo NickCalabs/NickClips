@@ -226,6 +226,11 @@ def extract_thumbnail(video_path, output_path):
         # Extract at 5 seconds or 25% of duration if less than 20 seconds
         seek_time = min(5, max(1, duration * 0.25)) if duration > 0 else 0
         
+        logger.debug(f"Extracting thumbnail for {video_path} at {seek_time}s to {output_path}")
+        
+        # Ensure the output directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
         cmd = [
             'ffmpeg',
             '-y',  # Overwrite output files
@@ -236,7 +241,19 @@ def extract_thumbnail(video_path, output_path):
             output_path
         ]
         
-        subprocess.run(cmd, check=True, capture_output=True)
+        logger.debug(f"Running command: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            logger.error(f"ffmpeg returned error: {result.stderr}")
+            raise Exception(f"ffmpeg error: {result.stderr}")
+        
+        # Verify the thumbnail was created
+        if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+            logger.error(f"Thumbnail file not created or is empty: {output_path}")
+            raise Exception("Thumbnail generation failed, output file is empty or missing")
+            
+        logger.debug(f"Thumbnail successfully created at {output_path}")
         return True
         
     except Exception as e:
@@ -245,21 +262,38 @@ def extract_thumbnail(video_path, output_path):
 
 def transcode_to_mp4(input_path, output_path):
     """Transcode video to MP4 format with H.264 video and AAC audio"""
-    cmd = [
-        'ffmpeg',
-        '-y',  # Overwrite output files
-        '-i', input_path,  # Input file
-        '-c:v', 'libx264',  # Video codec
-        '-preset', 'medium',  # Compression preset
-        '-crf', '22',  # Quality (lower is better)
-        '-c:a', 'aac',  # Audio codec
-        '-b:a', '128k',  # Audio bitrate
-        '-movflags', '+faststart',  # Optimize for web streaming
-        output_path
-    ]
-    
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
+        logger.debug(f"Transcoding {input_path} to MP4 at {output_path}")
+        
+        # Ensure the output directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        cmd = [
+            'ffmpeg',
+            '-y',  # Overwrite output files
+            '-i', input_path,  # Input file
+            '-c:v', 'libx264',  # Video codec
+            '-preset', 'medium',  # Compression preset
+            '-crf', '22',  # Quality (lower is better)
+            '-c:a', 'aac',  # Audio codec
+            '-b:a', '128k',  # Audio bitrate
+            '-movflags', '+faststart',  # Optimize for web streaming
+            output_path
+        ]
+        
+        logger.debug(f"Running command: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            logger.error(f"ffmpeg returned error: {result.stderr}")
+            raise Exception(f"ffmpeg transcoding error: {result.stderr}")
+        
+        # Verify the output file was created
+        if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+            logger.error(f"Transcoded file not created or is empty: {output_path}")
+            raise Exception("Transcoding failed, output file is empty or missing")
+            
+        logger.debug(f"Transcoding successfully completed at {output_path}")
         return True
     except Exception as e:
         logger.error(f"Error transcoding to MP4: {e}")
@@ -267,30 +301,46 @@ def transcode_to_mp4(input_path, output_path):
 
 def create_hls_stream(input_path, output_dir):
     """Create HLS stream for adaptive bitrate streaming"""
-    playlist_path = os.path.join(output_dir, 'playlist.m3u8')
-    
-    cmd = [
-        'ffmpeg',
-        '-y',  # Overwrite output files
-        '-i', input_path,  # Input file
-        '-profile:v', 'baseline',  # H.264 profile
-        '-level', '3.0',  # H.264 level
-        '-start_number', '0',  # Start number for segments
-        '-hls_time', '4',  # Segment duration in seconds (reduced from 10)
-        '-hls_list_size', '0',  # All segments in playlist
-        '-hls_segment_type', 'mpegts',  # More compatible segment type
-        '-hls_flags', 'independent_segments',  # Each segment can be decoded independently
-        '-g', '48',  # Keyframe interval (reduced for more stable playback)
-        '-sc_threshold', '0',  # Disable scene change detection
-        '-c:v', 'libx264',  # Video codec
-        '-c:a', 'aac',  # Audio codec
-        '-b:a', '128k',  # Audio bitrate
-        '-f', 'hls',  # Format
-        playlist_path
-    ]
-    
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
+        playlist_path = os.path.join(output_dir, 'playlist.m3u8')
+        logger.debug(f"Creating HLS stream from {input_path} to {playlist_path}")
+        
+        # Ensure the output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+        
+        cmd = [
+            'ffmpeg',
+            '-y',  # Overwrite output files
+            '-i', input_path,  # Input file
+            '-profile:v', 'baseline',  # H.264 profile
+            '-level', '3.0',  # H.264 level
+            '-start_number', '0',  # Start number for segments
+            '-hls_time', '4',  # Segment duration in seconds (reduced from 10)
+            '-hls_list_size', '0',  # All segments in playlist
+            '-hls_segment_type', 'mpegts',  # More compatible segment type
+            '-hls_flags', 'independent_segments',  # Each segment can be decoded independently
+            '-g', '48',  # Keyframe interval (reduced for more stable playback)
+            '-sc_threshold', '0',  # Disable scene change detection
+            '-c:v', 'libx264',  # Video codec
+            '-c:a', 'aac',  # Audio codec
+            '-b:a', '128k',  # Audio bitrate
+            '-f', 'hls',  # Format
+            playlist_path
+        ]
+        
+        logger.debug(f"Running command: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            logger.error(f"ffmpeg returned error: {result.stderr}")
+            raise Exception(f"ffmpeg HLS creation error: {result.stderr}")
+        
+        # Verify the playlist file was created
+        if not os.path.exists(playlist_path) or os.path.getsize(playlist_path) == 0:
+            logger.error(f"HLS playlist not created or is empty: {playlist_path}")
+            raise Exception("HLS creation failed, playlist file is empty or missing")
+            
+        logger.debug(f"HLS stream successfully created at {playlist_path}")
         return True
     except Exception as e:
         logger.error(f"Error creating HLS stream: {e}")

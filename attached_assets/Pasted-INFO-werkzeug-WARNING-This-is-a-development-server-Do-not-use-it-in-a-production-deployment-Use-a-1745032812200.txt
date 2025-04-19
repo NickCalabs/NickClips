@@ -1,0 +1,391 @@
+INFO:werkzeug:WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.17.0.2:5000
+INFO:werkzeug:Press CTRL+C to quit
+INFO:werkzeug: * Restarting with stat
+INFO:video_processor:Video processor worker started
+INFO:video_processor:Video processor initialized
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 134-733-962
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:16:55] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:16:55] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:16:55] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:16:59] "POST /api/download HTTP/1.1" 200 -
+INFO:downloader:Downloading video from URL: https://www.youtube.com/watch?v=_OBlgSz8sSM&pp=0gcJCdgAo7VqN5tD
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:01] "POST /api/download HTTP/1.1" 200 -
+INFO:downloader:Downloading video from URL: https://www.youtube.com/watch?v=_OBlgSz8sSM&pp=0gcJCdgAo7VqN5tD
+DEBUG:downloader:Got video info: {'title': 'Charlie bit my finger - again !', 'description': "Contact us at harryandcharlie@gmail.com\nI am sorry comments are turned off.  YouTube have set the video to 'made for kids'.  I have appealed many times and every time I get an anonymous rejection from the community.  I have tried to enable your engagements but no one from YouTube will return contact.  This video was made for my friends and family and engagement has always been with adults.  Instead I have moved to engaging with Fans through NFT.  We helped YouTube grow and embraced it early.  We are now moving onto the next exciting thing.\n\nCharlie bit my finger - again ! Subscribe here: http://bit.ly/1oHVuUM\n\nEven had I thought of trying to get my boys to do this I probably couldn't have. Neither were coerced into any of this and neither were hurt (for very long anyway).  This was just one of those moments when I had the video camera out because the boys were being fun and they provided something really very funny.\n\nT-Shirts\niPhone  http://itunes.apple.com/gb/app/charlie-bit-me!!!/id494858348?mt=8\nAndroid  https://play.google.com/store/apps/details?id=com.viralspiral.charlie \n\nFAQ Harry is 8 3/4, Charlie is 6 1/2, Jasper is  4 1/4, Rupert is 1 1/2\n(November 2012)\n\n\n\nTwitter\nhttp://twitter.com/harryandcharlie", 'duration': 56, 'thumbnail': 'https://i.ytimg.com/vi/_OBlgSz8sSM/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-BIAC4AOKAgwIABABGD0gUyhlMA8=&rs=AOn4CLDNylibsu3fJDwWehZxLKtL0KmFaw', 'ext': 'webm'}
+DEBUG:downloader:Got video info: {'title': 'Charlie bit my finger - again !', 'description': "Contact us at harryandcharlie@gmail.com\nI am sorry comments are turned off.  YouTube have set the video to 'made for kids'.  I have appealed many times and every time I get an anonymous rejection from the community.  I have tried to enable your engagements but no one from YouTube will return contact.  This video was made for my friends and family and engagement has always been with adults.  Instead I have moved to engaging with Fans through NFT.  We helped YouTube grow and embraced it early.  We are now moving onto the next exciting thing.\n\nCharlie bit my finger - again ! Subscribe here: http://bit.ly/1oHVuUM\n\nEven had I thought of trying to get my boys to do this I probably couldn't have. Neither were coerced into any of this and neither were hurt (for very long anyway).  This was just one of those moments when I had the video camera out because the boys were being fun and they provided something really very funny.\n\nT-Shirts\niPhone  http://itunes.apple.com/gb/app/charlie-bit-me!!!/id494858348?mt=8\nAndroid  https://play.google.com/store/apps/details?id=com.viralspiral.charlie \n\nFAQ Harry is 8 3/4, Charlie is 6 1/2, Jasper is  4 1/4, Rupert is 1 1/2\n(November 2012)\n\n\n\nTwitter\nhttp://twitter.com/harryandcharlie", 'duration': 56, 'thumbnail': 'https://i.ytimg.com/vi/_OBlgSz8sSM/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-BIAC4AOKAgwIABABGD0gUyhlMA8=&rs=AOn4CLDNylibsu3fJDwWehZxLKtL0KmFaw', 'ext': 'webm'}
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:17] "GET /login HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:17] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:17] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:19] "GET /register HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:19] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:19] "GET /static/js/main.js HTTP/1.1" 304 -
+DEBUG:downloader:yt-dlp stdout: [youtube] Extracting URL: https://www.youtube.com/watch?v=_OBlgSz8sSM&pp=0gcJCdgAo7VqN5tD
+[youtube] _OBlgSz8sSM: Downloading webpage
+[youtube] _OBlgSz8sSM: Downloading tv client config
+[youtube] _OBlgSz8sSM: Downloading player 9a279502-main
+[youtube] _OBlgSz8sSM: Downloading tv player API JSON
+[youtube] _OBlgSz8sSM: Downloading ios player API JSON
+[youtube] _OBlgSz8sSM: Downloading m3u8 information
+[info] _OBlgSz8sSM: Downloading 1 format(s): 18
+[download] Destination: /app/uploads/original/b237357e.mp4
+
+[download]   0.0% of    3.28MiB at  Unknown B/s ETA Unknown
+[download]   0.1% of    3.28MiB at    1.57MiB/s ETA 00:02
+[download]   0.2% of    3.28MiB at    2.36MiB/s ETA 00:01
+[download]   0.4% of    3.28MiB at    3.67MiB/s ETA 00:00
+[download]   0.9% of    3.28MiB at    5.70MiB/s ETA 00:00
+[download]   1.9% of    3.28MiB at    4.31MiB/s ETA 00:00
+[download]   3.8% of    3.28MiB at    6.58MiB/s ETA 00:00
+[download]   7.6% of    3.28MiB at    8.38MiB/s ETA 00:00
+[download]  15.2% of    3.28MiB at   12.28MiB/s ETA 00:00
+[download]  30.4% of    3.28MiB at   18.85MiB/s ETA 00:00
+[download]  60.9% of    3.28MiB at   30.01MiB/s ETA 00:00
+[download] 100.0% of    3.28MiB at   15.87MiB/s ETA 00:00
+[download] 100% of    3.28MiB in 00:00:00 at 11.80MiB/s
+
+DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/b237357e.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--concurrent-fragments', '5', 'https://www.youtube.com/watch?v=_OBlgSz8sSM&pp=0gcJCdgAo7VqN5tD']
+[debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+[debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (pip)
+[debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-5.10.0-25-amd64-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+[debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+[debug] Optional libraries: sqlite3-3.40.1
+[debug] Proxy map: {}
+[debug] Request Handlers: urllib
+[debug] Plugin directories: none
+[debug] Loaded 1850 extractors
+[debug] Loading youtube-nsig.9a279502-main from cache
+[debug] [youtube] Decrypted nsig zf1hxmURFeDZDEutI => zbi4SaK3yqkMIw
+[debug] [youtube] Decrypted nsig 12gdS6MCx4gnPMBtc => XHkPrUJhVz8X3g
+[debug] [youtube] _OBlgSz8sSM: ios client https formats require a GVS PO Token which was not provided. They will be skipped as they may yield HTTP Error 403. You can manually pass a GVS PO Token for this client with --extractor-args "youtube:po_token=ios.gvs+XXX". For more information, refer to  https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide . To enable these broken formats anyway, pass --extractor-args "youtube:formats=missing_pot"
+[debug] Sort order given by extractor: quality, res, fps, hdr:12, source, vcodec, channels, acodec, lang, proto
+[debug] Formats sorted by: hasvid, ie_pref, quality, res, fps, hdr:12(7), source, vcodec, channels, acodec, lang, proto, size, br, asr, vext, aext, hasaud, id
+[debug] Invoking http downloader on "https://rr4---sn-8xgp1vo-xfgl.googlevideo.com/videoplayback?expire=1745054232&ei=uBUDaLyoGbCCkucP0fCP2AM&ip=100.1.43.30&id=o-AP22fOfloqLpjsDgsT0e8Qm2yBLwGFeDVR32bexE5GGN&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1745032632%2C&mh=Qs&mm=31%2C26&mn=sn-8xgp1vo-xfgl%2Csn-p5qlsn76&ms=au%2Conr&mv=m&mvi=4&pl=24&rms=au%2Cau&initcwndbps=4625000&bui=AccgBcOELmGHLeFyZiFDzW5FsCeWIVmpcsrl1i3E5AC64UO0eDNjtHgYfqual0dt82di076j62ewylTG&vprv=1&svpuc=1&mime=video%2Fmp4&ns=yv98HMmYCgZNfBP2omPPf9QQ&rqh=1&gir=yes&clen=3441486&ratebypass=yes&dur=55.867&lmt=1734381255827947&mt=1745032143&fvip=3&lmw=1&c=TVHTML5&sefc=1&txp=1538434&n=zbi4SaK3yqkMIw&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRQIhAIPqEXKcm--ctVXTHSMFog_lu8qxQBbHGWVNd1EMmuVcAiBAIeSA0crwEnmeCbLGQn4iya5zrr47M3ef3jQ1UTjoOA%3D%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRgIhAK63X4aJFcPnH3eWx7j56j8oKR2ZAjTSZeD9d0SPfztfAiEAzD4Z5LoV833Q296b8p8BiXUXbbTUeMo4rI5bkdwUj18%3D"
+
+INFO:video_processor:Processing video 1 (b237357e)
+DEBUG:downloader:yt-dlp stdout: [youtube] Extracting URL: https://www.youtube.com/watch?v=_OBlgSz8sSM&pp=0gcJCdgAo7VqN5tD
+[youtube] _OBlgSz8sSM: Downloading webpage
+[youtube] _OBlgSz8sSM: Downloading tv client config
+[youtube] _OBlgSz8sSM: Downloading player 9a279502-main
+[youtube] _OBlgSz8sSM: Downloading tv player API JSON
+[youtube] _OBlgSz8sSM: Downloading ios player API JSON
+[youtube] _OBlgSz8sSM: Downloading m3u8 information
+[info] _OBlgSz8sSM: Downloading 1 format(s): 18
+[download] Destination: /app/uploads/original/3f945d5e.mp4
+
+[download]   0.0% of    3.28MiB at  Unknown B/s ETA Unknown
+[download]   0.1% of    3.28MiB at    1.34MiB/s ETA 00:02
+[download]   0.2% of    3.28MiB at    2.01MiB/s ETA 00:01
+[download]   0.4% of    3.28MiB at    1.81MiB/s ETA 00:01
+[download]   0.9% of    3.28MiB at 1010.31KiB/s ETA 00:03
+[download]   1.9% of    3.28MiB at    1.88MiB/s ETA 00:01
+[download]   3.8% of    3.28MiB at    3.03MiB/s ETA 00:01
+[download]   7.6% of    3.28MiB at    5.36MiB/s ETA 00:00
+[download]  15.2% of    3.28MiB at    8.11MiB/s ETA 00:00
+[download]  30.4% of    3.28MiB at   13.66MiB/s ETA 00:00
+[download]  60.9% of    3.28MiB at   23.68MiB/s ETA 00:00
+[download] 100.0% of    3.28MiB at   30.60MiB/s ETA 00:00
+[download] 100% of    3.28MiB in 00:00:00 at 22.65MiB/s
+
+DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/3f945d5e.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--concurrent-fragments', '5', 'https://www.youtube.com/watch?v=_OBlgSz8sSM&pp=0gcJCdgAo7VqN5tD']
+[debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+[debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (pip)
+[debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-5.10.0-25-amd64-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+[debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+[debug] Optional libraries: sqlite3-3.40.1
+[debug] Proxy map: {}
+[debug] Request Handlers: urllib
+[debug] Plugin directories: none
+[debug] Loaded 1850 extractors
+[debug] Loading youtube-nsig.9a279502-main from cache
+[debug] [youtube] Decrypted nsig A9hac-4wMmdKbY947 => _SWAsMtS3cYlFg
+[debug] [youtube] Decrypted nsig Xb8MB06mSObD3srze => DbMnE22DLM-ibA
+[debug] [youtube] _OBlgSz8sSM: ios client https formats require a GVS PO Token which was not provided. They will be skipped as they may yield HTTP Error 403. You can manually pass a GVS PO Token for this client with --extractor-args "youtube:po_token=ios.gvs+XXX". For more information, refer to  https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide . To enable these broken formats anyway, pass --extractor-args "youtube:formats=missing_pot"
+[debug] Sort order given by extractor: quality, res, fps, hdr:12, source, vcodec, channels, acodec, lang, proto
+[debug] Formats sorted by: hasvid, ie_pref, quality, res, fps, hdr:12(7), source, vcodec, channels, acodec, lang, proto, size, br, asr, vext, aext, hasaud, id
+[debug] Invoking http downloader on "https://rr4---sn-8xgp1vo-xfgl.googlevideo.com/videoplayback?expire=1745054234&ei=uhUDaMqtLYmAkucPyInTsQM&ip=100.1.43.30&id=o-ALq8EpcsvCFNXfm8MOm5WtqaGmKhV3nro8F7_uI6K5ez&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1745032634%2C&mh=Qs&mm=31%2C26&mn=sn-8xgp1vo-xfgl%2Csn-p5qlsn76&ms=au%2Conr&mv=m&mvi=4&pcm2cms=yes&pl=24&rms=au%2Cau&initcwndbps=4817500&bui=AccgBcMkiT-vSXTD-K3NvBCQWwU6QhUTz7i0viB6hlJiVy16wi4oX06gZU40DSCzts--ilxONQGCuUcu&vprv=1&svpuc=1&mime=video%2Fmp4&ns=YAyVsHwMGt4eGP0jxapQ5iwQ&rqh=1&gir=yes&clen=3441486&ratebypass=yes&dur=55.867&lmt=1734381255827947&mt=1745032383&fvip=3&lmw=1&c=TVHTML5&sefc=1&txp=1538434&n=_SWAsMtS3cYlFg&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRAIgUa3h1pieVDWx0RcO_GHjMl_3uajpCw9frRtXTaBb_h8CIGHyra5Yp3zXLcpvZ3ePSDelJ1fMau9dTLIRtY-GeRKA&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpcm2cms%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRQIgWUqBVVCfunp5iFzNFQEUtt6NfVBNXHYb95Wxh4H8NMgCIQDSn8uVMbvXseETOF4ZkwVlRuw5Poo59hpUWQcB2LHEnA%3D%3D"
+
+INFO:video_processor:Processing video 2 (3f945d5e)
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:28] "POST /register HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:28] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:28] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:35] "POST /register HTTP/1.1" 302 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:35] "GET /login HTTP/1.1" 302 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:35] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:35] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:35] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:41] "DELETE /api/video/3f945d5e HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.IntegrityError: NOT NULL constraint failed: processing_queue.video_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/werkzeug/middleware/proxy_fix.py", line 183, in __call__
+    return self.app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 225, in delete_video
+    db.session.commit()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 599, in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4353, in flush
+    self._flush(objects)
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4488, in _flush
+    with util.safe_reraise():
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4449, in _flush
+    flush_context.execute()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+    _emit_update_statements(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 912, in _emit_update_statements
+    c = connection.execute(
+        ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+    return meth(
+           ^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: processing_queue.video_id
+[SQL: UPDATE processing_queue SET video_id=? WHERE processing_queue.id = ?]
+[parameters: (None, 2)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:42] "DELETE /api/video/3f945d5e HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.IntegrityError: NOT NULL constraint failed: processing_queue.video_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/werkzeug/middleware/proxy_fix.py", line 183, in __call__
+    return self.app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 225, in delete_video
+    db.session.commit()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 599, in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4353, in flush
+    self._flush(objects)
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4488, in _flush
+    with util.safe_reraise():
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4449, in _flush
+    flush_context.execute()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+    _emit_update_statements(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 912, in _emit_update_statements
+    c = connection.execute(
+        ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+    return meth(
+           ^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: processing_queue.video_id
+[SQL: UPDATE processing_queue SET video_id=? WHERE processing_queue.id = ?]
+[parameters: (None, 2)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:43] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:43] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:17:43] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:03] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:03] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:03] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:44] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:44] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:44] "GET /thumbnails/3f945d5e.jpg HTTP/1.1" 404 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:44] "GET /thumbnails/b237357e.jpg HTTP/1.1" 404 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:44] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /video/b237357e HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /static/js/player.js HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist.m3u8 HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist0.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist1.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /favicon.ico HTTP/1.1" 404 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist2.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist3.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist4.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist5.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist6.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:46] "GET /uploads/hls/b237357e/playlist7.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:48] "GET /uploads/hls/b237357e/playlist8.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:53] "GET /uploads/hls/b237357e/playlist9.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:18:56] "GET /uploads/hls/b237357e/playlist10.ts HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:06] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:06] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:06] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:10] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:10] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:10] "GET /thumbnails/b237357e.jpg HTTP/1.1" 404 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:10] "GET /thumbnails/3f945d5e.jpg HTTP/1.1" 404 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:10] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:11] "POST /api/download HTTP/1.1" 200 -
+INFO:downloader:Downloading video from URL: https://x.com/zera_chielo/status/1913236621132206304
+DEBUG:downloader:Got video info: {'title': 'Zerachielo - Today, I am comparing the speed of @megaeth_labs and Monad in a web-b...', 'description': 'Today, I am comparing the speed of @megaeth_labs and Monad in a web-based game, and the result is shockingly too far. Not even close.  Every move is one transaction. This is Mega ETH: https://t.co/ma8blYaXnP', 'duration': 22.299, 'thumbnail': 'https://pbs.twimg.com/amplify_video_thumb/1913233485432786944/img/5vcBBWOPEa--4lt7.jpg?name=orig', 'ext': 'mp4'}
+DEBUG:downloader:yt-dlp stdout: [twitter] Extracting URL: https://x.com/zera_chielo/status/1913236621132206304
+[twitter] 1913236621132206304: Downloading guest token
+[twitter] 1913236621132206304: Downloading GraphQL JSON
+[twitter] 1913236621132206304: Downloading m3u8 information
+[info] 1913233485432786944: Downloading 1 format(s): http-10368
+[download] Destination: /app/uploads/original/a2c94e21.mp4
+
+[download]    1.00KiB at  783.10KiB/s (00:00:00)
+[download]    3.00KiB at    1.03MiB/s (00:00:00)
+[download]    7.00KiB at    1.65MiB/s (00:00:00)
+[download]   15.00KiB at    2.55MiB/s (00:00:00)
+[download]   31.00KiB at    3.96MiB/s (00:00:00)
+[download]   63.00KiB at    6.29MiB/s (00:00:00)
+[download]  127.00KiB at    6.89MiB/s (00:00:00)
+[download]  255.00KiB at    8.68MiB/s (00:00:00)
+[download]  511.00KiB at   13.44MiB/s (00:00:00)
+[download] 1023.00KiB at   20.35MiB/s (00:00:00)
+[download]    2.00MiB at   28.57MiB/s (00:00:00)
+[download]    4.00MiB at   40.50MiB/s (00:00:00)
+[download]    6.00MiB at   50.09MiB/s (00:00:00)
+[download] 100% of    6.00MiB in 00:00:00 at 22.53MiB/s
+
+DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/a2c94e21.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', 'https://x.com/zera_chielo/status/1913236621132206304']
+[debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+[debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (pip)
+[debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-5.10.0-25-amd64-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+[debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+[debug] Optional libraries: sqlite3-3.40.1
+[debug] Proxy map: {}
+[debug] Request Handlers: urllib
+[debug] Plugin directories: none
+[debug] Loaded 1850 extractors
+[debug] [twitter] Extracting from video info: 1913233485432786944
+[debug] Sort order given by extractor: res, proto:m3u8, br, size
+[debug] Formats sorted by: hasvid, ie_pref, res, proto:m3u8(8), br, size, lang, quality, fps, hdr:12(7), vcodec, channels, acodec, asr, vext, aext, hasaud, source, id
+[debug] Invoking http downloader on "https://video.twimg.com/amplify_video/1913233485432786944/vid/avc1/1920x1080/eWVrwjVVtVLvjWRR.mp4?tag=16"
+
+INFO:video_processor:Processing video 3 (a2c94e21)
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:49] "GET /dashboard HTTP/1.1" 200 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:49] "GET /static/css/custom.css HTTP/1.1" 304 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:49] "GET /thumbnails/b237357e.jpg HTTP/1.1" 404 -
+INFO:werkzeug:192.168.1.207 - - [19/Apr/2025 03:19:49] "GET /thumbnails/3f945d5e.jpg HTTP/1.1" 404 -
+INFO:werkzeug:192.168.1.2
