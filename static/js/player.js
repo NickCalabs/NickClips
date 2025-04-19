@@ -68,7 +68,9 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * Initialize HLS.js player for adaptive streaming
      */
-    function initializeHlsPlayer(sourceUrl) {
+    function initializeHlsPlayer(sourceUrl, videoWrapper) {
+        // Set the controlWrapper to videoWrapper for better positioning
+        const useVideoWrapperForControls = true;
         // Create custom player container
         const video = document.createElement('video');
         video.id = 'video-player';
@@ -80,7 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
         video.playsInline = true; // Better mobile support
         video.loop = true; // Enable looping
         
-        videoContainer.appendChild(video);
+        // Append to wrapper instead of container directly
+        videoWrapper.appendChild(video);
         
         // Create wrapper for controls and progress bar
         const controlWrapper = document.createElement('div');
@@ -437,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * Initialize native HTML5 video player
      */
-    function initializeNativePlayer(sourceUrl) {
+    function initializeNativePlayer(sourceUrl, videoWrapper) {
         // Create custom player container similar to HLS player
         const video = document.createElement('video');
         video.id = 'video-player';
@@ -455,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
         source.type = 'video/mp4';
         
         video.appendChild(source);
-        videoContainer.appendChild(video);
+        videoWrapper.appendChild(video);
         
         // Create wrapper for controls and progress bar
         const controlWrapper = document.createElement('div');
