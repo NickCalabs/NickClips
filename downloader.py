@@ -9,43 +9,124 @@ from urllib.parse import urlparse
 from app import db
 from models import Video, ProcessingQueue
 
-# Configure yt-dlp path
+# Configure yt-dlp path with enhanced debugging
 def get_yt_dlp_path():
-    """Get the path to yt-dlp executable, trying multiple options"""
-    # Common locations to check for yt-dlp
+    """Get the path to yt-dlp executable, trying multiple options with detailed debugging"""
+    
+    # Print current working directory for debugging
+    cwd = os.getcwd()
+    logging.info(f"Current working directory: {cwd}")
+    
+    # Print environment PATH for debugging
+    env_path = os.environ.get('PATH', '')
+    logging.info(f"Environment PATH: {env_path}")
+    
+    # Explicitly check if Python can execute commands
+    try:
+        # Try a simple command to check subprocess functionality
+        test_result = subprocess.run(['echo', 'Testing subprocess'], 
+                                     capture_output=True, text=True)
+        logging.info(f"Subprocess test: {test_result.stdout.strip()}")
+    except Exception as e:
+        logging.error(f"Subprocess test failed: {str(e)}")
+    
+    # Common locations to check for yt-dlp - add more Dockge-specific paths
     locations = [
         # Docker container paths
         '/app/bin/yt-dlp',
+        '/app/bin/yt-dlp-wrapper',
         '/usr/local/bin/yt-dlp',
-        '/opt/stacks/nickclips/bin/yt-dlp',  # Dockge specific path
+        '/usr/local/bin/yt-dlp-wrapper',
+        
+        # Dockge specific paths
+        '/opt/stacks/nickclips/bin/yt-dlp',
+        '/opt/stacks/*/bin/yt-dlp',  # Try with wildcard for different stack names
+        '/opt/*/bin/yt-dlp',
         
         # Local development paths
-        os.path.join(os.getcwd(), 'bin', 'yt-dlp'),
+        os.path.join(cwd, 'bin', 'yt-dlp'),
+        os.path.join(cwd, 'bin', 'yt-dlp-wrapper'),
         os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin', 'yt-dlp'),
     ]
     
-    # Check each location
+    # Check each location with detailed logging
     for location in locations:
-        if os.path.isfile(location) and os.access(location, os.X_OK):
-            logging.info(f"Found executable yt-dlp at: {location}")
-            return location
+        # Skip paths with wildcards as os.path cannot handle them directly
+        if '*' in location:
+            logging.info(f"Skipping wildcard path check (would need glob): {location}")
+            continue
+            
+        logging.info(f"Checking location: {location}")
+        if os.path.exists(location):
+            logging.info(f"  - File exists at: {location}")
+            if os.path.isfile(location):
+                logging.info(f"  - It's a file")
+                if os.access(location, os.X_OK):
+                    logging.info(f"  - And it's executable")
+                    return location
+                else:
+                    logging.warning(f"  - But it's not executable")
+            else:
+                logging.warning(f"  - But it's not a file (might be a directory)")
+        else:
+            logging.warning(f"  - File does not exist")
     
-    # Try system path via shutil.which
+    # Try system path via shutil.which with detailed logging
+    logging.info("Trying to find yt-dlp in system PATH using shutil.which...")
     system_yt_dlp = shutil.which('yt-dlp')
     if system_yt_dlp:
         logging.info(f"Found yt-dlp in system PATH: {system_yt_dlp}")
         return system_yt_dlp
+    else:
+        logging.warning("shutil.which could not find yt-dlp in PATH")
+    
+    # Create a new yt-dlp-wrapper script in the current directory as a last resort
+    try:
+        logging.info("Attempting to create a new yt-dlp wrapper script as last resort...")
+        wrapper_dir = os.path.join(cwd, 'bin')
+        os.makedirs(wrapper_dir, exist_ok=True)
+        wrapper_path = os.path.join(wrapper_dir, 'yt-dlp-fallback')
+        
+        with open(wrapper_path, 'w') as f:
+            f.write('''#!/bin/bash
+# This is an auto-generated fallback script for yt-dlp
+# It tries multiple locations where yt-dlp might be installed
+
+# Log our execution for debugging
+echo "yt-dlp-fallback wrapper executing, looking for yt-dlp..." >&2
+
+# Try multiple locations
+for cmd in "/app/bin/yt-dlp" "/usr/local/bin/yt-dlp" "/opt/stacks/nickclips/bin/yt-dlp" "yt-dlp"; do
+    if [ -x "$cmd" ]; then
+        echo "Found yt-dlp at $cmd, executing..." >&2
+        exec "$cmd" "$@"
+    elif command -v "$cmd" >/dev/null 2>&1; then
+        echo "Found yt-dlp command: $cmd, executing..." >&2
+        exec "$cmd" "$@"
+    fi
+done
+
+echo "ERROR: yt-dlp not found in any location" >&2
+exit 1
+''')
+        
+        os.chmod(wrapper_path, 0o755)  # Make executable
+        logging.info(f"Created fallback wrapper at {wrapper_path}")
+        return wrapper_path
+    except Exception as e:
+        logging.error(f"Failed to create fallback wrapper: {str(e)}")
     
     # Log warning about potential issues
-    logging.warning("Could not find yt-dlp at common locations, falling back to 'yt-dlp' command. " +
-                    "This may cause errors if yt-dlp is not in PATH.")
+    logging.warning("CRITICAL: Could not find yt-dlp at any location. " +
+                   "Falling back to 'yt-dlp' command, but this will likely fail.")
     
     # Default to just 'yt-dlp' and hope it's in the PATH
     return 'yt-dlp'
 
 # Get the yt-dlp path once at module load time
+logging.info("==== STARTING YT-DLP PATH RESOLUTION ====")
 YT_DLP_PATH = get_yt_dlp_path()
-logging.info(f"Using yt-dlp from: {YT_DLP_PATH}")
+logging.info(f"==== RESOLVED YT-DLP PATH: {YT_DLP_PATH} ====")
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG)

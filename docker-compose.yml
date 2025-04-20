@@ -35,16 +35,42 @@ services:
       - YT_DLP_RATE_LIMIT=${YT_DLP_RATE_LIMIT:-500K}
       - YT_DLP_MAX_DURATION=${YT_DLP_MAX_DURATION:-3600}
       
+      # Add yt-dlp to PATH
+      - PATH=/app/bin:/usr/local/bin:/usr/bin:/bin
+      
       # For Nginx/proxy configuration (optional)
       - VIRTUAL_HOST=${VIRTUAL_HOST:-}
       - LETSENCRYPT_HOST=${LETSENCRYPT_HOST:-}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-}
     volumes:
       - ${LOCAL_UPLOAD_PATH:-./uploads}:${UPLOAD_FOLDER:-/app/uploads}
-      # If you have a host yt-dlp binary, uncomment the following line and set YTDLP_PATH
-      #- ${YTDLP_PATH:-/usr/bin/yt-dlp}:/app/bin/yt-dlp
-      # If you're using Dockge/stacks and want to access the host yt-dlp
+      # Mount the installation script
+      - ./docker-install-ytdlp.sh:/app/docker-install-ytdlp.sh
+      
+      # If using Dockge/stacks, uncomment ONE of these options:
+      # Option 1: Mount host yt-dlp binary directly
       #- /opt/stacks/nickclips/bin/yt-dlp:/app/bin/yt-dlp
+      
+      # Option 2: Create a bind mount for the bin directory
+      #- ytdlp_data:/app/bin
+
+    # Run an entrypoint script that installs yt-dlp before starting the application
+    entrypoint: >
+      /bin/bash -c "
+        # Make sure bin directory exists
+        mkdir -p /app/bin
+        
+        # Install yt-dlp if it doesn't exist
+        if [ ! -x /app/bin/yt-dlp ]; then
+          echo 'Installing yt-dlp...'
+          chmod +x /app/docker-install-ytdlp.sh
+          /app/docker-install-ytdlp.sh
+        fi
+        
+        # Continue with normal startup
+        python migrations.py && 
+        gunicorn --bind 0.0.0.0:5000 --workers 4 main:app
+      "
     depends_on:
       - db
     restart: unless-stopped
@@ -75,3 +101,6 @@ networks:
 
 volumes:
   postgres_data:
+  ytdlp_data:
+    # Use this for yt-dlp installations that you want to persist
+    # If you uncomment the ytdlp_data volume mount above

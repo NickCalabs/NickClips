@@ -171,6 +171,37 @@ If you want to access your Video Share instance from outside your home network:
 - **"Permission denied" errors**: Check the permissions on your upload directories
 - **Video download failures**: Some platforms restrict automated downloads. Consider using a proxy
 
+### Fixing "No such file or directory: 'yt-dlp'" Error
+
+If you're getting an error like `[Errno 2] No such file or directory: 'yt-dlp'` in your Docker deployment, there are several solutions:
+
+1. **Use the built-in installation script**:
+   ```bash
+   # Execute inside the container
+   docker exec -it your-container-name bash -c "chmod +x /app/docker-install-ytdlp.sh && /app/docker-install-ytdlp.sh"
+   ```
+
+2. **Install yt-dlp manually inside the container**:
+   ```bash
+   docker exec -it your-container-name bash -c "mkdir -p /app/bin && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp && chmod a+rx /app/bin/yt-dlp"
+   ```
+
+3. **For Dockge users**:
+   - Install yt-dlp on the host:
+     ```bash
+     mkdir -p /opt/stacks/nickclips/bin
+     curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /opt/stacks/nickclips/bin/yt-dlp
+     chmod a+rx /opt/stacks/nickclips/bin/yt-dlp
+     ```
+   - Uncomment the mount in docker-compose.yml:
+     ```yaml
+     volumes:
+       - /opt/stacks/nickclips/bin/yt-dlp:/app/bin/yt-dlp
+     ```
+
+4. **Check your PATH**:
+   Make sure the application can find yt-dlp. The PATH environment variable in the docker-compose.yml is already set to include `/app/bin`.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
