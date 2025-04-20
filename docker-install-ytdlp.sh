@@ -79,16 +79,24 @@ if [ -x "/app/bin/yt-dlp" ]; then
     # Create symlinks to other common locations
     echo "Creating symlinks to common locations..."
     
-    # /usr/local/bin is a standard location
-    if [ -d "/usr/local/bin" ]; then
-        # ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp
-        # echo "Created symlink at /usr/local/bin/yt-dlp"
-    fi
-    
-    # /usr/bin is another standard location
-    if [ -d "/usr/bin" ]; then
-        ln -sf /app/bin/yt-dlp /usr/bin/yt-dlp
-        echo "Created symlink at /usr/bin/yt-dlp"
+    # Check if yt-dlp is really a file and not a symlink
+    if [ -f "/app/bin/yt-dlp" ] && [ ! -L "/app/bin/yt-dlp" ]; then
+        # Only create symlinks if the source is a real file
+        
+        # /usr/local/bin is a standard location
+        if [ -d "/usr/local/bin" ]; then
+            echo "Creating symlink at /usr/local/bin/yt-dlp"
+            ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp
+        fi
+        
+        # /usr/bin is another standard location
+        if [ -d "/usr/bin" ]; then
+            echo "Creating symlink at /usr/bin/yt-dlp"
+            ln -sf /app/bin/yt-dlp /usr/bin/yt-dlp
+        fi
+    else
+        echo "WARNING: Not creating symlinks because /app/bin/yt-dlp is not a regular file"
+        ls -la /app/bin/yt-dlp
     fi
     
     echo "Installation successful!"

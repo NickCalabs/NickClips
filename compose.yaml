@@ -45,8 +45,21 @@ services:
     # Simple entrypoint with minimal syntax
     command: >
       bash -c "
-        mkdir -p /app/bin &&
-        python /app/emergency_install_ytdlp.py &&
+        # Ensure clean start - remove any existing symlink to prevent circular issues
+        mkdir -p /app/bin
+        if [ -L '/app/bin/yt-dlp' ]; then
+          echo 'Removing existing symlink /app/bin/yt-dlp to prevent circular references'
+          rm -f /app/bin/yt-dlp
+        fi
+        
+        # Install with our python script that fixes circular symlinks
+        python /app/emergency_install_ytdlp.py
+        
+        # Verify installation - this should never be a symlink to itself
+        echo 'Verifying yt-dlp installation:'
+        file /app/bin/yt-dlp
+        
+        # Start the application
         python migrations.py && 
         gunicorn --bind 0.0.0.0:5000 --workers 4 main:app
       "
