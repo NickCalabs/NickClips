@@ -180,7 +180,6 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
-  ytdlp_data:
-  # Use this for yt-dlp installations that you want to persist
-  # If you uncomment the ytdlp_data volume mount above
+postgres_data:
+ytdlp_data: {}
+# This volume persists yt-dlp binaries and scripts if needed
