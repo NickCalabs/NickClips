@@ -19,7 +19,27 @@ A lightweight self-hosted video sharing platform similar to Streamable with link
 
 - Docker and Docker Compose
 - FFmpeg (included in the Docker image)
+- yt-dlp (included in the Docker image, or can use host installation)
 - A reverse proxy for HTTPS support (optional, but recommended)
+
+## About yt-dlp in Docker
+
+This application uses yt-dlp for downloading videos from URLs. The Docker setup includes multiple paths to find yt-dlp:
+
+1. **Built-in yt-dlp**: The Docker image includes yt-dlp installed at `/app/bin/yt-dlp`.
+2. **Host system yt-dlp**: You can mount your host system's yt-dlp binary into the container (useful for Dockge or custom stacks).
+3. **Fallback mechanism**: The application will search multiple common locations for yt-dlp.
+
+For Dockge users, you can uncomment the relevant volume mount in docker-compose.yml:
+
+```yaml
+volumes:
+  - ${LOCAL_UPLOAD_PATH:-./uploads}:${UPLOAD_FOLDER:-/app/uploads}
+  # If using Dockge/stacks, uncomment this:
+  #- /opt/stacks/nickclips/bin/yt-dlp:/app/bin/yt-dlp
+```
+
+You can use the included `install_yt_dlp.sh` script to download and install yt-dlp in multiple locations if needed.
 
 ## Quick Start
 

@@ -12,20 +12,33 @@ from models import Video, ProcessingQueue
 # Configure yt-dlp path
 def get_yt_dlp_path():
     """Get the path to yt-dlp executable, trying multiple options"""
-    # Try system path first
+    # Common locations to check for yt-dlp
+    locations = [
+        # Docker container paths
+        '/app/bin/yt-dlp',
+        '/usr/local/bin/yt-dlp',
+        '/opt/stacks/nickclips/bin/yt-dlp',  # Dockge specific path
+        
+        # Local development paths
+        os.path.join(os.getcwd(), 'bin', 'yt-dlp'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin', 'yt-dlp'),
+    ]
+    
+    # Check each location
+    for location in locations:
+        if os.path.isfile(location) and os.access(location, os.X_OK):
+            logging.info(f"Found executable yt-dlp at: {location}")
+            return location
+    
+    # Try system path via shutil.which
     system_yt_dlp = shutil.which('yt-dlp')
     if system_yt_dlp:
+        logging.info(f"Found yt-dlp in system PATH: {system_yt_dlp}")
         return system_yt_dlp
     
-    # Try our local wrapper
-    local_wrapper = os.path.join(os.getcwd(), 'bin', 'yt-dlp-wrapper')
-    if os.path.exists(local_wrapper):
-        return local_wrapper
-    
-    # Try direct local install
-    local_yt_dlp = os.path.join(os.getcwd(), 'bin', 'yt-dlp')
-    if os.path.exists(local_yt_dlp):
-        return local_yt_dlp
+    # Log warning about potential issues
+    logging.warning("Could not find yt-dlp at common locations, falling back to 'yt-dlp' command. " +
+                    "This may cause errors if yt-dlp is not in PATH.")
     
     # Default to just 'yt-dlp' and hope it's in the PATH
     return 'yt-dlp'

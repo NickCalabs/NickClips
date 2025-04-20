@@ -9,10 +9,29 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp
-RUN mkdir -p /usr/local/bin && \
-    curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
-    chmod a+rx /usr/local/bin/yt-dlp
+# Install yt-dlp in multiple locations for compatibility
+RUN mkdir -p /usr/local/bin /app/bin && \
+    curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp && \
+    chmod a+rx /app/bin/yt-dlp && \
+    ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp
+
+# Create a wrapper script for yt-dlp that tries multiple locations
+RUN echo '#!/bin/bash\n\
+if [ -x "/app/bin/yt-dlp" ]; then\n\
+    exec /app/bin/yt-dlp "$@"\n\
+elif [ -x "/usr/local/bin/yt-dlp" ]; then\n\
+    exec /usr/local/bin/yt-dlp "$@"\n\
+elif [ -x "/opt/stacks/nickclips/bin/yt-dlp" ]; then\n\
+    exec /opt/stacks/nickclips/bin/yt-dlp "$@"\n\
+else\n\
+    echo "Error: yt-dlp not found in standard locations" >&2\n\
+    exit 1\n\
+fi' > /app/bin/yt-dlp-wrapper && \
+    chmod a+rx /app/bin/yt-dlp-wrapper && \
+    ln -sf /app/bin/yt-dlp-wrapper /usr/local/bin/yt-dlp-wrapper
+
+# Add bin directory to PATH
+ENV PATH="/app/bin:${PATH}"
 
 # Set working directory
 WORKDIR /app

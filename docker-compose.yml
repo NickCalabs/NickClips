@@ -41,6 +41,10 @@ services:
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-}
     volumes:
       - ${LOCAL_UPLOAD_PATH:-./uploads}:${UPLOAD_FOLDER:-/app/uploads}
+      # If you have a host yt-dlp binary, uncomment the following line and set YTDLP_PATH
+      #- ${YTDLP_PATH:-/usr/bin/yt-dlp}:/app/bin/yt-dlp
+      # If you're using Dockge/stacks and want to access the host yt-dlp
+      #- /opt/stacks/nickclips/bin/yt-dlp:/app/bin/yt-dlp
     depends_on:
       - db
     restart: unless-stopped
