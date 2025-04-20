@@ -60,50 +60,94 @@ services:
         # Make sure bin directory exists
         mkdir -p /app/bin
         
-        # Install curl and other essential utilities if they're missing
-        if ! command -v curl &> /dev/null || ! command -v wget &> /dev/null; then
-          echo 'Installing essential utilities...'
-          apt-get update && apt-get install -y curl wget ca-certificates
-        fi
-        
-        # Install yt-dlp if it doesn't exist - try multiple methods
-        if [ ! -x /app/bin/yt-dlp ] && [ ! -x /usr/local/bin/yt-dlp ] && [ ! -x /usr/bin/yt-dlp ]; then
-          echo 'Installing yt-dlp...'
-          
-          # Method 1: Use our installation script
-          if [ -f /app/docker-install-ytdlp.sh ]; then
-            chmod +x /app/docker-install-ytdlp.sh
-            /app/docker-install-ytdlp.sh || echo 'Installation script failed, trying direct download...'
-          fi
-          
-          # Method 2: Direct download if script failed
-          if [ ! -x /app/bin/yt-dlp ]; then
-            echo 'Downloading yt-dlp directly...'
-            curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp || \
-            wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /app/bin/yt-dlp
-            chmod a+rx /app/bin/yt-dlp
-            
-            # Create symlinks
-            ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp 2>/dev/null || true
-            ln -sf /app/bin/yt-dlp /usr/bin/yt-dlp 2>/dev/null || true
-          fi
-          
-          # Check if installation was successful
-          if [ -x /app/bin/yt-dlp ]; then
-            echo 'yt-dlp installed successfully at /app/bin/yt-dlp'
-            /app/bin/yt-dlp --version || echo 'Warning: yt-dlp installed but version check failed'
-          else
-            echo 'WARNING: yt-dlp installation failed, application may not work correctly'
-          fi
+        # Log distribution type for debugging
+        echo 'OS Detection:'
+        if [ -f /etc/alpine-release ]; then
+          echo ' - Detected Alpine Linux'
+          echo ' - Alpine version:' $(cat /etc/alpine-release)
+        elif [ -f /etc/debian_version ]; then
+          echo ' - Detected Debian-based system'
+          echo ' - Debian version:' $(cat /etc/debian_version)
         else
-          echo 'yt-dlp is already installed'
+          echo ' - Unknown distribution'
+          echo ' - Checking common OS files:'
+          for f in /etc/os-release /etc/redhat-release /etc/system-release; do
+            if [ -f $f ]; then
+              echo ' - Found' $f ':'
+              cat $f
+            fi
+          done
         fi
         
-        # Print current PATH for debugging
-        echo 'Current PATH:'
-        echo $PATH
+        # Handle yt-dlp installation using multiple fallback methods
+        echo '======== Starting yt-dlp installation ========'
+        
+        # METHOD 1: Check if it's already installed
+        for ytdlp_path in /app/bin/yt-dlp /usr/local/bin/yt-dlp /usr/bin/yt-dlp $(which yt-dlp 2>/dev/null); do
+          if [ -x \"$ytdlp_path\" ]; then
+            echo \"yt-dlp already exists at $ytdlp_path, skipping installation\"
+            YT_DLP_INSTALLED=true
+            break
+          fi
+        done
+        
+        # METHOD 2: Use shell script installer if needed
+        if [ -z \"$YT_DLP_INSTALLED\" ] && [ -f /app/docker-install-ytdlp.sh ]; then
+          echo 'Using shell script installer...'
+          chmod +x /app/docker-install-ytdlp.sh
+          /app/docker-install-ytdlp.sh && YT_DLP_INSTALLED=true || echo 'Shell script installation failed'
+        fi
+        
+        # METHOD 3: Try using Python installer (no external dependencies)
+        if [ -z \"$YT_DLP_INSTALLED\" ] && [ -f /app/emergency_install_ytdlp.py ]; then
+          echo 'Using Python emergency installer...'
+          python /app/emergency_install_ytdlp.py && YT_DLP_INSTALLED=true || echo 'Python installer failed'
+        fi
+        
+        # METHOD 4: Last resort - direct Python download
+        if [ -z \"$YT_DLP_INSTALLED\" ]; then
+          echo 'Using inline Python download...'
+          python3 -c '
+import os, urllib.request, ssl
+print(\"Direct Python download of yt-dlp\")
+os.makedirs(\"/app/bin\", exist_ok=True)
+ytdlp_path = \"/app/bin/yt-dlp\"
+ssl_context = ssl._create_unverified_context()
+urllib.request.urlretrieve(\"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp\", ytdlp_path, context=ssl_context)
+os.chmod(ytdlp_path, 0o755)
+print(\"Downloaded yt-dlp to\", ytdlp_path)
+' && YT_DLP_INSTALLED=true || echo 'Direct Python download failed'
+        fi
+        
+        # Final verification
+        for ytdlp_path in /app/bin/yt-dlp /usr/local/bin/yt-dlp /usr/bin/yt-dlp $(which yt-dlp 2>/dev/null); do
+          if [ -x \"$ytdlp_path\" ]; then
+            echo \"VERIFICATION: Found yt-dlp at $ytdlp_path\"
+            echo 'VERSION:'
+            $ytdlp_path --version || echo 'Version check failed'
+            YT_DLP_VERIFIED=true
+            break
+          fi
+        done
+        
+        if [ -z \"$YT_DLP_VERIFIED\" ]; then
+          echo 'WARNING: yt-dlp installation could not be verified, the application may not work correctly'
+          # Create a dummy executable as last resort to prevent immediate crashes
+          echo '#!/bin/sh
+echo \"ERROR: This is a dummy yt-dlp. The real binary could not be installed.\"
+echo \"The downloader functionality will not work correctly.\"
+exit 1' > /app/bin/yt-dlp
+          chmod +x /app/bin/yt-dlp
+        fi
+        
+        # Print environment for debugging
+        echo 'Environment information:'
+        echo 'Current PATH:' $PATH
+        echo 'Python version:' $(python --version)
+        echo 'Python executable:' $(which python)
         
         # Continue with normal startup
+        echo '======== Starting application ========'
         python migrations.py && 
         gunicorn --bind 0.0.0.0:5000 --workers 4 main:app
       "
