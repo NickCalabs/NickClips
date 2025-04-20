@@ -18,7 +18,7 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --without-dev
+    poetry install --only main
 
 # Copy application code
 COPY . .
