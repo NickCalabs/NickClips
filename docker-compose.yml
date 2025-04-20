@@ -84,45 +84,45 @@ services:
         
         # METHOD 1: Check if it's already installed
         for ytdlp_path in /app/bin/yt-dlp /usr/local/bin/yt-dlp /usr/bin/yt-dlp $(which yt-dlp 2>/dev/null); do
-          if [ -x \"$ytdlp_path\" ]; then
-            echo \"yt-dlp already exists at $ytdlp_path, skipping installation\"
+          if [ -x "$ytdlp_path" ]; then
+            echo "yt-dlp already exists at $ytdlp_path, skipping installation"
             YT_DLP_INSTALLED=true
             break
           fi
         done
         
         # METHOD 2: Use shell script installer if needed
-        if [ -z \"$YT_DLP_INSTALLED\" ] && [ -f /app/docker-install-ytdlp.sh ]; then
+        if [ -z "$YT_DLP_INSTALLED" ] && [ -f /app/docker-install-ytdlp.sh ]; then
           echo 'Using shell script installer...'
           chmod +x /app/docker-install-ytdlp.sh
           /app/docker-install-ytdlp.sh && YT_DLP_INSTALLED=true || echo 'Shell script installation failed'
         fi
         
         # METHOD 3: Try using Python installer (no external dependencies)
-        if [ -z \"$YT_DLP_INSTALLED\" ] && [ -f /app/emergency_install_ytdlp.py ]; then
+        if [ -z "$YT_DLP_INSTALLED" ] && [ -f /app/emergency_install_ytdlp.py ]; then
           echo 'Using Python emergency installer...'
           python /app/emergency_install_ytdlp.py && YT_DLP_INSTALLED=true || echo 'Python installer failed'
         fi
         
         # METHOD 4: Last resort - direct Python download
-        if [ -z \"$YT_DLP_INSTALLED\" ]; then
+        if [ -z "$YT_DLP_INSTALLED" ]; then
           echo 'Using inline Python download...'
-          python3 -c '
+          python3 -c "
 import os, urllib.request, ssl
-print(\"Direct Python download of yt-dlp\")
-os.makedirs(\"/app/bin\", exist_ok=True)
-ytdlp_path = \"/app/bin/yt-dlp\"
+print('Direct Python download of yt-dlp')
+os.makedirs('/app/bin', exist_ok=True)
+ytdlp_path = '/app/bin/yt-dlp'
 ssl_context = ssl._create_unverified_context()
-urllib.request.urlretrieve(\"https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp\", ytdlp_path, context=ssl_context)
+urllib.request.urlretrieve('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp', ytdlp_path, context=ssl_context)
 os.chmod(ytdlp_path, 0o755)
-print(\"Downloaded yt-dlp to\", ytdlp_path)
-' && YT_DLP_INSTALLED=true || echo 'Direct Python download failed'
+print('Downloaded yt-dlp to', ytdlp_path)
+" && YT_DLP_INSTALLED=true || echo 'Direct Python download failed'
         fi
         
         # Final verification
         for ytdlp_path in /app/bin/yt-dlp /usr/local/bin/yt-dlp /usr/bin/yt-dlp $(which yt-dlp 2>/dev/null); do
-          if [ -x \"$ytdlp_path\" ]; then
-            echo \"VERIFICATION: Found yt-dlp at $ytdlp_path\"
+          if [ -x "$ytdlp_path" ]; then
+            echo "VERIFICATION: Found yt-dlp at $ytdlp_path"
             echo 'VERSION:'
             $ytdlp_path --version || echo 'Version check failed'
             YT_DLP_VERIFIED=true
@@ -130,13 +130,15 @@ print(\"Downloaded yt-dlp to\", ytdlp_path)
           fi
         done
         
-        if [ -z \"$YT_DLP_VERIFIED\" ]; then
+        if [ -z "$YT_DLP_VERIFIED" ]; then
           echo 'WARNING: yt-dlp installation could not be verified, the application may not work correctly'
           # Create a dummy executable as last resort to prevent immediate crashes
-          echo '#!/bin/sh
-echo \"ERROR: This is a dummy yt-dlp. The real binary could not be installed.\"
-echo \"The downloader functionality will not work correctly.\"
-exit 1' > /app/bin/yt-dlp
+          cat > /app/bin/yt-dlp << 'EOF'
+#!/bin/sh
+echo "ERROR: This is a dummy yt-dlp. The real binary could not be installed."
+echo "The downloader functionality will not work correctly."
+exit 1
+EOF
           chmod +x /app/bin/yt-dlp
         fi
         
@@ -180,6 +182,6 @@ networks:
     driver: bridge
 
 volumes:
-postgres_data:
-ytdlp_data: {}
-# This volume persists yt-dlp binaries and scripts if needed
+  postgres_data: {}
+  ytdlp_data: {}
+  # This volume persists yt-dlp binaries and scripts if needed
