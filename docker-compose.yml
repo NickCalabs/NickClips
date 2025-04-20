@@ -182,5 +182,5 @@ networks:
 volumes:
   postgres_data:
   ytdlp_data:
-    # Use this for yt-dlp installations that you want to persist
-    # If you uncomment the ytdlp_data volume mount above
+  # Use this for yt-dlp installations that you want to persist
+  # If you uncomment the ytdlp_data volume mount above
