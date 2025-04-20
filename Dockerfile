@@ -7,13 +7,20 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     curl \
+    wget \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp in multiple locations for compatibility
-RUN mkdir -p /usr/local/bin /app/bin && \
-    curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp && \
+# Install yt-dlp directly to avoid relying on runtime installation
+RUN mkdir -p /app/bin && \
+    (curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp || \
+    wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /app/bin/yt-dlp) && \
     chmod a+rx /app/bin/yt-dlp && \
-    ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp
+    ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp && \
+    ln -sf /app/bin/yt-dlp /usr/bin/yt-dlp
+
+# Verify yt-dlp installation
+RUN /app/bin/yt-dlp --version || echo "yt-dlp not installed correctly"
 
 # Create a wrapper script for yt-dlp that tries multiple locations
 RUN echo '#!/bin/bash\n\

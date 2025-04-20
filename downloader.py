@@ -276,7 +276,7 @@ def download_video(video_id, url):
             return False
 
 def get_video_info(url):
-    """Get video information using yt-dlp without downloading"""
+    """Get video information using yt-dlp without downloading with enhanced error handling"""
     try:
         # Skip if URL is from our own domain
         if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
@@ -286,13 +286,39 @@ def get_video_info(url):
         # Import Flask app to get configuration
         from app import app
         
+        # Before running command, do a sanity check to make sure yt-dlp exists
+        ytdlp_exists = False
+        ytdlp_paths_to_try = [
+            YT_DLP_PATH,  # First try the module-level resolved path
+            '/app/bin/yt-dlp',
+            '/usr/local/bin/yt-dlp',
+            '/usr/bin/yt-dlp',
+            '/opt/stacks/nickclips/bin/yt-dlp',
+            os.path.join(os.getcwd(), 'bin', 'yt-dlp'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin', 'yt-dlp'),
+            shutil.which('yt-dlp')  # Finally try using PATH
+        ]
+        
+        actual_ytdlp_path = None
+        for path in ytdlp_paths_to_try:
+            if path and os.path.isfile(path) and os.access(path, os.X_OK):
+                ytdlp_exists = True
+                actual_ytdlp_path = path
+                logger.info(f"Found usable yt-dlp for info retrieval at: {actual_ytdlp_path}")
+                break
+        
+        if not ytdlp_exists:
+            logger.error("yt-dlp executable not found in any location for info retrieval!")
+            return None
+        
         # Common command arguments for all sites
         common_args = [
             '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             '--skip-download',
             '--print-json',
             '--no-check-certificate',
-            '--geo-bypass'
+            '--geo-bypass',
+            '--verbose'  # Add verbose logging
         ]
         
         # Add proxy if configured
@@ -309,14 +335,17 @@ def get_video_info(url):
             common_args.extend(['--match-filter', f'duration < {max_duration}'])
         
         if 'reddit.com' in url.lower():
-            cmd = [YT_DLP_PATH] + common_args + ['--verbose', url]
+            cmd = [actual_ytdlp_path] + common_args + ['--verbose', url]
         elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
-            cmd = [YT_DLP_PATH] + common_args + [
+            cmd = [actual_ytdlp_path] + common_args + [
                 '--no-playlist',
                 url
             ]
         else:
-            cmd = [YT_DLP_PATH] + common_args + [url]
+            cmd = [actual_ytdlp_path] + common_args + [url]
+        
+        # Log the full command for debugging
+        logger.info(f"Running video info command: {' '.join(cmd)}")
         
         # Run the command and capture output
         process = subprocess.run(cmd, capture_output=True, text=True)
@@ -368,7 +397,7 @@ def get_video_info(url):
         return None
 
 def download_with_ytdlp(url, output_template):
-    """Download a video using yt-dlp"""
+    """Download a video using yt-dlp with enhanced error recovery"""
     try:
         # Skip if URL is from our own domain
         if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
@@ -377,6 +406,50 @@ def download_with_ytdlp(url, output_template):
         
         # Import Flask app to get configuration
         from app import app
+        
+        # Before running command, do a sanity check to make sure yt-dlp exists
+        ytdlp_exists = False
+        ytdlp_paths_to_try = [
+            YT_DLP_PATH,  # First try the module-level resolved path
+            '/app/bin/yt-dlp',
+            '/usr/local/bin/yt-dlp',
+            '/usr/bin/yt-dlp',
+            '/opt/stacks/nickclips/bin/yt-dlp',
+            os.path.join(os.getcwd(), 'bin', 'yt-dlp'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin', 'yt-dlp'),
+            shutil.which('yt-dlp')  # Finally try using PATH
+        ]
+        
+        actual_ytdlp_path = None
+        for path in ytdlp_paths_to_try:
+            if path and os.path.isfile(path) and os.access(path, os.X_OK):
+                ytdlp_exists = True
+                actual_ytdlp_path = path
+                logger.info(f"Found usable yt-dlp for download at: {actual_ytdlp_path}")
+                break
+        
+        if not ytdlp_exists:
+            logger.error("yt-dlp executable not found in any location for download!")
+            # Try to install it as last resort
+            try:
+                logger.info("Attempting emergency yt-dlp installation...")
+                bin_dir = os.path.join(os.getcwd(), 'bin')
+                os.makedirs(bin_dir, exist_ok=True)
+                ytdlp_path = os.path.join(bin_dir, 'yt-dlp-emergency')
+                
+                # Try using Python's urllib to download it
+                import urllib.request
+                logger.info("Downloading with urllib.request...")
+                urllib.request.urlretrieve(
+                    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp",
+                    ytdlp_path
+                )
+                os.chmod(ytdlp_path, 0o755)
+                logger.info(f"Emergency yt-dlp installed at {ytdlp_path}")
+                actual_ytdlp_path = ytdlp_path
+            except Exception as install_error:
+                logger.error(f"Emergency yt-dlp installation failed: {install_error}")
+                return None
             
         # Common command arguments
         common_args = [
@@ -405,15 +478,18 @@ def download_with_ytdlp(url, output_template):
         
         # Add site-specific optimizations
         if 'reddit.com' in url.lower():
-            cmd = [YT_DLP_PATH] + common_args + [url]
+            cmd = [actual_ytdlp_path] + common_args + [url]
         elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
             # YouTube specific arguments
-            cmd = [YT_DLP_PATH] + common_args + [
+            cmd = [actual_ytdlp_path] + common_args + [
                 '--concurrent-fragments', '5',  # Use 5 fragments at a time
                 url
             ]
         else:
-            cmd = [YT_DLP_PATH] + common_args + [url]
+            cmd = [actual_ytdlp_path] + common_args + [url]
+        
+        # Log the full command for debugging
+        logger.info(f"Running download command: {' '.join(str(arg) for arg in cmd)}")
         
         # Run the command and capture output
         process = subprocess.run(cmd, capture_output=True, text=True)

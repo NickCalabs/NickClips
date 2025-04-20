@@ -60,12 +60,48 @@ services:
         # Make sure bin directory exists
         mkdir -p /app/bin
         
-        # Install yt-dlp if it doesn't exist
-        if [ ! -x /app/bin/yt-dlp ]; then
-          echo 'Installing yt-dlp...'
-          chmod +x /app/docker-install-ytdlp.sh
-          /app/docker-install-ytdlp.sh
+        # Install curl and other essential utilities if they're missing
+        if ! command -v curl &> /dev/null || ! command -v wget &> /dev/null; then
+          echo 'Installing essential utilities...'
+          apt-get update && apt-get install -y curl wget ca-certificates
         fi
+        
+        # Install yt-dlp if it doesn't exist - try multiple methods
+        if [ ! -x /app/bin/yt-dlp ] && [ ! -x /usr/local/bin/yt-dlp ] && [ ! -x /usr/bin/yt-dlp ]; then
+          echo 'Installing yt-dlp...'
+          
+          # Method 1: Use our installation script
+          if [ -f /app/docker-install-ytdlp.sh ]; then
+            chmod +x /app/docker-install-ytdlp.sh
+            /app/docker-install-ytdlp.sh || echo 'Installation script failed, trying direct download...'
+          fi
+          
+          # Method 2: Direct download if script failed
+          if [ ! -x /app/bin/yt-dlp ]; then
+            echo 'Downloading yt-dlp directly...'
+            curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp || \
+            wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /app/bin/yt-dlp
+            chmod a+rx /app/bin/yt-dlp
+            
+            # Create symlinks
+            ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp 2>/dev/null || true
+            ln -sf /app/bin/yt-dlp /usr/bin/yt-dlp 2>/dev/null || true
+          fi
+          
+          # Check if installation was successful
+          if [ -x /app/bin/yt-dlp ]; then
+            echo 'yt-dlp installed successfully at /app/bin/yt-dlp'
+            /app/bin/yt-dlp --version || echo 'Warning: yt-dlp installed but version check failed'
+          else
+            echo 'WARNING: yt-dlp installation failed, application may not work correctly'
+          fi
+        else
+          echo 'yt-dlp is already installed'
+        fi
+        
+        # Print current PATH for debugging
+        echo 'Current PATH:'
+        echo $PATH
         
         # Continue with normal startup
         python migrations.py && 

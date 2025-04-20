@@ -9,9 +9,22 @@ echo "Installing yt-dlp directly in Docker container..."
 # Make sure we have the directory 
 mkdir -p /app/bin
 
+# Install curl if it's missing
+if ! command -v curl &> /dev/null; then
+    echo "curl not found, installing..."
+    apt-get update && apt-get install -y curl
+fi
+
 # Download the latest yt-dlp
 echo "Downloading yt-dlp..."
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /app/bin/yt-dlp || {
+    echo "curl failed, trying wget..."
+    if ! command -v wget &> /dev/null; then
+        echo "wget not found, installing..."
+        apt-get update && apt-get install -y wget
+    fi
+    wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /app/bin/yt-dlp
+}
 chmod a+rx /app/bin/yt-dlp
 
 # Verify the installation

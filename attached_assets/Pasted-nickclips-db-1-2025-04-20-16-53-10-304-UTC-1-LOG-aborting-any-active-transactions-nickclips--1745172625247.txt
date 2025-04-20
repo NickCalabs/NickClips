@@ -1,0 +1,50 @@
+nickclips-db-1   | 2025-04-20 16:53:10.304 UTC [1] LOG:  aborting any active transactions
+nickclips-db-1   | 2025-04-20 16:53:10.324 UTC [1] LOG:  background worker "logical replication launcher" (PID 31) exited with exit code 1
+nickclips-db-1   | 2025-04-20 16:53:10.325 UTC [26] LOG:  shutting down
+nickclips-db-1   | 2025-04-20 16:53:10.330 UTC [26] LOG:  checkpoint starting: shutdown immediate
+nickclips-db-1   | 2025-04-20 16:53:10.348 UTC [26] LOG:  checkpoint complete: wrote 0 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.024 s; sync files=0, longest=0.000 s, average=0.000 s; distance=0 kB, estimate=2 kB
+nickclips-db-1   | 2025-04-20 16:53:10.362 UTC [1] LOG:  database system is shut down
+nickclips-db-1   | 
+nickclips-db-1   | PostgreSQL Database directory appears to contain a database; Skipping initialization
+nickclips-db-1   | 
+nickclips-db-1   | 2025-04-20 16:54:04.039 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+nickclips-db-1   | 2025-04-20 16:54:04.040 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+nickclips-db-1   | 2025-04-20 16:54:04.040 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+nickclips-db-1   | 2025-04-20 16:54:04.047 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+nickclips-db-1   | 2025-04-20 16:54:04.060 UTC [29] LOG:  database system was shut down at 2025-04-20 16:53:10 UTC
+nickclips-db-1   | 2025-04-20 16:54:04.080 UTC [1] LOG:  database system is ready to accept connections
+nickclips-db-1   | 2025-04-20 16:54:07.398 UTC [34] LOG:  unexpected EOF on client connection with an open transaction
+nickclips-db-1   | 2025-04-20 16:59:04.158 UTC [27] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-20 16:59:04.703 UTC [27] LOG:  checkpoint complete: wrote 8 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.513 s, sync=0.012 s, total=0.546 s; sync files=7, longest=0.006 s, average=0.002 s; distance=3 kB, estimate=3 kB
+nickclips-web-1 exited with code 0
+nickclips-web-1 has been recreated
+nickclips-web-1 exited with code 137
+nickclips-web-1 has been recreated
+nickclips-web-1  | Installing yt-dlp...
+nickclips-web-1  | Installing yt-dlp directly in Docker container...
+nickclips-web-1  | Downloading yt-dlp...
+nickclips-web-1  | /app/docker-install-ytdlp.sh: line 14: curl: command not found
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:__main__:user_id column already exists in video table
+nickclips-web-1  | [2025-04-20 17:54:16 +0000] [1] [INFO] Starting gunicorn 23.0.0
+nickclips-web-1  | [2025-04-20 17:54:16 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+nickclips-web-1  | [2025-04-20 17:54:16 +0000] [1] [INFO] Using worker: sync
+nickclips-web-1  | [2025-04-20 17:54:16 +0000] [14] [INFO] Booting worker with pid: 14
+nickclips-web-1  | [2025-04-20 17:54:17 +0000] [15] [INFO] Booting worker with pid: 15
+nickclips-web-1  | [2025-04-20 17:54:17 +0000] [16] [INFO] Booting worker with pid: 16
+nickclips-web-1  | [2025-04-20 17:54:17 +0000] [17] [INFO] Booting worker with pid: 17
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:downloader:Downloading video from URL: https://archive.org/details/charlie-bit-my-finger-again_202106
+nickclips-web-1  | ERROR:downloader:Error getting video info: [Errno 2] No such file or directory: 'yt-dlp'
+nickclips-web-1  | ERROR:downloader:Error downloading with yt-dlp: [Errno 2] No such file or directory: 'yt-dlp'
+nickclips-web-1  | ERROR:downloader:Failed to download video. This will likely work in your self-hosted environment.
+
+are we still failing? 
