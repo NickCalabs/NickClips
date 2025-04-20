@@ -4,9 +4,35 @@ import logging
 import subprocess
 import json
 import re
+import shutil
 from urllib.parse import urlparse
 from app import db
 from models import Video, ProcessingQueue
+
+# Configure yt-dlp path
+def get_yt_dlp_path():
+    """Get the path to yt-dlp executable, trying multiple options"""
+    # Try system path first
+    system_yt_dlp = shutil.which('yt-dlp')
+    if system_yt_dlp:
+        return system_yt_dlp
+    
+    # Try our local wrapper
+    local_wrapper = os.path.join(os.getcwd(), 'bin', 'yt-dlp-wrapper')
+    if os.path.exists(local_wrapper):
+        return local_wrapper
+    
+    # Try direct local install
+    local_yt_dlp = os.path.join(os.getcwd(), 'bin', 'yt-dlp')
+    if os.path.exists(local_yt_dlp):
+        return local_yt_dlp
+    
+    # Default to just 'yt-dlp' and hope it's in the PATH
+    return 'yt-dlp'
+
+# Get the yt-dlp path once at module load time
+YT_DLP_PATH = get_yt_dlp_path()
+logging.info(f"Using yt-dlp from: {YT_DLP_PATH}")
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG)
@@ -189,14 +215,14 @@ def get_video_info(url):
             common_args.extend(['--match-filter', f'duration < {max_duration}'])
         
         if 'reddit.com' in url.lower():
-            cmd = ['yt-dlp'] + common_args + ['--verbose', url]
+            cmd = [YT_DLP_PATH] + common_args + ['--verbose', url]
         elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
-            cmd = ['yt-dlp'] + common_args + [
+            cmd = [YT_DLP_PATH] + common_args + [
                 '--no-playlist',
                 url
             ]
         else:
-            cmd = ['yt-dlp'] + common_args + [url]
+            cmd = [YT_DLP_PATH] + common_args + [url]
         
         # Run the command and capture output
         process = subprocess.run(cmd, capture_output=True, text=True)
@@ -229,9 +255,10 @@ def get_video_info(url):
         
     except json.JSONDecodeError as e:
         logger.error(f"JSON decode error: {e}")
-        # Safely check if process is defined
-        if 'process' in locals():
-            logger.error(f"Raw output: {process.stdout}")
+        # Safely check if process is defined and has stdout
+        process_output = locals().get('process', None)
+        if process_output and hasattr(process_output, 'stdout'):
+            logger.error(f"Raw output: {process_output.stdout}")
         else:
             logger.error("No process output available")
         return None
@@ -284,15 +311,15 @@ def download_with_ytdlp(url, output_template):
         
         # Add site-specific optimizations
         if 'reddit.com' in url.lower():
-            cmd = ['yt-dlp'] + common_args + [url]
+            cmd = [YT_DLP_PATH] + common_args + [url]
         elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
             # YouTube specific arguments
-            cmd = ['yt-dlp'] + common_args + [
+            cmd = [YT_DLP_PATH] + common_args + [
                 '--concurrent-fragments', '5',  # Use 5 fragments at a time
                 url
             ]
         else:
-            cmd = ['yt-dlp'] + common_args + [url]
+            cmd = [YT_DLP_PATH] + common_args + [url]
         
         # Run the command and capture output
         process = subprocess.run(cmd, capture_output=True, text=True)
