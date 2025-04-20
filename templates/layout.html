@@ -92,8 +92,21 @@
         }
         
         /* Ensure video metadata is visible in both themes */
-        .video-metadata span {
-            color: var(--bs-secondary-color) !important;
+        .video-metadata span,
+        .video-metadata i {
+            color: #6c757d !important; /* Fixed color instead of using CSS variable */
+        }
+        
+        /* Extra specificity for light mode */
+        html[data-bs-theme="light"] .video-metadata span,
+        html[data-bs-theme="light"] .video-metadata i {
+            color: #6c757d !important;
+        }
+        
+        /* Extra specificity for dark mode */ 
+        html[data-bs-theme="dark"] .video-metadata span,
+        html[data-bs-theme="dark"] .video-metadata i {
+            color: #adb5bd !important;
         }
         
         /* Fix form controls in modals */
