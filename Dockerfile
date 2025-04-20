@@ -11,20 +11,19 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy requirements
-COPY pyproject.toml .
+# Copy requirements file
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --only main
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p uploads/original uploads/processed uploads/thumbnails uploads/hls
+RUN mkdir -p uploads/original uploads/processed uploads/thumbnails uploads/hls && \
+    chmod -R 755 uploads
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
