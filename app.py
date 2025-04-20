@@ -74,6 +74,36 @@ def load_user(user_id):
 
 # Import and register routes after app creation to avoid circular imports
 with app.app_context():
+    # Check if necessary ENUM types exist in the database
+    from sqlalchemy import text, inspect
+    inspector = inspect(db.engine)
+    
+    # Function to check if ENUM types exist
+    def create_enum_if_not_exists(name, values):
+        try:
+            # Check if the ENUM type already exists
+            result = db.session.execute(text(
+                "SELECT 1 FROM pg_type WHERE typname = :typename"
+            ), {"typename": name})
+            
+            if result.first() is None:
+                # Create the ENUM type if it doesn't exist
+                db.session.execute(text(
+                    f"CREATE TYPE {name} AS ENUM {str(tuple(values))}"
+                ))
+                db.session.commit()
+                logging.info(f"Created ENUM type '{name}'")
+            else:
+                logging.info(f"ENUM type '{name}' already exists")
+        except Exception as e:
+            logging.warning(f"Error handling ENUM type '{name}': {e}")
+            db.session.rollback()
+    
+    # Create ENUM types if they don't exist
+    create_enum_if_not_exists('source_types', ['upload', 'link'])
+    create_enum_if_not_exists('video_statuses', ['pending', 'downloading', 'processing', 'completed', 'failed'])
+    create_enum_if_not_exists('queue_statuses', ['queued', 'processing', 'completed', 'failed'])
+    
     # Import models and create tables
     import models
     db.create_all()
