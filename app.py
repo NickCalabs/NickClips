@@ -31,15 +31,29 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Configure upload paths
 app.config["UPLOAD_FOLDER"] = os.environ.get("UPLOAD_FOLDER", os.path.join(os.getcwd(), "uploads"))
-app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024  # 1GB max upload size
+app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 1024 * 1024 * 1024))  # Default: 1GB max upload size
 app.config["ALLOWED_EXTENSIONS"] = {"mp4", "mov", "avi", "mkv", "webm", "flv", "wmv"}
 
-# Ensure upload directory exists
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-os.makedirs(os.path.join(app.config["UPLOAD_FOLDER"], "thumbnails"), exist_ok=True)
-os.makedirs(os.path.join(app.config["UPLOAD_FOLDER"], "processed"), exist_ok=True)
-os.makedirs(os.path.join(app.config["UPLOAD_FOLDER"], "original"), exist_ok=True)
-os.makedirs(os.path.join(app.config["UPLOAD_FOLDER"], "hls"), exist_ok=True)
+# Video processing configuration
+app.config["MAX_VIDEOS_PER_USER"] = int(os.environ.get("MAX_VIDEOS_PER_USER", 50))
+app.config["CONCURRENT_PROCESSING"] = int(os.environ.get("CONCURRENT_PROCESSING", 1))
+
+# yt-dlp configuration
+app.config["YT_DLP_PROXY"] = os.environ.get("YT_DLP_PROXY", "")
+app.config["YT_DLP_RATE_LIMIT"] = os.environ.get("YT_DLP_RATE_LIMIT", "")
+app.config["YT_DLP_MAX_DURATION"] = int(os.environ.get("YT_DLP_MAX_DURATION", 3600))  # 1 hour default
+
+# Ensure upload directory exists with proper permissions
+upload_base = app.config["UPLOAD_FOLDER"]
+os.makedirs(upload_base, exist_ok=True)
+
+# Create subdirectories for different types of files
+subdirs = ["thumbnails", "processed", "original", "hls"]
+for subdir in subdirs:
+    subdir_path = os.path.join(upload_base, subdir)
+    os.makedirs(subdir_path, exist_ok=True)
+    # Ensure proper permissions (important for NAS/NFS access)
+    os.chmod(subdir_path, 0o755)  # rwxr-xr-x
 
 # Initialize the database
 db.init_app(app)
