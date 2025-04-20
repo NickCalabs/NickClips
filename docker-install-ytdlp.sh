@@ -81,8 +81,8 @@ if [ -x "/app/bin/yt-dlp" ]; then
     
     # /usr/local/bin is a standard location
     if [ -d "/usr/local/bin" ]; then
-        ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp
-        echo "Created symlink at /usr/local/bin/yt-dlp"
+        # ln -sf /app/bin/yt-dlp /usr/local/bin/yt-dlp
+        # echo "Created symlink at /usr/local/bin/yt-dlp"
     fi
     
     # /usr/bin is another standard location
