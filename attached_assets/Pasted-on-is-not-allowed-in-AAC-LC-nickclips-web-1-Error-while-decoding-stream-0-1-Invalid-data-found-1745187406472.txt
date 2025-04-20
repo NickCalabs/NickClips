@@ -1,0 +1,90 @@
+on is not allowed in AAC-LC.
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Invalid NAL unit size (810007126 > 64).
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Invalid NAL unit size (1448514145 > 78).
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Reserved bit set.
+nickclips-web-1  |     Last message repeated 1 times
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Number of bands (19) exceeds limit (1).
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Number of bands (4) exceeds limit (3).
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Invalid NAL unit size (-507986674 > 918).
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Error splitting the input into NAL units.
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Invalid NAL unit size (331211561 > 49).
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Invalid NAL unit size (-1749191990 > 42).
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Reserved bit set.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] invalid band type
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Invalid NAL unit size (235992458 > 28).
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Invalid NAL unit size (-914065655 > 167).
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] SBR was found before the first channel element.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Reserved bit set.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] invalid band type
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Invalid NAL unit size (1381448072 > 35).
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Invalid NAL unit size (1934419837 > 28).
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] channel element 3.13 is not allocated
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Invalid NAL unit size (2010599336 > 28).
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Sample rate index in program config element does not match the sample rate index configured by the container.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Too large remapped id is not implemented. Update your FFmpeg version to the newest one from Git. If the problem still occurs, it means that your file has a feature which has not been implemented.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] If you want to help, upload a sample of this file to https://streams.videolan.org/upload/ and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)
+nickclips-web-1  | Error while decoding stream #0:1: Not yet implemented in FFmpeg, patches welcome
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Invalid NAL unit size (-1158866967 > 420).
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Invalid NAL unit size (-302848803 > 54).
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Prediction is not allowed in AAC-LC.
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Invalid NAL unit size (296139307 > 35).
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Invalid NAL unit size (1973301073 > 36).
+nickclips-web-1  | [h264 @ 0x646dcc1ce680] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] channel element 3.1 is not allocated
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Invalid NAL unit size (120668732 > 916).
+nickclips-web-1  | [h264 @ 0x646dcc1f9400] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Reserved bit set.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Pulse tool not allowed in eight short sequence.
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Invalid NAL unit size (1222553802 > 279).
+nickclips-web-1  | [h264 @ 0x646dcc6992c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Invalid NAL unit size (-748420994 > 29).
+nickclips-web-1  | [h264 @ 0x646dcc1aa4c0] Error splitting the input into NAL units.
+nickclips-web-1  | Error while decoding stream #0:0: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Reserved bit set.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] Sample rate index in program config element does not match the sample rate index configured by the container.
+nickclips-web-1  | [aac @ 0x646dcc1db0c0] decode_pce: Input buffer exhausted before END element found
+nickclips-web-1  | Error while decoding stream #0:1: Invalid data found when processing input
+nickclips-web-1  | [aac @ 0x646dcc1cb9c0] Unsupported channel layout "49 channels"
+nickclips-web-1  | [aac @ 0x646dcc1cb9c0] Qavg: nan
+nickclips-web-1  | Error initializing output stream 0:1 -- Error while opening encoder for output stream #0:1 - maybe incorrect parameters such as bit_rate, rate, width or height
+nickclips-web-1  | Conversion failed!
+nickclips-web-1  | 
+nickclips-db-1   | 2025-04-20 22:11:36.563 UTC [27] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-20 22:11:37.406 UTC [27] LOG:  checkpoint complete: wrote 11 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.812 s, sync=0.010 s, total=0.844 s; sync files=10, longest=0.004 s, average=0.001 s; distance=11 kB, estimate=11 kB
