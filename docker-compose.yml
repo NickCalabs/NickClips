@@ -4,26 +4,70 @@ services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - "${PORT:-5000}:5000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/videoshare
-      - SESSION_SECRET=change_this_to_a_random_secure_string
-      - UPLOAD_FOLDER=/app/uploads
+      # Database configuration
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/videoshare}
+      - PGUSER=${PGUSER:-postgres}
+      - PGPASSWORD=${PGPASSWORD:-postgres}
+      - PGHOST=${PGHOST:-db}
+      - PGPORT=${PGPORT:-5432}
+      - PGDATABASE=${PGDATABASE:-videoshare}
+      
+      # Security
+      - SESSION_SECRET=${SESSION_SECRET}
+      
+      # Storage
+      - UPLOAD_FOLDER=${UPLOAD_FOLDER:-/app/uploads}
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-1073741824}
+      
+      # App configuration
+      - FLASK_APP=${FLASK_APP:-main.py}
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - SERVER_NAME=${SERVER_NAME:-localhost:5000}
+      
+      # Video Processing
+      - MAX_VIDEOS_PER_USER=${MAX_VIDEOS_PER_USER:-50}
+      - CONCURRENT_PROCESSING=${CONCURRENT_PROCESSING:-1}
+      
+      # yt-dlp configuration
+      - YT_DLP_PROXY=${YT_DLP_PROXY:-}
+      - YT_DLP_RATE_LIMIT=${YT_DLP_RATE_LIMIT:-500K}
+      - YT_DLP_MAX_DURATION=${YT_DLP_MAX_DURATION:-3600}
+      
+      # For Nginx/proxy configuration (optional)
+      - VIRTUAL_HOST=${VIRTUAL_HOST:-}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST:-}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-}
     volumes:
-      - ./uploads:/app/uploads
+      - ${LOCAL_UPLOAD_PATH:-./uploads}:${UPLOAD_FOLDER:-/app/uploads}
     depends_on:
       - db
     restart: unless-stopped
+    # For Cloudflare Tunnel integration  
+    networks:
+      - videoshare-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.videoshare.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.videoshare.entrypoints=websecure"
+      - "traefik.http.routers.videoshare.tls=true"
 
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=videoshare
+      - POSTGRES_PASSWORD=${PGPASSWORD:-postgres}
+      - POSTGRES_USER=${PGUSER:-postgres}
+      - POSTGRES_DB=${PGDATABASE:-videoshare}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - videoshare-network
+
+networks:
+  videoshare-network:
+    driver: bridge
 
 volumes:
   postgres_data:
