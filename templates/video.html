@@ -124,11 +124,11 @@
             <div class="video-info pt-3">
                 <h1 class="video-title h2 mb-1" style="font-size: 1.5rem; font-weight: 500;">{{ video.title or 'Untitled Video' }}</h1>
                 
-                <div class="video-metadata d-flex flex-wrap gap-3 mb-3" style="font-size: 0.85rem;">
-                    <span><i class="fas fa-eye me-1"></i>{{ video.views }} views</span>
-                    <span><i class="fas fa-calendar me-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</span>
+                <div class="video-metadata d-flex flex-wrap gap-3 mb-3" style="font-size: 0.85rem; color: #6c757d !important;">
+                    <span style="color: inherit;"><i class="fas fa-eye me-1"></i>{{ video.views }} views</span>
+                    <span style="color: inherit;"><i class="fas fa-calendar me-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</span>
                     {% if video.duration %}
-                    <span><i class="fas fa-clock me-1"></i>{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
+                    <span style="color: inherit;"><i class="fas fa-clock me-1"></i>{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
                     {% endif %}
                 </div>
                 

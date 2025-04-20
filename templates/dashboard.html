@@ -131,28 +131,49 @@
 
 <style>
 /* Make embed modal match theme */
+#embedModal {
+    --bs-modal-bg: var(--bs-body-bg);
+    --bs-modal-color: var(--bs-body-color);
+    --bs-modal-border-color: var(--bs-border-color);
+}
+
 #embedModal .modal-content {
-    background-color: var(--bs-body-bg);
-    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
 }
 
 #embedModal .modal-header {
-    border-bottom-color: var(--bs-border-color);
+    border-bottom-color: var(--bs-border-color) !important;
 }
 
 #embedModal .modal-footer {
-    border-top-color: var(--bs-border-color);
+    border-top-color: var(--bs-border-color) !important;
 }
 
 #embedModal .form-control,
 #embedModal .form-check-input {
-    background-color: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    border-color: var(--bs-border-color);
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+    border-color: var(--bs-border-color) !important;
 }
 
-#embedModal .form-check-label {
-    color: var(--bs-body-color);
+#embedModal .form-check-label,
+#embedModal h6,
+#embedModal label {
+    color: var(--bs-body-color) !important;
+}
+
+/* Force light theme text to be visible in light theme */
+html[data-bs-theme="light"] #embedModal * {
+    color: #212529 !important;
+}
+
+html[data-bs-theme="light"] #embedModal .form-control {
+    background-color: #fff !important;
+}
+
+html[data-bs-theme="light"] #embedModal .modal-content {
+    background-color: #fff !important;
 }
 </style>
 
