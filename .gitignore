@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Env
+.env
+.env.*
+
+# Replit
+.replit
+*.replit
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Docker volumes / local uploads
+uploads/
