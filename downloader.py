@@ -232,7 +232,7 @@ def download_video(video_id, url):
                 if 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
                     error_msg = "YouTube restricts automated downloads on shared hosting. This feature will work on your self-hosted setup."
                 elif 'reddit.com' in url.lower():
-                    error_msg = "Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup."
+                    error_msg = "Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.\n\nNote: YouTube and Reddit downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment."
                 else:
                     error_msg = "Failed to download video. This will likely work in your self-hosted environment."
                 
@@ -266,7 +266,7 @@ def download_video(video_id, url):
             if 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
                 error_msg = f"YouTube download failed on Replit: {str(e)}. This will work in your self-hosted environment."
             elif 'reddit.com' in url.lower():
-                error_msg = f"Reddit download failed on Replit: {str(e)}. This will work in your self-hosted environment."
+                error_msg = f"Reddit download failed: {str(e)}.\n\nReddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.\n\nNote: YouTube and Reddit downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment."
             
             # Update video status
             video.status = 'failed'
@@ -335,7 +335,26 @@ def get_video_info(url):
             common_args.extend(['--match-filter', f'duration < {max_duration}'])
         
         if 'reddit.com' in url.lower():
-            cmd = [actual_ytdlp_path] + common_args + ['--verbose', url]
+            # Enhanced Reddit-specific info retrieval
+            logger.info("Using enhanced Reddit-specific info retrieval")
+            cmd = [
+                actual_ytdlp_path,
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                '--skip-download',
+                '--print-json',
+                '--no-check-certificate',
+                '--geo-bypass',
+                '--verbose',
+                url
+            ]
+            
+            # Add rate limit if configured
+            if app.config["YT_DLP_RATE_LIMIT"]:
+                cmd.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
+                
+            # Add max duration limit if configured
+            if max_duration > 0:
+                cmd.extend(['--match-filter', f'duration < {max_duration}'])
         elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
             cmd = [actual_ytdlp_path] + common_args + [
                 '--no-playlist',
@@ -476,13 +495,47 @@ def download_with_ytdlp(url, output_template):
         
         # Construct site-specific command arguments
         if 'reddit.com' in url.lower():
-            # Reddit-specific command - avoid specifying format as it causes errors
-            logger.info("Using Reddit-specific download parameters")
-            cmd = [actual_ytdlp_path] + base_args + [
-                # Optional: convert to MP4 at the end
-                '--recode-video', 'mp4',
+            # REDDIT HANDLING: Complete special case handling for Reddit URLs
+            logger.info("Using ENHANCED Reddit-specific download parameters")
+            
+            # First, try to list available formats for debugging
+            try:
+                available_formats_cmd = [
+                    actual_ytdlp_path,
+                    '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    '--list-formats',
+                    '--verbose',
+                    url
+                ]
+                logger.info(f"Checking available Reddit formats: {' '.join(available_formats_cmd)}")
+                format_process = subprocess.run(available_formats_cmd, capture_output=True, text=True)
+                
+                if format_process.stdout:
+                    logger.info(f"Available Reddit formats: {format_process.stdout}")
+                if format_process.stderr:
+                    logger.info(f"Format listing stderr: {format_process.stderr}")
+            except Exception as e:
+                logger.warning(f"Format listing error: {e}")
+                
+            # FOR REDDIT: Use the most basic command possible with minimal options
+            cmd = [
+                actual_ytdlp_path,
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                '--output', output_template,
+                # Do NOT specify --format or --merge-output-format for Reddit
+                '--no-check-certificate',
+                '--geo-bypass',
+                '--verbose',
                 url
             ]
+            
+            # Add the rate limit for shared hosting
+            if app.config["YT_DLP_RATE_LIMIT"]:
+                cmd.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
+                
+            # Add duration limit
+            if max_duration > 0:
+                cmd.extend(['--match-filter', f'duration < {max_duration}'])
         elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
             # YouTube-specific command
             logger.info("Using YouTube-specific download parameters")

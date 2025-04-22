@@ -1,0 +1,221 @@
+nickclips-db-1   | 2025-04-20 22:30:35.291 UTC [37] FATAL:  terminating connection due to administrator command
+nickclips-db-1   | 2025-04-20 22:30:35.291 UTC [35] FATAL:  terminating connection due to administrator command
+nickclips-db-1   | 2025-04-20 22:30:35.296 UTC [34] FATAL:  terminating connection due to administrator command
+nickclips-db-1   | 2025-04-20 22:30:35.299 UTC [36] FATAL:  terminating connection due to administrator command
+nickclips-db-1   | 2025-04-20 22:30:35.317 UTC [1] LOG:  background worker "logical replication launcher" (PID 31) exited with exit code 1
+nickclips-db-1   | 2025-04-20 22:30:35.335 UTC [26] LOG:  shutting down
+nickclips-db-1   | 2025-04-20 22:30:35.345 UTC [26] LOG:  checkpoint starting: shutdown immediate
+nickclips-db-1   | 2025-04-20 22:30:35.392 UTC [26] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.008 s, sync=0.003 s, total=0.056 s; sync files=2, longest=0.002 s, average=0.002 s; distance=0 kB, estimate=0 kB
+nickclips-db-1   | 2025-04-20 22:30:35.427 UTC [1] LOG:  database system is shut down
+nickclips-db-1   | 
+nickclips-db-1   | PostgreSQL Database directory appears to contain a database; Skipping initialization
+nickclips-db-1   | 
+nickclips-db-1   | 2025-04-20 22:30:37.231 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+nickclips-db-1   | 2025-04-20 22:30:37.231 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+nickclips-db-1   | 2025-04-20 22:30:37.231 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+nickclips-db-1   | 2025-04-20 22:30:37.241 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+nickclips-db-1   | 2025-04-20 22:30:37.263 UTC [30] LOG:  database system was shut down at 2025-04-20 22:30:35 UTC
+nickclips-db-1   | 2025-04-20 22:30:37.282 UTC [1] LOG:  database system is ready to accept connections
+nickclips-db-1   | 2025-04-20 22:31:01.225 UTC [40] ERROR:  null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-db-1   | 2025-04-20 22:31:01.225 UTC [40] DETAIL:  Failing row contains (1, null, 1, completed, 2025-04-20 21:35:39.389959, 2025-04-20 21:35:39.445628, 2025-04-20 21:38:13.201542).
+nickclips-db-1   | 2025-04-20 22:31:01.225 UTC [40] STATEMENT:  UPDATE processing_queue SET video_id=NULL WHERE processing_queue.id = 1
+nickclips-db-1   | 2025-04-20 22:31:03.065 UTC [37] ERROR:  null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-db-1   | 2025-04-20 22:31:03.065 UTC [37] DETAIL:  Failing row contains (1, null, 1, completed, 2025-04-20 21:35:39.389959, 2025-04-20 21:35:39.445628, 2025-04-20 21:38:13.201542).
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp process error: Command '['yt-dlp', '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/43adaedf.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/']' returned non-zero exit status 1.
+nickclips-web-1  | ERROR:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/43adaedf.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | ERROR: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1653, in wrapper
+nickclips-web-1  |     return func(self, *args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-db-1   | 2025-04-20 22:31:03.065 UTC [37] STATEMENT:  UPDATE processing_queue SET video_id=NULL WHERE processing_queue.id = 1
+nickclips-db-1   | 2025-04-20 22:35:37.365 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-20 22:35:38.211 UTC [28] LOG:  checkpoint complete: wrote 11 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.813 s, sync=0.012 s, total=0.847 s; sync files=10, longest=0.007 s, average=0.002 s; distance=9 kB, estimate=9 kB
+nickclips-db-1   | 2025-04-20 22:40:37.312 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-20 22:40:38.393 UTC [28] LOG:  checkpoint complete: wrote 9 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.827 s, sync=0.226 s, total=1.082 s; sync files=9, longest=0.082 s, average=0.026 s; distance=10 kB, estimate=10 kB
+nickclips-db-1   | 2025-04-20 22:50:37.594 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-20 22:50:37.824 UTC [28] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.205 s, sync=0.006 s, total=0.230 s; sync files=3, longest=0.004 s, average=0.002 s; distance=7 kB, estimate=10 kB
+nickclips-db-1   | 2025-04-20 22:55:37.930 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-20 22:55:38.247 UTC [28] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.105 s, sync=0.100 s, total=0.317 s; sync files=2, longest=0.070 s, average=0.050 s; distance=7 kB, estimate=10 kB
+nickclips-db-1   | 2025-04-20 23:10:37.546 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-20 23:10:38.899 UTC [28] LOG:  checkpoint complete: wrote 14 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.311 s, sync=0.010 s, total=1.353 s; sync files=7, longest=0.006 s, average=0.002 s; distance=59 kB, estimate=59 kB
+nickclips-db-1   | 2025-04-21 00:05:38.985 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-21 00:05:39.128 UTC [28] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.107 s, sync=0.010 s, total=0.144 s; sync files=2, longest=0.006 s, average=0.005 s; distance=6 kB, estimate=53 kB
+nickclips-db-1   | 2025-04-21 00:10:38.228 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-21 00:10:38.360 UTC [28] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.105 s, sync=0.008 s, total=0.132 s; sync files=2, longest=0.006 s, average=0.004 s; distance=7 kB, estimate=49 kB
+nickclips-db-1   | 2025-04-21 00:20:38.541 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-21 00:20:38.670 UTC [28] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.104 s, sync=0.006 s, total=0.129 s; sync files=2, longest=0.005 s, average=0.003 s; distance=7 kB, estimate=44 kB
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1809, in __extract_info
+nickclips-db-1   | 2025-04-21 02:20:41.027 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-21 02:20:41.174 UTC [28] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.108 s, sync=0.011 s, total=0.150 s; sync files=2, longest=0.009 s, average=0.006 s; distance=8 kB, estimate=41 kB
+nickclips-db-1   | 2025-04-22 12:56:22.282 UTC [28] LOG:  checkpoint starting: time
+nickclips-db-1   | 2025-04-22 12:56:22.839 UTC [28] LOG:  checkpoint complete: wrote 6 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.521 s, sync=0.007 s, total=0.560 s; sync files=6, longest=0.005 s, average=0.002 s; distance=5 kB, estimate=37 kB
+nickclips-db-1   | 2025-04-22 13:03:14.700 UTC [1] LOG:  received fast shutdown request
+nickclips-db-1   | 2025-04-22 13:03:14.705 UTC [1] LOG:  aborting any active transactions
+nickclips-db-1   | 2025-04-22 13:03:14.724 UTC [1] LOG:  background worker "logical replication launcher" (PID 33) exited with exit code 1
+nickclips-db-1   | 2025-04-22 13:03:14.724 UTC [28] LOG:  shutting down
+nickclips-db-1   | 2025-04-22 13:03:14.729 UTC [28] LOG:  checkpoint starting: shutdown immediate
+nickclips-db-1   | 2025-04-22 13:03:14.746 UTC [28] LOG:  checkpoint complete: wrote 0 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.022 s; sync files=0, longest=0.000 s, average=0.000 s; distance=0 kB, estimate=34 kB
+nickclips-db-1   | 2025-04-22 13:03:14.766 UTC [1] LOG:  database system is shut down
+nickclips-db-1   | 
+nickclips-db-1   | PostgreSQL Database directory appears to contain a database; Skipping initialization
+nickclips-db-1   | 
+nickclips-db-1   | 2025-04-22 13:03:46.586 UTC [1] LOG:  starting PostgreSQL 15.12 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+nickclips-db-1   | 2025-04-22 13:03:46.587 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+nickclips-db-1   | 2025-04-22 13:03:46.587 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+nickclips-db-1   | 2025-04-22 13:03:46.598 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+nickclips-db-1   | 2025-04-22 13:03:46.616 UTC [29] LOG:  database system was shut down at 2025-04-22 13:03:14 UTC
+nickclips-db-1   | 2025-04-22 13:03:46.637 UTC [1] LOG:  database system is ready to accept connections
+nickclips-web-1  |     return self.process_ie_result(ie_result, download, extra_info)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.
+nickclips-web-1  | [2025-04-22 13:03:11 +0000] [1] [INFO] Handling signal: term
+nickclips-web-1  | [2025-04-22 13:03:11 +0000] [12] [INFO] Worker exiting (pid: 12)
+nickclips-web-1  | [2025-04-22 13:03:11 +0000] [13] [INFO] Worker exiting (pid: 13)
+nickclips-web-1  | [2025-04-22 13:03:11 +0000] [15] [INFO] Worker exiting (pid: 15)
+nickclips-web-1  | [2025-04-22 13:03:11 +0000] [14] [INFO] Worker exiting (pid: 14)
+nickclips-web-1  | [2025-04-22 13:03:13 +0000] [1] [INFO] Shutting down: Master
+nickclips-web-1  | [emergency_install] INFO: Using Docker standard directory: /app/bin
+nickclips-web-1  | [emergency_install] INFO: Downloading yt-dlp from https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: Successfully downloaded yt-dlp to /app/bin/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: Made yt-dlp executable
+nickclips-web-1  | [emergency_install] INFO: yt-dlp is now executable
+nickclips-web-1  | [emergency_install] INFO: Created symlink at /usr/local/bin/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: Created symlink at /usr/bin/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: yt-dlp installation completed successfully!
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:__main__:user_id column already exists in video table
+nickclips-web-1  | [2025-04-22 13:03:51 +0000] [1] [INFO] Starting gunicorn 23.0.0
+nickclips-web-1  | [2025-04-22 13:03:51 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+nickclips-web-1  | [2025-04-22 13:03:51 +0000] [1] [INFO] Using worker: sync
+nickclips-web-1  | [2025-04-22 13:03:51 +0000] [11] [INFO] Booting worker with pid: 11
+nickclips-web-1  | [2025-04-22 13:03:51 +0000] [12] [INFO] Booting worker with pid: 12
+nickclips-web-1  | [2025-04-22 13:03:51 +0000] [13] [INFO] Booting worker with pid: 13
+nickclips-web-1  | [2025-04-22 13:03:51 +0000] [14] [INFO] Booting worker with pid: 14
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:downloader:Downloading video from URL: https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/
+nickclips-web-1  | DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--skip-download', '--print-json', '--no-check-certificate', '--geo-bypass', '--limit-rate', '500K', '--match-filter', 'duration < 3600', '--verbose', 'https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading MPD manifest
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | [debug] Default format spec: bestvideo*+bestaudio/best
+nickclips-web-1  | [info] mf0nlg7q6bwe1: Downloading 1 format(s): hls-2500+dash-7
+nickclips-web-1  | 
+nickclips-web-1  | DEBUG:downloader:Got video info: {'title': '[highlight] Tyrique Stevenson prematurely celebrates resulting in a g...', 'description': '', 'duration': 37, 'thumbnail': None, 'ext': 'mp4'}
+nickclips-web-1  | DEBUG:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/55b609a1.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | ERROR: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1653, in wrapper
+nickclips-web-1  |     return func(self, *args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1809, in __extract_info
+nickclips-web-1  |     return self.process_ie_result(ie_result, download, extra_info)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp process error: Command '['yt-dlp', '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/55b609a1.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/']' returned non-zero exit status 1.
+nickclips-web-1  | ERROR:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/55b609a1.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | ERROR: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1653, in wrapper
+nickclips-web-1  |     return func(self, *args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1809, in __extract_info
+nickclips-web-1  |     return self.process_ie_result(ie_result, download, extra_info)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.
