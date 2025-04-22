@@ -234,6 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
                 const videoSlug = this.dataset.slug;
                 
+                // Show loading state
+                const deleteBtn = this;
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+                
                 fetch(`/api/video/${videoSlug}`, {
                     method: 'DELETE'
                 })
@@ -243,12 +248,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         const videoCard = this.closest('.video-card');
                         videoCard.remove();
                         showAlert('Video deleted successfully', 'success');
+                    } else if (data.error) {
+                        showAlert(data.error, 'danger');
+                        deleteBtn.disabled = false;
+                        deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
                     } else {
                         showAlert('Failed to delete video', 'danger');
+                        deleteBtn.disabled = false;
+                        deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
                     }
                 })
                 .catch(error => {
-                    showAlert('Error deleting video', 'danger');
+                    showAlert('Error deleting video: ' + (error.message || 'Unknown error'), 'danger');
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
                 });
             }
         });
@@ -355,10 +368,20 @@ document.addEventListener('DOMContentLoaded', function() {
         videoStatus.innerHTML = statusHtml;
     }
     
-    // Helper function to show alerts
+    // Helper function to show alerts with duplicate prevention
     function showAlert(message, type) {
         const alertsContainer = document.getElementById('alerts-container');
         if (!alertsContainer) return;
+        
+        // Check for duplicate alerts
+        const existingAlerts = alertsContainer.querySelectorAll('.alert');
+        for (let i = 0; i < existingAlerts.length; i++) {
+            const alertText = existingAlerts[i].textContent.trim();
+            if (alertText.includes(message)) {
+                // Already showing this alert, don't duplicate
+                return;
+            }
+        }
         
         const alert = document.createElement('div');
         alert.className = `alert alert-${type} alert-dismissible fade show`;
@@ -368,14 +391,19 @@ document.addEventListener('DOMContentLoaded', function() {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
         
-        alertsContainer.appendChild(alert);
+        // Add to beginning of container for better visibility
+        alertsContainer.insertBefore(alert, alertsContainer.firstChild);
         
         // Auto-dismiss after 5 seconds
         setTimeout(() => {
-            alert.classList.remove('show');
-            setTimeout(() => {
-                alertsContainer.removeChild(alert);
-            }, 150);
+            if (alert.parentNode) { // Check if element still exists in DOM
+                alert.classList.remove('show');
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alertsContainer.removeChild(alert);
+                    }
+                }, 150);
+            }
         }, 5000);
     }
 });
