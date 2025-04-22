@@ -876,19 +876,77 @@ def download_with_ytdlp(url, output_template):
                 '--fragment-retries', '10' # Increase fragment retry attempts
             ]
             
-            # CRITICAL: For Reddit, completely simplify the command to avoid any format issues
-            # Start with a completely fresh command that has minimal arguments
-            cmd = [
+            # For Reddit, we need to first list available formats, then pick one explicitly
+
+            # Step 1: Get available formats
+            logger.info("Running yt-dlp to list available formats for Reddit video")
+            formats_cmd = [
                 actual_ytdlp_path,
                 '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                '--output', output_template,
+                '--list-formats',
                 '--no-check-certificate',
                 '--verbose',
-                '--no-playlist',
                 url
             ]
             
-            logger.info("Using simplified command for Reddit to avoid format errors")
+            # Run the format listing command
+            format_ids = []  # Initialize here to avoid "possibly unbound" error
+            try:
+                formats_process = subprocess.run(formats_cmd, capture_output=True, text=True)
+                if formats_process.stdout:
+                    logger.info(f"Format listing output: {formats_process.stdout}")
+                    
+                    # Parse the output to find available format IDs
+                    for line in formats_process.stdout.splitlines():
+                        if 'dash-video' in line or 'dash-audio' in line:
+                            # Extract format IDs for dash formats
+                            parts = line.split()
+                            if parts and parts[0].isdigit():
+                                format_ids.append(parts[0])
+                
+                # If we found dash formats, use them explicitly
+                if format_ids:
+                    logger.info(f"Found dash format IDs: {format_ids}")
+                    best_format = format_ids[0]  # Use the first one (usually best)
+                    
+                    # Step 2: Use the explicit format ID
+                    cmd = [
+                        actual_ytdlp_path,
+                        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                        '--format', best_format,
+                        '--output', output_template,
+                        '--no-check-certificate',
+                        '--verbose',
+                        '--no-playlist',
+                        url
+                    ]
+                    logger.info(f"Using format ID {best_format} for Reddit download")
+                else:
+                    # No dash formats found, try with "bestaudio+bestvideo" format
+                    cmd = [
+                        actual_ytdlp_path,
+                        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                        '--format', 'bestaudio+bestvideo/best',
+                        '--output', output_template,
+                        '--no-check-certificate',
+                        '--verbose',
+                        '--no-playlist',
+                        url
+                    ]
+                    logger.info("Using bestaudio+bestvideo format for Reddit download")
+            except Exception as e:
+                logger.error(f"Error listing formats: {e}")
+                # Fallback to a simpler command with no format specification
+                cmd = [
+                    actual_ytdlp_path,
+                    '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                    '--output', output_template,
+                    '--no-check-certificate',
+                    '--verbose',
+                    '--no-playlist',
+                    url
+                ]
+                logger.info("Failed to get formats, using minimal command for Reddit download")
             
             # Add the rate limit for shared hosting
             if app.config["YT_DLP_RATE_LIMIT"]:

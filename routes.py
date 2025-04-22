@@ -204,21 +204,79 @@ def register_routes(app):
         if not current_user.is_admin and video.user_id != current_user.id:
             return jsonify({'error': 'Unauthorized'}), 403
         
-        # Delete associated files
-        if video.original_path and os.path.exists(video.original_path):
-            os.remove(video.original_path)
-        if video.processed_path and os.path.exists(video.processed_path):
-            os.remove(video.processed_path)
-        if video.thumbnail_path and os.path.exists(video.thumbnail_path):
-            os.remove(video.thumbnail_path)
-        
-        # Delete HLS files if they exist
-        if video.hls_path:
-            hls_dir = os.path.dirname(video.hls_path)
-            if os.path.exists(hls_dir):
-                for file in os.listdir(hls_dir):
-                    os.remove(os.path.join(hls_dir, file))
-                os.rmdir(hls_dir)
+        # Delete associated files - improved error handling
+        try:
+            # Make sure we have the correct paths within the upload folder
+            upload_folder = app.config['UPLOAD_FOLDER']
+            
+            # Delete original file
+            if video.original_path:
+                # Get filename only
+                original_filename = os.path.basename(video.original_path)
+                original_path = os.path.join(upload_folder, 'original', original_filename)
+                if os.path.exists(original_path):
+                    os.remove(original_path)
+                    logger.info(f"Deleted original file: {original_path}")
+                elif os.path.exists(video.original_path):  # Try the stored path directly
+                    os.remove(video.original_path)
+                    logger.info(f"Deleted original file: {video.original_path}")
+                else:
+                    logger.warning(f"Could not find original file: {video.original_path}")
+            
+            # Delete processed file
+            if video.processed_path:
+                processed_filename = os.path.basename(video.processed_path)
+                processed_path = os.path.join(upload_folder, 'processed', processed_filename)
+                if os.path.exists(processed_path):
+                    os.remove(processed_path)
+                    logger.info(f"Deleted processed file: {processed_path}")
+                elif os.path.exists(video.processed_path):  # Try the stored path directly
+                    os.remove(video.processed_path)
+                    logger.info(f"Deleted processed file: {video.processed_path}")
+                else:
+                    logger.warning(f"Could not find processed file: {video.processed_path}")
+            
+            # Delete thumbnail file
+            if video.thumbnail_path:
+                thumbnail_filename = os.path.basename(video.thumbnail_path)
+                thumbnail_path = os.path.join(upload_folder, 'thumbnails', thumbnail_filename)
+                if os.path.exists(thumbnail_path):
+                    os.remove(thumbnail_path)
+                    logger.info(f"Deleted thumbnail file: {thumbnail_path}")
+                elif os.path.exists(video.thumbnail_path):  # Try the stored path directly
+                    os.remove(video.thumbnail_path)
+                    logger.info(f"Deleted thumbnail file: {video.thumbnail_path}")
+                else:
+                    logger.warning(f"Could not find thumbnail file: {video.thumbnail_path}")
+            
+            # Delete HLS files if they exist
+            if video.hls_path:
+                # Try both potential HLS directory paths
+                hls_dir = os.path.dirname(video.hls_path)
+                hls_slug = os.path.basename(hls_dir)
+                alt_hls_dir = os.path.join(upload_folder, 'hls', hls_slug)
+                
+                # Try stored path first
+                if os.path.exists(hls_dir) and os.path.isdir(hls_dir):
+                    for file in os.listdir(hls_dir):
+                        file_path = os.path.join(hls_dir, file)
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
+                    os.rmdir(hls_dir)
+                    logger.info(f"Deleted HLS directory: {hls_dir}")
+                # Try alternative path
+                elif os.path.exists(alt_hls_dir) and os.path.isdir(alt_hls_dir):
+                    for file in os.listdir(alt_hls_dir):
+                        file_path = os.path.join(alt_hls_dir, file)
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
+                    os.rmdir(alt_hls_dir)
+                    logger.info(f"Deleted HLS directory: {alt_hls_dir}")
+                else:
+                    logger.warning(f"Could not find HLS directory: {hls_dir} or {alt_hls_dir}")
+        except Exception as e:
+            logger.error(f"Error deleting files for video {video.slug}: {str(e)}")
+            # Continue with database deletion even if file deletion fails
         
         # Delete from database
         db.session.delete(video)
