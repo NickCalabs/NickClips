@@ -451,11 +451,9 @@ def download_with_ytdlp(url, output_template):
                 logger.error(f"Emergency yt-dlp installation failed: {install_error}")
                 return None
             
-        # Common command arguments
-        common_args = [
+        # Base command arguments - shared across all sites
+        base_args = [
             '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            '--format', 'best[ext=mp4]/best',  # Simplify format selection to avoid errors
-            '--merge-output-format', 'mp4',
             '--output', output_template,
             '--no-check-certificate',  # Skip HTTPS certificate validation
             '--geo-bypass',  # Try to bypass geo-restrictions
@@ -465,28 +463,43 @@ def download_with_ytdlp(url, output_template):
         
         # Add proxy if configured
         if app.config["YT_DLP_PROXY"]:
-            common_args.extend(['--proxy', app.config["YT_DLP_PROXY"]])
+            base_args.extend(['--proxy', app.config["YT_DLP_PROXY"]])
             
         # Add rate limit if configured
         if app.config["YT_DLP_RATE_LIMIT"]:
-            common_args.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
+            base_args.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
             
         # Add max duration limit if configured
         max_duration = app.config["YT_DLP_MAX_DURATION"]
         if max_duration > 0:
-            common_args.extend(['--match-filter', f'duration < {max_duration}'])
+            base_args.extend(['--match-filter', f'duration < {max_duration}'])
         
-        # Add site-specific optimizations
+        # Construct site-specific command arguments
         if 'reddit.com' in url.lower():
-            cmd = [actual_ytdlp_path] + common_args + [url]
+            # Reddit-specific command - avoid specifying format as it causes errors
+            logger.info("Using Reddit-specific download parameters")
+            cmd = [actual_ytdlp_path] + base_args + [
+                # Optional: convert to MP4 at the end
+                '--recode-video', 'mp4',
+                url
+            ]
         elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
-            # YouTube specific arguments
-            cmd = [actual_ytdlp_path] + common_args + [
+            # YouTube-specific command
+            logger.info("Using YouTube-specific download parameters")
+            cmd = [actual_ytdlp_path] + base_args + [
+                '--format', 'best[ext=mp4]/best',
+                '--merge-output-format', 'mp4',
                 '--concurrent-fragments', '5',  # Use 5 fragments at a time
                 url
             ]
         else:
-            cmd = [actual_ytdlp_path] + common_args + [url]
+            # Default command for all other sites
+            logger.info("Using default download parameters")
+            cmd = [actual_ytdlp_path] + base_args + [
+                '--format', 'best[ext=mp4]/best',
+                '--merge-output-format', 'mp4',
+                url
+            ]
         
         # Log the full command for debugging
         logger.info(f"Running download command: {' '.join(str(arg) for arg in cmd)}")
