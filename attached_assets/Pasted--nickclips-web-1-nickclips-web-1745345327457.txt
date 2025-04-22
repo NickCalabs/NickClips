@@ -1,0 +1,135 @@
+
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mf0nlg7q6bwe1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4x4k5/highlight_tyrique_stevenson_prematurely/
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4x4k5: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.
+nickclips-web-1  | [2025-04-22 18:07:31 +0000] [1] [INFO] Handling signal: term
+nickclips-web-1  | [2025-04-22 18:07:31 +0000] [11] [INFO] Worker exiting (pid: 11)
+nickclips-web-1  | [2025-04-22 18:07:31 +0000] [12] [INFO] Worker exiting (pid: 12)
+nickclips-web-1  | [2025-04-22 18:07:31 +0000] [13] [INFO] Worker exiting (pid: 13)
+nickclips-web-1  | [2025-04-22 18:07:31 +0000] [14] [INFO] Worker exiting (pid: 14)
+nickclips-web-1  | [2025-04-22 18:07:33 +0000] [1] [INFO] Shutting down: Master
+nickclips-web-1  | [emergency_install] INFO: Using Docker standard directory: /app/bin
+nickclips-web-1  | [emergency_install] INFO: Downloading yt-dlp from https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: Successfully downloaded yt-dlp to /app/bin/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: Made yt-dlp executable
+nickclips-web-1  | [emergency_install] INFO: yt-dlp is now executable
+nickclips-web-1  | [emergency_install] INFO: Created symlink at /usr/local/bin/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: Created symlink at /usr/bin/yt-dlp
+nickclips-web-1  | [emergency_install] INFO: yt-dlp installation completed successfully!
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:__main__:user_id column already exists in video table
+nickclips-db-1   | 2025-04-22 18:07:44.070 UTC [34] LOG:  unexpected EOF on client connection with an open transaction
+nickclips-web-1  | [2025-04-22 18:07:44 +0000] [1] [INFO] Starting gunicorn 23.0.0
+nickclips-web-1  | [2025-04-22 18:07:44 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+nickclips-web-1  | [2025-04-22 18:07:44 +0000] [1] [INFO] Using worker: sync
+nickclips-web-1  | [2025-04-22 18:07:44 +0000] [11] [INFO] Booting worker with pid: 11
+nickclips-web-1  | [2025-04-22 18:07:44 +0000] [12] [INFO] Booting worker with pid: 12
+nickclips-web-1  | [2025-04-22 18:07:44 +0000] [13] [INFO] Booting worker with pid: 13
+nickclips-web-1  | [2025-04-22 18:07:44 +0000] [14] [INFO] Booting worker with pid: 14
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:video_processor:Video processor worker started
+nickclips-web-1  | INFO:video_processor:Video processor initialized
+nickclips-web-1  | INFO:downloader:Downloading video from URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--skip-download', '--print-json', '--no-check-certificate', '--geo-bypass', '--limit-rate', '500K', '--match-filter', 'duration < 3600', '--verbose', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading MPD manifest
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | [debug] Default format spec: bestvideo*+bestaudio/best
+nickclips-web-1  | [info] mgds5je3v7we1: Downloading 1 format(s): fallback+dash-8
+nickclips-web-1  | 
+nickclips-web-1  | DEBUG:downloader:Got video info: {'title': '[Highlight] McCourty hustles to prevent sure touchdown (Super Bowl LIII)', 'description': '', 'duration': 42, 'thumbnail': None, 'ext': 'mp4'}
+nickclips-web-1  | DEBUG:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/1f0e3d0e.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | ERROR: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1653, in wrapper
+nickclips-web-1  |     return func(self, *args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1809, in __extract_info
+nickclips-web-1  |     return self.process_ie_result(ie_result, download, extra_info)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp process error: Command '['yt-dlp', '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/1f0e3d0e.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']' returned non-zero exit status 1.
+nickclips-web-1  | ERROR:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/1f0e3d0e.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | ERROR: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1653, in wrapper
+nickclips-web-1  |     return func(self, *args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1809, in __extract_info
+nickclips-web-1  |     return self.process_ie_result(ie_result, download, extra_info)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.
