@@ -60,6 +60,25 @@
             color: #333333 !important;
         }
         
+        /* Fix dropdown menu z-index */
+        .dropdown-menu {
+            z-index: 9999 !important;
+        }
+        
+        /* Prevent duplicate alerts */
+        .alert {
+            margin-bottom: 1rem;
+        }
+        
+        /* Make errors more visible */
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            font-weight: 500;
+        }
+        }
+        
         html[data-bs-theme="light"] .bg-body-tertiary {
             background-color: #f8f9fa !important;
         }

@@ -278,11 +278,24 @@ def register_routes(app):
             logger.error(f"Error deleting files for video {video.slug}: {str(e)}")
             # Continue with database deletion even if file deletion fails
         
-        # Delete from database
-        db.session.delete(video)
-        db.session.commit()
-        
-        return jsonify({'success': True})
+        # Delete queue items first to avoid foreign key constraint errors
+        try:
+            # Delete all queue items associated with this video first
+            queue_items = ProcessingQueue.query.filter_by(video_id=video.id).all()
+            for item in queue_items:
+                db.session.delete(item)
+            db.session.commit()
+            logger.info(f"Deleted {len(queue_items)} queue items for video {video.slug}")
+            
+            # Then delete the video
+            db.session.delete(video)
+            db.session.commit()
+            
+            return jsonify({'success': True})
+        except Exception as e:
+            logger.error(f"Database error during video deletion: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': 'Database error while deleting video'}), 500
     
     @app.route('/uploads/<path:filename>')
     def serve_upload(filename):

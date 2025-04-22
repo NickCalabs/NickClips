@@ -1,0 +1,378 @@
+nickclips-web-1  |     self._handle_dbapi_exception(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+nickclips-web-1  |     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+nickclips-web-1  |     self.dialect.do_execute(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+nickclips-web-1  |     cursor.execute(statement, parameters)
+nickclips-web-1  | sqlalchemy.exc.IntegrityError: (psycopg2.errors.NotNullViolation) null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-web-1  | DETAIL:  Failing row contains (1, null, 1, completed, 2025-04-20 21:35:39.389959, 2025-04-20 21:35:39.445628, 2025-04-20 21:38:13.201542).
+nickclips-web-1  | 
+nickclips-web-1  | [SQL: UPDATE processing_queue SET video_id=%(video_id)s WHERE processing_queue.id = %(processing_queue_id)s]
+nickclips-web-1  | [parameters: {'video_id': None, 'processing_queue_id': 1}]
+nickclips-web-1  | (Background on this error at: https://sqlalche.me/e/20/gkpj)
+nickclips-db-1   | 2025-04-22 19:06:34.631 UTC [37] ERROR:  null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-db-1   | 2025-04-22 19:06:34.631 UTC [37] DETAIL:  Failing row contains (1, null, 1, completed, 2025-04-20 21:35:39.389959, 2025-04-20 21:35:39.445628, 2025-04-20 21:38:13.201542).
+nickclips-db-1   | 2025-04-22 19:06:34.631 UTC [37] STATEMENT:  UPDATE processing_queue SET video_id=NULL WHERE processing_queue.id = 1
+nickclips-web-1  | ERROR:app:Exception on /api/video/22cff578 [DELETE]
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+nickclips-web-1  |     self.dialect.do_execute(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+nickclips-web-1  |     cursor.execute(statement, parameters)
+nickclips-web-1  | psycopg2.errors.NotNullViolation: null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-web-1  | DETAIL:  Failing row contains (1, null, 1, completed, 2025-04-20 21:35:39.389959, 2025-04-20 21:35:39.445628, 2025-04-20 21:38:13.201542).
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | The above exception was the direct cause of the following exception:
+nickclips-web-1  | 
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+nickclips-web-1  |     response = self.full_dispatch_request()
+nickclips-web-1  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+nickclips-web-1  |     rv = self.handle_user_exception(e)
+nickclips-web-1  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+nickclips-web-1  |     rv = self.dispatch_request()
+nickclips-web-1  |          ^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+nickclips-web-1  |     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+nickclips-web-1  |     return current_app.ensure_sync(func)(*args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/routes.py", line 225, in delete_video
+nickclips-web-1  |     db.session.commit()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 599, in commit
+nickclips-web-1  |     return self._proxied.commit()
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+nickclips-web-1  |     trans.commit(_to_root=True)
+nickclips-web-1  |   File "<string>", line 2, in commit
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+nickclips-web-1  |     ret_value = fn(self, *arg, **kw)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+nickclips-web-1  |     self._prepare_impl()
+nickclips-web-1  |   File "<string>", line 2, in _prepare_impl
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+nickclips-web-1  |     ret_value = fn(self, *arg, **kw)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+nickclips-web-1  |     self.session.flush()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4353, in flush
+nickclips-web-1  |     self._flush(objects)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4488, in _flush
+nickclips-web-1  |     with util.safe_reraise():
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+nickclips-web-1  |     raise exc_value.with_traceback(exc_tb)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4449, in _flush
+nickclips-web-1  |     flush_context.execute()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+nickclips-web-1  |     rec.execute(self)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+nickclips-web-1  |     util.preloaded.orm_persistence.save_obj(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+nickclips-web-1  |     _emit_update_statements(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 912, in _emit_update_statements
+nickclips-web-1  |     c = connection.execute(
+nickclips-web-1  |         ^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+nickclips-web-1  |     return meth(
+nickclips-web-1  |            ^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+nickclips-web-1  |     return connection._execute_clauseelement(
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+nickclips-web-1  |     ret = self._execute_context(
+nickclips-web-1  |           ^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+nickclips-web-1  |     return self._exec_single_context(
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+nickclips-web-1  |     self._handle_dbapi_exception(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+nickclips-web-1  |     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+nickclips-web-1  |     self.dialect.do_execute(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+nickclips-web-1  |     cursor.execute(statement, parameters)
+nickclips-web-1  | sqlalchemy.exc.IntegrityError: (psycopg2.errors.NotNullViolation) null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-web-1  | DETAIL:  Failing row contains (1, null, 1, completed, 2025-04-20 21:35:39.389959, 2025-04-20 21:35:39.445628, 2025-04-20 21:38:13.201542).
+nickclips-web-1  | 
+nickclips-web-1  | [SQL: UPDATE processing_queue SET video_id=%(video_id)s WHERE processing_queue.id = %(processing_queue_id)s]
+nickclips-web-1  | [parameters: {'video_id': None, 'processing_queue_id': 1}]
+nickclips-web-1  | (Background on this error at: https://sqlalche.me/e/20/gkpj)
+nickclips-db-1   | 2025-04-22 19:06:40.160 UTC [38] ERROR:  null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-db-1   | 2025-04-22 19:06:40.160 UTC [38] DETAIL:  Failing row contains (3, null, 1, completed, 2025-04-20 22:07:27.913989, 2025-04-20 22:07:27.964142, 2025-04-20 22:09:39.313498).
+nickclips-db-1   | 2025-04-22 19:06:40.160 UTC [38] STATEMENT:  UPDATE processing_queue SET video_id=NULL WHERE processing_queue.id = 3
+nickclips-web-1  | ERROR:app:Exception on /api/video/40ab78cd [DELETE]
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+nickclips-web-1  |     self.dialect.do_execute(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+nickclips-web-1  |     cursor.execute(statement, parameters)
+nickclips-web-1  | psycopg2.errors.NotNullViolation: null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-web-1  | DETAIL:  Failing row contains (3, null, 1, completed, 2025-04-20 22:07:27.913989, 2025-04-20 22:07:27.964142, 2025-04-20 22:09:39.313498).
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | The above exception was the direct cause of the following exception:
+nickclips-web-1  | 
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+nickclips-web-1  |     response = self.full_dispatch_request()
+nickclips-web-1  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+nickclips-web-1  |     rv = self.handle_user_exception(e)
+nickclips-web-1  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+nickclips-web-1  |     rv = self.dispatch_request()
+nickclips-web-1  |          ^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+nickclips-web-1  |     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+nickclips-web-1  |     return current_app.ensure_sync(func)(*args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/routes.py", line 225, in delete_video
+nickclips-web-1  |     db.session.commit()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 599, in commit
+nickclips-web-1  |     return self._proxied.commit()
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+nickclips-web-1  |     trans.commit(_to_root=True)
+nickclips-web-1  |   File "<string>", line 2, in commit
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+nickclips-web-1  |     ret_value = fn(self, *arg, **kw)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+nickclips-web-1  |     self._prepare_impl()
+nickclips-web-1  |   File "<string>", line 2, in _prepare_impl
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+nickclips-web-1  |     ret_value = fn(self, *arg, **kw)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+nickclips-web-1  |     self.session.flush()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4353, in flush
+nickclips-web-1  |     self._flush(objects)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4488, in _flush
+nickclips-web-1  |     with util.safe_reraise():
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+nickclips-web-1  |     raise exc_value.with_traceback(exc_tb)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4449, in _flush
+nickclips-web-1  |     flush_context.execute()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+nickclips-web-1  |     rec.execute(self)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+nickclips-web-1  |     util.preloaded.orm_persistence.save_obj(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+nickclips-web-1  |     _emit_update_statements(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 912, in _emit_update_statements
+nickclips-web-1  |     c = connection.execute(
+nickclips-web-1  |         ^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+nickclips-web-1  |     return meth(
+nickclips-web-1  |            ^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+nickclips-web-1  |     return connection._execute_clauseelement(
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+nickclips-web-1  |     ret = self._execute_context(
+nickclips-web-1  |           ^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+nickclips-web-1  |     return self._exec_single_context(
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+nickclips-web-1  |     self._handle_dbapi_exception(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+nickclips-web-1  |     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+nickclips-web-1  |     self.dialect.do_execute(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+nickclips-web-1  |     cursor.execute(statement, parameters)
+nickclips-web-1  | sqlalchemy.exc.IntegrityError: (psycopg2.errors.NotNullViolation) null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-web-1  | DETAIL:  Failing row contains (3, null, 1, completed, 2025-04-20 22:07:27.913989, 2025-04-20 22:07:27.964142, 2025-04-20 22:09:39.313498).
+nickclips-web-1  | 
+nickclips-web-1  | [SQL: UPDATE processing_queue SET video_id=%(video_id)s WHERE processing_queue.id = %(processing_queue_id)s]
+nickclips-web-1  | [parameters: {'video_id': None, 'processing_queue_id': 3}]
+nickclips-web-1  | (Background on this error at: https://sqlalche.me/e/20/gkpj)
+nickclips-db-1   | 2025-04-22 19:06:40.937 UTC [37] ERROR:  null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-db-1   | 2025-04-22 19:06:40.937 UTC [37] DETAIL:  Failing row contains (3, null, 1, completed, 2025-04-20 22:07:27.913989, 2025-04-20 22:07:27.964142, 2025-04-20 22:09:39.313498).
+nickclips-db-1   | 2025-04-22 19:06:40.937 UTC [37] STATEMENT:  UPDATE processing_queue SET video_id=NULL WHERE processing_queue.id = 3
+nickclips-web-1  | ERROR:app:Exception on /api/video/40ab78cd [DELETE]
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+nickclips-web-1  |     self.dialect.do_execute(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+nickclips-web-1  |     cursor.execute(statement, parameters)
+nickclips-web-1  | psycopg2.errors.NotNullViolation: null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-web-1  | DETAIL:  Failing row contains (3, null, 1, completed, 2025-04-20 22:07:27.913989, 2025-04-20 22:07:27.964142, 2025-04-20 22:09:39.313498).
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | The above exception was the direct cause of the following exception:
+nickclips-web-1  | 
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+nickclips-web-1  |     response = self.full_dispatch_request()
+nickclips-web-1  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+nickclips-web-1  |     rv = self.handle_user_exception(e)
+nickclips-web-1  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+nickclips-web-1  |     rv = self.dispatch_request()
+nickclips-web-1  |          ^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+nickclips-web-1  |     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+nickclips-web-1  |     return current_app.ensure_sync(func)(*args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/routes.py", line 225, in delete_video
+nickclips-web-1  |     db.session.commit()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 599, in commit
+nickclips-web-1  |     return self._proxied.commit()
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+nickclips-web-1  |     trans.commit(_to_root=True)
+nickclips-web-1  |   File "<string>", line 2, in commit
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+nickclips-web-1  |     ret_value = fn(self, *arg, **kw)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+nickclips-web-1  |     self._prepare_impl()
+nickclips-web-1  |   File "<string>", line 2, in _prepare_impl
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+nickclips-web-1  |     ret_value = fn(self, *arg, **kw)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+nickclips-web-1  |     self.session.flush()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4353, in flush
+nickclips-web-1  |     self._flush(objects)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4488, in _flush
+nickclips-web-1  |     with util.safe_reraise():
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+nickclips-web-1  |     raise exc_value.with_traceback(exc_tb)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4449, in _flush
+nickclips-web-1  |     flush_context.execute()
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+nickclips-web-1  |     rec.execute(self)
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+nickclips-web-1  |     util.preloaded.orm_persistence.save_obj(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+nickclips-web-1  |     _emit_update_statements(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 912, in _emit_update_statements
+nickclips-web-1  |     c = connection.execute(
+nickclips-web-1  |         ^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+nickclips-web-1  |     return meth(
+nickclips-web-1  |            ^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+nickclips-web-1  |     return connection._execute_clauseelement(
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+nickclips-web-1  |     ret = self._execute_context(
+nickclips-web-1  |           ^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+nickclips-web-1  |     return self._exec_single_context(
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+nickclips-web-1  |     self._handle_dbapi_exception(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+nickclips-web-1  |     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+nickclips-web-1  |     self.dialect.do_execute(
+nickclips-web-1  |   File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+nickclips-web-1  |     cursor.execute(statement, parameters)
+nickclips-web-1  | sqlalchemy.exc.IntegrityError: (psycopg2.errors.NotNullViolation) null value in column "video_id" of relation "processing_queue" violates not-null constraint
+nickclips-web-1  | DETAIL:  Failing row contains (3, null, 1, completed, 2025-04-20 22:07:27.913989, 2025-04-20 22:07:27.964142, 2025-04-20 22:09:39.313498).
+nickclips-web-1  | 
+nickclips-web-1  | [SQL: UPDATE processing_queue SET video_id=%(video_id)s WHERE processing_queue.id = %(processing_queue_id)s]
+nickclips-web-1  | [parameters: {'video_id': None, 'processing_queue_id': 3}]
+nickclips-web-1  | (Background on this error at: https://sqlalche.me/e/20/gkpj)
+nickclips-web-1  | INFO:downloader:Downloading video from URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--skip-download', '--print-json', '--no-check-certificate', '--geo-bypass', '--limit-rate', '500K', '--match-filter', 'duration < 3600', '--verbose', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading MPD manifest
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | [debug] Default format spec: bestvideo*+bestaudio/best
+nickclips-web-1  | [info] mgds5je3v7we1: Downloading 1 format(s): fallback+dash-8
+nickclips-web-1  | 
+nickclips-web-1  | DEBUG:downloader:Got video info: {'title': '[Highlight] McCourty hustles to prevent sure touchdown (Super Bowl LIII)', 'description': '', 'duration': 42, 'thumbnail': None, 'ext': 'mp4'}
+nickclips-web-1  | DEBUG:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | DEBUG:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/1f27623f.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | ERROR: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1653, in wrapper
+nickclips-web-1  |     return func(self, *args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1809, in __extract_info
+nickclips-web-1  |     return self.process_ie_result(ie_result, download, extra_info)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp process error: Command '['yt-dlp', '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/1f27623f.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']' returned non-zero exit status 1.
+nickclips-web-1  | ERROR:downloader:yt-dlp stderr: [debug] Command-line config: ['--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', '--format', 'best[ext=mp4]/best', '--merge-output-format', 'mp4', '--output', '/app/uploads/original/1f27623f.%(ext)s', '--no-check-certificate', '--geo-bypass', '--no-playlist', '--verbose', '--limit-rate', '500K', '--match-filter', 'duration < 3600', 'https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/']
+nickclips-web-1  | [debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8 (No ANSI), error utf-8 (No ANSI), screen utf-8 (No ANSI)
+nickclips-web-1  | [debug] yt-dlp version stable@2025.03.31 from yt-dlp/yt-dlp [5e457af57] (zip)
+nickclips-web-1  | [debug] Python 3.11.12 (CPython x86_64 64bit) - Linux-6.8.12-8-pve-x86_64-with-glibc2.36 (OpenSSL 3.0.15 3 Sep 2024, glibc 2.36)
+nickclips-web-1  | [debug] exe versions: ffmpeg 5.1.6-0 (setts), ffprobe 5.1.6-0
+nickclips-web-1  | [debug] Optional libraries: certifi-2025.01.31, sqlite3-3.40.1, urllib3-2.4.0
+nickclips-web-1  | [debug] Proxy map: {}
+nickclips-web-1  | [debug] Request Handlers: urllib
+nickclips-web-1  | [debug] Plugin directories: none
+nickclips-web-1  | [debug] Loaded 1850 extractors
+nickclips-web-1  | [debug] Formats sorted by: hasvid, ie_pref, lang, quality, res, fps, hdr:12(7), vcodec, channels, acodec, size, br, asr, proto, vext, aext, hasaud, source, id
+nickclips-web-1  | ERROR: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | Traceback (most recent call last):
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1653, in wrapper
+nickclips-web-1  |     return func(self, *args, **kwargs)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1809, in __extract_info
+nickclips-web-1  |     return self.process_ie_result(ie_result, download, extra_info)
+nickclips-web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 1868, in process_ie_result
+nickclips-web-1  |     ie_result = self.process_video_result(ie_result, download=download)
+nickclips-web-1  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+nickclips-web-1  |   File "/app/bin/yt-dlp/yt_dlp/YoutubeDL.py", line 3002, in process_video_result
+nickclips-web-1  |     raise ExtractorError(
+nickclips-web-1  | yt_dlp.utils.ExtractorError: [Reddit] mgds5je3v7we1: Requested format is not available. Use --list-formats for a list of available formats
+nickclips-web-1  | 
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:yt-dlp stdout: [Reddit] Extracting URL: https://www.reddit.com/r/nfl/comments/1k4i0cg/highlight_mccourty_hustles_to_prevent_sure/
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading JSON metadata
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading m3u8 information
+nickclips-web-1  | [Reddit] 1k4i0cg: Downloading MPD manifest
+nickclips-web-1  | 
+nickclips-web-1  | ERROR:downloader:Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.
