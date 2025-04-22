@@ -5,7 +5,9 @@ import subprocess
 import json
 import re
 import shutil
-from urllib.parse import urlparse
+import time
+import requests
+from urllib.parse import urlparse, urljoin
 from app import db
 from models import Video, ProcessingQueue
 
@@ -202,7 +204,20 @@ def download_video(video_id, url):
             output_template = os.path.join(output_dir, f"{video.slug}.%(ext)s")
             
             # Get video info first to set title and description
-            info = get_video_info(url)
+            info = None
+            
+            # For Reddit URLs, try direct info extraction first
+            if 'reddit.com' in url.lower():
+                logger.info("Attempting direct Reddit info extraction first...")
+                info = get_reddit_info_directly(url)
+                if info:
+                    logger.info(f"Successfully got Reddit info directly: {info}")
+                else:
+                    logger.info("Direct Reddit info extraction failed, falling back to yt-dlp...")
+            
+            # If not Reddit or direct Reddit info extraction failed, try yt-dlp
+            if not info:
+                info = get_video_info(url)
             
             if info:
                 video.title = info.get('title', 'Untitled')
@@ -217,15 +232,24 @@ def download_video(video_id, url):
                     logger.error(error_msg)
                     return False
                 elif 'reddit.com' in url.lower():
-                    error_msg = "Reddit downloads are restricted on this platform. This will likely work on your local setup."
-                    video.status = 'failed'
-                    video.error = error_msg
-                    db.session.commit()
-                    logger.error(error_msg)
-                    return False
+                    # Try with direct Reddit info/download as a last resort before failing
+                    logger.info("No info available, directly proceeding with Reddit download attempt")
+                    # Continue with download attempts - don't return False yet
             
-            # Download the video
-            downloaded_file = download_with_ytdlp(url, output_template)
+            # For Reddit URLs, try direct download first
+            downloaded_file = None
+            if 'reddit.com' in url.lower():
+                logger.info("Attempting direct Reddit video download first...")
+                downloaded_file = try_reddit_direct_download(url, output_template)
+                
+                if downloaded_file and os.path.exists(downloaded_file):
+                    logger.info(f"Direct Reddit download succeeded: {downloaded_file}")
+                else:
+                    logger.info("Direct Reddit download failed, falling back to yt-dlp...")
+            
+            # If not Reddit or direct Reddit download failed, try yt-dlp
+            if not downloaded_file or not os.path.exists(downloaded_file):
+                downloaded_file = download_with_ytdlp(url, output_template)
             
             if not downloaded_file or not os.path.exists(downloaded_file):
                 # Check for platform-specific error messages
@@ -274,6 +298,67 @@ def download_video(video_id, url):
             db.session.commit()
             
             return False
+
+def get_reddit_info_directly(url):
+    """Get Reddit video information directly from the page, without yt-dlp"""
+    logger.info(f"Attempting to get Reddit info directly from: {url}")
+    try:
+        # Use a desktop browser user agent
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.reddit.com/',
+            'Origin': 'https://www.reddit.com',
+            'DNT': '1'
+        }
+        
+        # Request the page
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to fetch Reddit page: {response.status_code}")
+            return None
+            
+        # Look for metadata in the HTML
+        html_content = response.text
+        
+        # Extract title
+        title_pattern = r'<title>(.*?)</title>'
+        title_match = re.search(title_pattern, html_content)
+        title = title_match.group(1) if title_match else 'Reddit Video'
+        
+        # Extract description (usually the post content)
+        description_pattern = r'<meta name="description" content="(.*?)"'
+        description_match = re.search(description_pattern, html_content)
+        description = description_match.group(1) if description_match else ''
+        
+        # Extract thumbnail
+        thumbnail_pattern = r'<meta property="og:image" content="(.*?)"'
+        thumbnail_match = re.search(thumbnail_pattern, html_content)
+        thumbnail = thumbnail_match.group(1) if thumbnail_match else None
+        
+        # Clean up the title (remove "r/subreddit - " prefix and "- Reddit" suffix)
+        if ' - ' in title:
+            parts = title.split(' - ')
+            if len(parts) > 2 and parts[-1].lower() == 'reddit':
+                title = ' - '.join(parts[1:-1])
+            elif parts[-1].lower() == 'reddit':
+                title = parts[0]
+        
+        result = {
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'ext': 'mp4',  # Default extension
+            'duration': None  # We don't know the duration
+        }
+        
+        logger.info(f"Successfully extracted Reddit info: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Error getting Reddit info directly: {e}")
+        return None
 
 def get_video_info(url):
     """Get video information using yt-dlp without downloading with enhanced error handling"""
@@ -415,6 +500,92 @@ def get_video_info(url):
         logger.error(f"Error getting video info: {e}")
         return None
 
+def try_reddit_direct_download(url, output_path):
+    """
+    Specialized function to download Reddit videos by directly parsing the page
+    and extracting video URLs, bypassing yt-dlp for Reddit specifically
+    """
+    logger.info(f"Attempting direct Reddit video extraction for: {url}")
+    try:
+        # Use a desktop browser user agent
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.reddit.com/',
+            'Origin': 'https://www.reddit.com',
+            'DNT': '1'
+        }
+        
+        # Request the page
+        logger.info("Making request to Reddit URL...")
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to fetch Reddit page: {response.status_code}")
+            return None
+            
+        # Look for video URLs in the HTML
+        logger.info("Searching for video URLs in Reddit page...")
+        html_content = response.text
+        
+        # Method 1: Look for direct .mp4 URLs
+        mp4_pattern = r'(https?://v\.redd\.it/[a-zA-Z0-9]+/DASH_[0-9]+\.mp4)'
+        mp4_urls = re.findall(mp4_pattern, html_content)
+        
+        # Method 2: Look for m3u8 URLs
+        m3u8_pattern = r'(https?://v\.redd\.it/[a-zA-Z0-9]+/HLS_[a-zA-Z0-9_]+\.m3u8)'
+        m3u8_urls = re.findall(m3u8_pattern, html_content)
+        
+        # Method 3: Look for JSON data with media URLs
+        json_pattern = r'"fallback_url":"(https?:\\u002F\\u002Fv\.redd\.it\\u002F[a-zA-Z0-9]+\\u002FDASH_[0-9]+\.mp4)"'
+        json_urls = re.findall(json_pattern, html_content)
+        json_urls = [url.replace('\\u002F', '/') for url in json_urls]
+        
+        # Combine all found URLs
+        all_urls = mp4_urls + m3u8_urls + json_urls
+        
+        if not all_urls:
+            logger.warning("No video URLs found in Reddit page")
+            return None
+            
+        logger.info(f"Found {len(all_urls)} potential video URLs: {all_urls[:3]}...")
+        
+        # Try to download each URL until one works
+        for video_url in all_urls:
+            try:
+                logger.info(f"Attempting to download: {video_url}")
+                video_response = requests.get(video_url, headers=headers, timeout=30, stream=True)
+                
+                if video_response.status_code == 200:
+                    # Determine output filename (use MP4 as default)
+                    ext = '.mp4'
+                    if video_url.endswith('.m3u8'):
+                        ext = '.mp4'  # Will need ffmpeg to convert m3u8 to mp4
+                    elif '.' in video_url.split('/')[-1]:
+                        ext = '.' + video_url.split('/')[-1].split('.')[-1]
+                        
+                    # Get base output path without extension
+                    output_base = output_path.split('.')[0]
+                    final_output = f"{output_base}{ext}"
+                    
+                    # Save the file
+                    with open(final_output, 'wb') as f:
+                        for chunk in video_response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                            
+                    logger.info(f"Successfully downloaded Reddit video to: {final_output}")
+                    return final_output
+            except Exception as e:
+                logger.warning(f"Failed to download {video_url}: {e}")
+                continue
+        
+        logger.error("All direct Reddit download attempts failed")
+        return None
+    except Exception as e:
+        logger.error(f"Error in direct Reddit download: {e}")
+        return None
+
 def download_with_ytdlp(url, output_template):
     """Download a video using yt-dlp with enhanced error recovery"""
     try:
@@ -498,36 +669,66 @@ def download_with_ytdlp(url, output_template):
             # REDDIT HANDLING: Complete special case handling for Reddit URLs
             logger.info("Using ENHANCED Reddit-specific download parameters")
             
-            # First, try to list available formats for debugging
+            # First, try to list available formats for debugging and use these formats explicitly
+            reddit_formats = []
             try:
                 available_formats_cmd = [
                     actual_ytdlp_path,
                     '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     '--list-formats',
                     '--verbose',
+                    '--no-check-certificate',
+                    '--geo-bypass',
                     url
                 ]
                 logger.info(f"Checking available Reddit formats: {' '.join(available_formats_cmd)}")
                 format_process = subprocess.run(available_formats_cmd, capture_output=True, text=True)
                 
+                # Parse stdout to extract format IDs 
                 if format_process.stdout:
                     logger.info(f"Available Reddit formats: {format_process.stdout}")
+                    
+                    # Parse format listing to extract available format IDs
+                    for line in format_process.stdout.splitlines():
+                        if line.strip() and 'ID  ' not in line and '[info]' not in line:
+                            parts = line.split()
+                            if parts and parts[0].isdigit():
+                                reddit_formats.append(parts[0])
+                    
+                    logger.info(f"Extracted Reddit format IDs: {reddit_formats}")
+                
                 if format_process.stderr:
                     logger.info(f"Format listing stderr: {format_process.stderr}")
             except Exception as e:
                 logger.warning(f"Format listing error: {e}")
-                
-            # FOR REDDIT: Use the most basic command possible with minimal options
+            
+            # Base command with mandatory options
             cmd = [
                 actual_ytdlp_path,
-                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
                 '--output', output_template,
-                # Do NOT specify --format or --merge-output-format for Reddit
                 '--no-check-certificate',
                 '--geo-bypass',
                 '--verbose',
-                url
+                '--force-ipv4',  # Force IPv4 to avoid potential IPv6 issues
+                '--add-header', 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                '--add-header', 'Accept-Language: en-US,en;q=0.9',
+                '--add-header', 'DNT: 1',
+                '--socket-timeout', '30',  # Increase timeout for slower connections
+                '--retries', '10',         # Increase retry attempts
+                '--fragment-retries', '10' # Increase fragment retry attempts
             ]
+            
+            # If we found formats, use the first available one
+            if reddit_formats:
+                logger.info(f"Using specific Reddit format: {reddit_formats[0]}")
+                cmd.extend(['--format', reddit_formats[0]])
+            else:
+                # If no specific formats found, try with default/auto selection
+                logger.info("No specific Reddit formats found, using default selection")
+            
+            # Add the URL at the end
+            cmd.append(url)
             
             # Add the rate limit for shared hosting
             if app.config["YT_DLP_RATE_LIMIT"]:
