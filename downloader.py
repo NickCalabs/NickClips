@@ -505,85 +505,242 @@ def try_reddit_direct_download(url, output_path):
     Specialized function to download Reddit videos by directly parsing the page
     and extracting video URLs, bypassing yt-dlp for Reddit specifically
     """
-    logger.info(f"Attempting direct Reddit video extraction for: {url}")
+    logger.info(f"[REDDIT DIRECT DOWNLOAD] Starting for: {url}")
     try:
-        # Use a desktop browser user agent
+        # Get video ID from URL if possible
+        video_id = None
+        if '/comments/' in url:
+            # Extract post ID from URL
+            parts = url.split('/comments/')
+            if len(parts) > 1:
+                post_id_parts = parts[1].split('/')
+                if post_id_parts:
+                    video_id = post_id_parts[0]
+                    logger.info(f"[REDDIT DIRECT DOWNLOAD] Extracted post ID: {video_id}")
+        
+        # Use desktop browser headers with modern Chrome version
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
             'Referer': 'https://www.reddit.com/',
             'Origin': 'https://www.reddit.com',
-            'DNT': '1'
+            'DNT': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-User': '?1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'max-age=0'
         }
         
         # Request the page
-        logger.info("Making request to Reddit URL...")
-        response = requests.get(url, headers=headers, timeout=30)
+        logger.info("[REDDIT DIRECT DOWNLOAD] Making request to Reddit URL...")
+        try:
+            response = requests.get(url, headers=headers, timeout=30, allow_redirects=True)
+            logger.info(f"[REDDIT DIRECT DOWNLOAD] Response status: {response.status_code}")
+        except Exception as req_error:
+            logger.error(f"[REDDIT DIRECT DOWNLOAD] Request error: {req_error}")
+            return None
         
         if response.status_code != 200:
-            logger.error(f"Failed to fetch Reddit page: {response.status_code}")
+            logger.error(f"[REDDIT DIRECT DOWNLOAD] Failed to fetch Reddit page: {response.status_code}")
             return None
             
         # Look for video URLs in the HTML
-        logger.info("Searching for video URLs in Reddit page...")
+        logger.info("[REDDIT DIRECT DOWNLOAD] Searching for video URLs in Reddit page...")
         html_content = response.text
         
-        # Method 1: Look for direct .mp4 URLs
-        mp4_pattern = r'(https?://v\.redd\.it/[a-zA-Z0-9]+/DASH_[0-9]+\.mp4)'
-        mp4_urls = re.findall(mp4_pattern, html_content)
+        # Log a small snippet of the HTML for debugging
+        html_snippet = html_content[:500] + "..." if len(html_content) > 500 else html_content
+        logger.info(f"[REDDIT DIRECT DOWNLOAD] HTML snippet: {html_snippet}")
         
-        # Method 2: Look for m3u8 URLs
-        m3u8_pattern = r'(https?://v\.redd\.it/[a-zA-Z0-9]+/HLS_[a-zA-Z0-9_]+\.m3u8)'
-        m3u8_urls = re.findall(m3u8_pattern, html_content)
+        # APPROACH 1: Extract source from JSON in script tag
+        # Look for JSON data embedded in page
+        json_data = None
+        try:
+            script_pattern = r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>'
+            script_match = re.search(script_pattern, html_content, re.DOTALL)
+            if script_match:
+                json_text = script_match.group(1)
+                json_data = json.loads(json_text)
+                logger.info("[REDDIT DIRECT DOWNLOAD] Found __NEXT_DATA__ JSON")
+                
+                # Try to extract media URL from JSON structure
+                if json_data and 'props' in json_data and 'pageProps' in json_data['props']:
+                    pageProps = json_data['props']['pageProps']
+                    if 'post' in pageProps and 'media' in pageProps['post']:
+                        media = pageProps['post']['media']
+                        if media and 'reddit_video' in media:
+                            reddit_video = media['reddit_video']
+                            if 'fallback_url' in reddit_video:
+                                fallback_url = reddit_video['fallback_url']
+                                logger.info(f"[REDDIT DIRECT DOWNLOAD] Found fallback_url in JSON: {fallback_url}")
+                                
+                                # Try downloading this URL
+                                try:
+                                    video_response = requests.get(fallback_url, headers=headers, timeout=30, stream=True)
+                                    if video_response.status_code == 200:
+                                        # Save the file
+                                        output_base = output_path.split('.')[0]
+                                        final_output = f"{output_base}.mp4"
+                                        with open(final_output, 'wb') as f:
+                                            for chunk in video_response.iter_content(chunk_size=8192):
+                                                f.write(chunk)
+                                        logger.info(f"[REDDIT DIRECT DOWNLOAD] Successfully downloaded JSON fallback_url to: {final_output}")
+                                        return final_output
+                                except Exception as e:
+                                    logger.warning(f"[REDDIT DIRECT DOWNLOAD] Failed to download JSON fallback_url: {e}")
+        except Exception as json_error:
+            logger.warning(f"[REDDIT DIRECT DOWNLOAD] Error parsing JSON: {json_error}")
         
-        # Method 3: Look for JSON data with media URLs
-        json_pattern = r'"fallback_url":"(https?:\\u002F\\u002Fv\.redd\.it\\u002F[a-zA-Z0-9]+\\u002FDASH_[0-9]+\.mp4)"'
-        json_urls = re.findall(json_pattern, html_content)
-        json_urls = [url.replace('\\u002F', '/') for url in json_urls]
+        # APPROACH 2: Look for direct .mp4 URLs in HTML
+        mp4_patterns = [
+            r'(https?://v\.redd\.it/[a-zA-Z0-9]+/DASH_[0-9]+\.mp4)',
+            r'(https?://v\.redd\.it/[a-zA-Z0-9]+/DASH_\w+\.mp4)',
+            r'(https?://v\.redd\.it/[a-zA-Z0-9]+\.mp4)',
+            r'fallback_url":\s*"(https?:\\u002F\\u002Fv\.redd\.it\\u002F[^"]+\.mp4)"',
+            r'"url":\s*"(https?:\\u002F\\u002Fv\.redd\.it\\u002F[^"]+\.mp4)"',
+            r'"fallback_url":"(https?:\\\\u002F\\\\u002Fv\.redd\.it\\\\u002F[a-zA-Z0-9]+\\\\u002FDASH_[0-9]+\.mp4)"'
+        ]
         
-        # Combine all found URLs
-        all_urls = mp4_urls + m3u8_urls + json_urls
+        mp4_urls = []
+        for pattern in mp4_patterns:
+            found_urls = re.findall(pattern, html_content)
+            mp4_urls.extend(found_urls)
+            
+        # Clean up JSON-escaped URLs
+        mp4_urls = [url.replace('\\u002F', '/').replace('\\\\u002F', '/') for url in mp4_urls]
+        
+        # APPROACH 3: Look for m3u8 URLs
+        m3u8_patterns = [
+            r'(https?://v\.redd\.it/[a-zA-Z0-9]+/HLS_[a-zA-Z0-9_]+\.m3u8)',
+            r'(https?://v\.redd\.it/[a-zA-Z0-9]+\.m3u8)',
+            r'"hls_url":\s*"(https?:\\u002F\\u002Fv\.redd\.it\\u002F[^"]+\.m3u8)"'
+        ]
+        
+        m3u8_urls = []
+        for pattern in m3u8_patterns:
+            found_urls = re.findall(pattern, html_content)
+            m3u8_urls.extend(found_urls)
+            
+        # Clean up JSON-escaped URLs
+        m3u8_urls = [url.replace('\\u002F', '/') for url in m3u8_urls]
+        
+        # APPROACH 4: Try API endpoint with post ID
+        api_url = None
+        if video_id:
+            api_url = f"https://www.reddit.com/comments/{video_id}/.json"
+            logger.info(f"[REDDIT DIRECT DOWNLOAD] Trying API URL: {api_url}")
+            
+            try:
+                api_headers = headers.copy()
+                api_headers['Accept'] = 'application/json'
+                api_response = requests.get(api_url, headers=api_headers, timeout=30)
+                
+                if api_response.status_code == 200:
+                    try:
+                        api_data = api_response.json()
+                        # Extract video URL from API response
+                        if len(api_data) >= 1 and 'data' in api_data[0] and 'children' in api_data[0]['data']:
+                            children = api_data[0]['data']['children']
+                            if len(children) >= 1 and 'data' in children[0]:
+                                post_data = children[0]['data']
+                                if 'media' in post_data and post_data['media'] and 'reddit_video' in post_data['media']:
+                                    reddit_video = post_data['media']['reddit_video']
+                                    if 'fallback_url' in reddit_video:
+                                        fallback_url = reddit_video['fallback_url']
+                                        mp4_urls.append(fallback_url)
+                                        logger.info(f"[REDDIT DIRECT DOWNLOAD] Found fallback_url in API: {fallback_url}")
+                    except Exception as json_error:
+                        logger.warning(f"[REDDIT DIRECT DOWNLOAD] Error parsing API JSON: {json_error}")
+            except Exception as api_error:
+                logger.warning(f"[REDDIT DIRECT DOWNLOAD] API request error: {api_error}")
+        
+        # Combine all found URLs and remove duplicates
+        all_urls = list(set(mp4_urls + m3u8_urls))
         
         if not all_urls:
-            logger.warning("No video URLs found in Reddit page")
+            logger.warning("[REDDIT DIRECT DOWNLOAD] No video URLs found in Reddit page")
             return None
             
-        logger.info(f"Found {len(all_urls)} potential video URLs: {all_urls[:3]}...")
+        logger.info(f"[REDDIT DIRECT DOWNLOAD] Found {len(all_urls)} potential video URLs: {all_urls[:3]}...")
+        
+        # Sort URLs by quality (prefer higher resolution)
+        def get_quality(url):
+            # Extract resolution from URL
+            res_match = re.search(r'DASH_(\d+)', url)
+            if res_match:
+                try:
+                    return int(res_match.group(1))
+                except ValueError:
+                    return 0
+            return 0
+            
+        # Sort URLs by quality (higher first)
+        all_urls.sort(key=get_quality, reverse=True)
+        logger.info(f"[REDDIT DIRECT DOWNLOAD] Sorted URLs: {all_urls[:3]}...")
         
         # Try to download each URL until one works
         for video_url in all_urls:
             try:
-                logger.info(f"Attempting to download: {video_url}")
+                logger.info(f"[REDDIT DIRECT DOWNLOAD] Attempting to download: {video_url}")
                 video_response = requests.get(video_url, headers=headers, timeout=30, stream=True)
                 
                 if video_response.status_code == 200:
+                    # Check content type and content length
+                    content_type = video_response.headers.get('Content-Type', '')
+                    content_length = video_response.headers.get('Content-Length', '0')
+                    
+                    logger.info(f"[REDDIT DIRECT DOWNLOAD] Content-Type: {content_type}, Content-Length: {content_length}")
+                    
+                    # Skip if not a video or very small file
+                    if ('video' not in content_type.lower() and 'application' not in content_type.lower()) or int(content_length or 0) < 1000:
+                        logger.warning(f"[REDDIT DIRECT DOWNLOAD] Skipping non-video or small file: {content_type}, {content_length}")
+                        continue
+                    
                     # Determine output filename (use MP4 as default)
                     ext = '.mp4'
                     if video_url.endswith('.m3u8'):
                         ext = '.mp4'  # Will need ffmpeg to convert m3u8 to mp4
                     elif '.' in video_url.split('/')[-1]:
-                        ext = '.' + video_url.split('/')[-1].split('.')[-1]
+                        ext_from_url = '.' + video_url.split('/')[-1].split('.')[-1]
+                        if ext_from_url.lower() in ['.mp4', '.webm', '.mov']:
+                            ext = ext_from_url
                         
                     # Get base output path without extension
                     output_base = output_path.split('.')[0]
                     final_output = f"{output_base}{ext}"
+                    
+                    # Create directory if it doesn't exist
+                    os.makedirs(os.path.dirname(final_output), exist_ok=True)
                     
                     # Save the file
                     with open(final_output, 'wb') as f:
                         for chunk in video_response.iter_content(chunk_size=8192):
                             f.write(chunk)
                             
-                    logger.info(f"Successfully downloaded Reddit video to: {final_output}")
-                    return final_output
+                    # Verify file was created and has content
+                    if os.path.exists(final_output) and os.path.getsize(final_output) > 0:
+                        logger.info(f"[REDDIT DIRECT DOWNLOAD] Successfully downloaded Reddit video to: {final_output}")
+                        return final_output
+                    else:
+                        logger.warning(f"[REDDIT DIRECT DOWNLOAD] File was created but is empty or missing: {final_output}")
+                        # Try removing the empty file
+                        try:
+                            if os.path.exists(final_output):
+                                os.remove(final_output)
+                        except:
+                            pass
             except Exception as e:
-                logger.warning(f"Failed to download {video_url}: {e}")
+                logger.warning(f"[REDDIT DIRECT DOWNLOAD] Failed to download {video_url}: {e}")
                 continue
         
-        logger.error("All direct Reddit download attempts failed")
+        logger.error("[REDDIT DIRECT DOWNLOAD] All direct Reddit download attempts failed")
         return None
     except Exception as e:
-        logger.error(f"Error in direct Reddit download: {e}")
+        logger.error(f"[REDDIT DIRECT DOWNLOAD] Error in direct Reddit download: {e}")
         return None
 
 def download_with_ytdlp(url, output_template):
@@ -719,16 +876,19 @@ def download_with_ytdlp(url, output_template):
                 '--fragment-retries', '10' # Increase fragment retry attempts
             ]
             
-            # If we found formats, use the first available one
-            if reddit_formats:
-                logger.info(f"Using specific Reddit format: {reddit_formats[0]}")
-                cmd.extend(['--format', reddit_formats[0]])
-            else:
-                # If no specific formats found, try with default/auto selection
-                logger.info("No specific Reddit formats found, using default selection")
+            # CRITICAL: For Reddit, completely simplify the command to avoid any format issues
+            # Start with a completely fresh command that has minimal arguments
+            cmd = [
+                actual_ytdlp_path,
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                '--output', output_template,
+                '--no-check-certificate',
+                '--verbose',
+                '--no-playlist',
+                url
+            ]
             
-            # Add the URL at the end
-            cmd.append(url)
+            logger.info("Using simplified command for Reddit to avoid format errors")
             
             # Add the rate limit for shared hosting
             if app.config["YT_DLP_RATE_LIMIT"]:
