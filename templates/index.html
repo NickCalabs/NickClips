@@ -221,28 +221,28 @@
             },
             body: JSON.stringify({ url: url, is_public: isPublic })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || `Server error: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.error) {
-                downloadStatus.classList.remove('alert-info');
-                downloadStatus.classList.add('alert-danger');
-                downloadStatus.textContent = data.error || 'An error occurred';
-
-                // Re-enable the button
-                downloadUrlBtn.disabled = false;
-                downloadUrlBtn.textContent = 'Download';
-            } else {
-                // Success - redirect to video page immediately
-                downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Opening video...</div>';
-                window.location.href = data.redirect || `/video/${data.slug}`;
+                throw new Error(data.error);
             }
+            // Success - redirect to video page immediately
+            downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Opening video...</div>';
+            window.location.href = data.redirect || `/video/${data.slug}`;
         })
         .catch(error => {
             console.error('Error:', error);
             downloadStatus.classList.remove('alert-info');
             downloadStatus.classList.add('alert-danger');
-            downloadStatus.textContent = 'An error occurred while processing your request.';
-            
+            downloadStatus.textContent = error.message || 'An error occurred while processing your request.';
+
             // Re-enable the button
             downloadUrlBtn.disabled = false;
             downloadUrlBtn.textContent = 'Download';

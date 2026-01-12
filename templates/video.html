@@ -105,20 +105,41 @@
         <div class="processing-bar mx-auto py-3 px-4" style="max-width: 1200px;">
             <div class="d-flex align-items-center justify-content-center gap-3">
                 <div class="spinner-border spinner-border-sm" style="color: var(--accent-primary);" role="status"></div>
-                <span class="text-muted">
+                <span class="text-muted" id="processing-status">
                     {% if video.status == 'pending' %}
-                    Queued for processing...
+                    Queued...
                     {% elif video.status == 'processing' %}
-                    Optimizing video for sharing...
+                    Processing...
                     {% else %}
-                    Processing video...
+                    Processing...
                     {% endif %}
                 </span>
+                <span class="text-muted small" id="processing-time">0:00</span>
+                {% if video.original_path and video.status not in ['processing'] and current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                <a href="/video/{{ video.slug }}/trim" class="btn btn-sm btn-outline-primary ms-3">
+                    <i class="fas fa-cut me-1"></i>Trim
+                </a>
+                {% endif %}
             </div>
             <div class="progress mt-2" style="height: 3px;">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; background: var(--accent-gradient);"></div>
             </div>
         </div>
+        <script>
+            // Show elapsed time while processing
+            (function() {
+                const startTime = Date.now();
+                const timeEl = document.getElementById('processing-time');
+                if (timeEl) {
+                    setInterval(function() {
+                        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                        const mins = Math.floor(elapsed / 60);
+                        const secs = elapsed % 60;
+                        timeEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+                    }, 1000);
+                }
+            })();
+        </script>
         {% endif %}
     </div>
 </div>

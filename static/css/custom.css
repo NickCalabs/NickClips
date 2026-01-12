@@ -92,6 +92,8 @@ header {
     border-bottom: 1px solid var(--border-color) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 10000;
 }
 
 .nav-link {
@@ -453,7 +455,12 @@ header .dropdown-toggle:focus {
     justify-content: center;
     align-items: center;
     max-height: 80vh;
-    background-color: #000;
+    background-color: transparent;
+}
+
+/* Vertical video - no extra black bars */
+#video-container[data-video-width][data-video-height] {
+    background-color: transparent;
 }
 
 .video-wrapper {
@@ -464,6 +471,11 @@ header .dropdown-toggle:focus {
     overflow: hidden;
     box-shadow: var(--shadow-lg);
     max-width: 100%;
+}
+
+/* Vertical video wrapper */
+.video-wrapper[data-is-vertical="true"] {
+    max-width: none;
 }
 
 #video-player,
