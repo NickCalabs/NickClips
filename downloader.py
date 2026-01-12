@@ -467,64 +467,71 @@ def try_twitter_direct_download(url, output_path):
         return None
 
 def get_reddit_info_directly(url):
-    """Get Reddit video information directly from the page, without yt-dlp"""
-    logger.info(f"Attempting to get Reddit info directly from: {url}")
+    """Get Reddit video information using the JSON API for accurate titles"""
+    logger.info(f"Attempting to get Reddit info from JSON API: {url}")
     try:
-        # Use a desktop browser user agent
+        # Extract post ID from URL
+        post_id = None
+        if '/comments/' in url:
+            parts = url.split('/comments/')
+            if len(parts) > 1:
+                post_id = parts[1].split('/')[0]
+
+        if not post_id:
+            logger.error("Could not extract Reddit post ID from URL")
+            return None
+
+        # Use the JSON API for accurate info
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept': 'application/json',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://www.reddit.com/',
-            'Origin': 'https://www.reddit.com',
-            'DNT': '1'
         }
-        
-        # Request the page
-        response = requests.get(url, headers=headers, timeout=30)
-        
+
+        json_url = f"https://www.reddit.com/comments/{post_id}/.json"
+        logger.info(f"Fetching Reddit JSON for info: {json_url}")
+
+        response = requests.get(json_url, headers=headers, timeout=30)
+
         if response.status_code != 200:
-            logger.error(f"Failed to fetch Reddit page: {response.status_code}")
+            logger.error(f"Failed to fetch Reddit JSON: {response.status_code}")
             return None
-            
-        # Look for metadata in the HTML
-        html_content = response.text
-        
-        # Extract title
-        title_pattern = r'<title>(.*?)</title>'
-        title_match = re.search(title_pattern, html_content)
-        title = title_match.group(1) if title_match else 'Reddit Video'
-        
-        # Extract description (usually the post content)
-        description_pattern = r'<meta name="description" content="(.*?)"'
-        description_match = re.search(description_pattern, html_content)
-        description = description_match.group(1) if description_match else ''
-        
-        # Extract thumbnail
-        thumbnail_pattern = r'<meta property="og:image" content="(.*?)"'
-        thumbnail_match = re.search(thumbnail_pattern, html_content)
-        thumbnail = thumbnail_match.group(1) if thumbnail_match else None
-        
-        # Clean up the title (remove "r/subreddit - " prefix and "- Reddit" suffix)
-        if ' - ' in title:
-            parts = title.split(' - ')
-            if len(parts) > 2 and parts[-1].lower() == 'reddit':
-                title = ' - '.join(parts[1:-1])
-            elif parts[-1].lower() == 'reddit':
-                title = parts[0]
-        
-        result = {
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'ext': 'mp4',  # Default extension
-            'duration': None  # We don't know the duration
-        }
-        
-        logger.info(f"Successfully extracted Reddit info: {result}")
-        return result
+
+        data = response.json()
+
+        # Navigate the JSON structure to get post info
+        try:
+            post_data = data[0]['data']['children'][0]['data']
+
+            title = post_data.get('title', 'Reddit Video')
+            subreddit = post_data.get('subreddit', '')
+            author = post_data.get('author', '')
+
+            # Get thumbnail
+            thumbnail = post_data.get('thumbnail', None)
+            if thumbnail in ['self', 'default', 'nsfw', 'spoiler', '']:
+                thumbnail = None
+
+            # Build description
+            description = f"Posted by u/{author} in r/{subreddit}" if author and subreddit else ''
+
+            result = {
+                'title': title,
+                'description': description,
+                'thumbnail': thumbnail,
+                'ext': 'mp4',
+                'duration': None
+            }
+
+            logger.info(f"Successfully extracted Reddit info from JSON: {result}")
+            return result
+
+        except (KeyError, IndexError, TypeError) as e:
+            logger.error(f"Error parsing Reddit JSON: {e}")
+            return None
+
     except Exception as e:
-        logger.error(f"Error getting Reddit info directly: {e}")
+        logger.error(f"Error getting Reddit info: {e}")
         return None
 
 def get_video_info(url):
