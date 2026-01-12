@@ -278,6 +278,8 @@ header {
     box-shadow: var(--shadow-lg);
     padding: 0.5rem;
     z-index: 9999 !important;
+    min-width: 180px;
+    margin-top: 0.5rem !important;
 }
 
 .dropdown-item {
@@ -294,6 +296,30 @@ header {
 
 .dropdown-divider {
     border-color: var(--border-color);
+    margin: 0.25rem 0;
+}
+
+/* Profile dropdown in header */
+header .dropdown {
+    position: relative;
+}
+
+header .dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    left: auto;
+}
+
+header .dropdown-toggle {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+header .dropdown-toggle:hover,
+header .dropdown-toggle:focus {
+    background: var(--bg-surface-hover) !important;
+    border-color: var(--accent-primary) !important;
 }
 
 /* ============================================
@@ -687,6 +713,19 @@ header {
 
 .video-progress-bar:hover .video-time-preview {
     opacity: 1;
+}
+
+/* ============================================
+   DASHBOARD TOP BAR
+   ============================================ */
+.dashboard-top-bar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-empty-state {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
 }
 
 /* ============================================
