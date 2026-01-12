@@ -34,6 +34,7 @@ services:
       - YT_DLP_PROXY=${YT_DLP_PROXY:-}
       - YT_DLP_RATE_LIMIT=${YT_DLP_RATE_LIMIT:-500K}
       - YT_DLP_MAX_DURATION=${YT_DLP_MAX_DURATION:-3600}
+      - YT_DLP_COOKIES=${YT_DLP_COOKIES:-}
       
       # Add yt-dlp to PATH
       - PATH=/app/bin:/usr/local/bin:/usr/bin:/bin
