@@ -10,9 +10,13 @@
 
             <!-- Video player -->
             <div class="video-preview mb-4">
-                {% if video.original_path %}
+                {% if video.original_path or video.processed_path %}
                 <video id="trim-player" controls playsinline class="w-100 rounded" style="max-height: 60vh; background: #000;">
+                    {% if video.original_path %}
                     <source src="/uploads/original/{{ video.original_path.split('/')[-1] }}" type="video/mp4">
+                    {% elif video.processed_path %}
+                    <source src="/uploads/{{ video.processed_path }}" type="video/mp4">
+                    {% endif %}
                     Your browser does not support the video tag.
                 </video>
                 {% else %}
@@ -114,7 +118,7 @@
         appearance: none;
         width: 20px;
         height: 20px;
-        background: #F59E0B;
+        background: var(--accent-primary, #8B5CF6);
         border-radius: 50%;
         cursor: pointer;
         border: 2px solid white;
@@ -124,11 +128,16 @@
     .trim-slider-container input[type="range"]::-moz-range-thumb {
         width: 20px;
         height: 20px;
-        background: #F59E0B;
+        background: var(--accent-primary, #8B5CF6);
         border-radius: 50%;
         cursor: pointer;
         border: 2px solid white;
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .trim-controls {
+        background: var(--bg-surface, #1e1e2e);
+        border: 1px solid var(--border-color, #333);
     }
 </style>
 {% endblock %}

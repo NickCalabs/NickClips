@@ -615,18 +615,20 @@ def register_routes(app):
 
     # Video trimming page
     @app.route('/video/<slug>/trim')
+    @login_required
     def trim_video(slug):
         """Video trimming interface"""
         video = Video.query.filter_by(slug=slug).first_or_404()
 
-        # Only allow trimming for videos that have been downloaded but not yet processed
-        if video.status == 'completed':
+        # Check authorization
+        if not current_user.is_admin and video.user_id != current_user.id:
+            flash('Access denied', 'danger')
             return redirect(url_for('view_video', slug=slug))
 
-        # Check authorization
-        if current_user.is_authenticated:
-            if not current_user.is_admin and video.user_id != current_user.id:
-                return redirect(url_for('view_video', slug=slug))
+        # Need either original or processed file to trim
+        if not video.original_path and not video.processed_path:
+            flash('Video not ready for trimming', 'warning')
+            return redirect(url_for('view_video', slug=slug))
 
         return render_template('trim.html', video=video)
 
