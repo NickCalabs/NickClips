@@ -1,0 +1,302 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings - NickClips{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-12 col-md-3 mb-4">
+            <div class="list-group">
+                <a href="#api-section" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-key me-2"></i> API Access
+                </a>
+                <a href="#shortcut-section" class="list-group-item list-group-item-action">
+                    <i class="fas fa-mobile-alt me-2"></i> iOS Shortcut
+                </a>
+                <a href="/profile" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user me-2"></i> Profile Settings
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-12 col-md-9">
+            <!-- API Access section -->
+            <section id="api-section" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header">
+                        <h3 class="mb-0"><i class="fas fa-key me-2"></i>API Access</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            Use your API key to upload videos from external tools like iOS Shortcuts,
+                            scripts, or third-party apps.
+                        </p>
+
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Your API Key</strong></label>
+                            <div class="input-group">
+                                {% if current_user.api_key %}
+                                <input type="password" class="form-control font-monospace" id="api-key-display"
+                                       value="{{ current_user.api_key }}" readonly>
+                                <button class="btn btn-outline-secondary" type="button" id="toggle-key-btn">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-primary" type="button" id="copy-key-btn">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                {% else %}
+                                <input type="text" class="form-control text-muted" value="No API key generated yet" readonly>
+                                {% endif %}
+                            </div>
+                            <div class="form-text">
+                                Keep this key secret. Anyone with this key can upload videos to your account.
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" id="regenerate-key-btn">
+                            <i class="fas fa-sync-alt me-2"></i>
+                            {% if current_user.api_key %}Regenerate API Key{% else %}Generate API Key{% endif %}
+                        </button>
+
+                        <hr class="my-4">
+
+                        <h5>API Usage</h5>
+                        <p class="text-muted small">Send a POST request to download a video:</p>
+                        <pre class="bg-dark text-light p-3 rounded small"><code>curl -X POST {{ request.url_root }}api/download \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{"url": "https://youtube.com/watch?v=..."}'</code></pre>
+
+                        <p class="text-muted small mt-3">Response:</p>
+                        <pre class="bg-dark text-light p-3 rounded small"><code>{
+  "message": "Download queued successfully",
+  "slug": "abc12345",
+  "redirect": "/video/abc12345"
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- iOS Shortcut section -->
+            <section id="shortcut-section" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header">
+                        <h3 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>iOS Shortcut</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            Use this iOS Shortcut to quickly save videos from any app's Share Sheet
+                            and get a NickClips link copied to your clipboard.
+                        </p>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>How it works:</strong> Share a video URL from YouTube, Twitter, Reddit, etc.
+                            The shortcut sends it to your NickClips server and copies the shareable link.
+                        </div>
+
+                        <h5 class="mt-4">Setup Instructions</h5>
+                        <ol class="mb-4">
+                            <li class="mb-2">
+                                <strong>Generate your API key</strong> (above) if you haven't already
+                            </li>
+                            <li class="mb-2">
+                                <strong>Create a new Shortcut</strong> on your iPhone/iPad:
+                                <ul class="mt-2">
+                                    <li>Open the Shortcuts app</li>
+                                    <li>Tap <strong>+</strong> to create a new shortcut</li>
+                                    <li>Tap the shortcut name and choose <strong>"Show in Share Sheet"</strong></li>
+                                    <li>Set "Receive" to <strong>URLs</strong></li>
+                                </ul>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Add these actions</strong> in order:
+                                <ol class="mt-2" type="a">
+                                    <li><strong>Get URLs from Input</strong></li>
+                                    <li><strong>Get Contents of URL</strong> with:
+                                        <ul>
+                                            <li>Method: <code>POST</code></li>
+                                            <li>URL: <code id="server-url">{{ request.url_root }}api/download</code>
+                                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyServerUrl()">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </li>
+                                            <li>Headers: <code>X-API-Key</code> = <em>your API key</em></li>
+                                            <li>Headers: <code>Content-Type</code> = <code>application/json</code></li>
+                                            <li>Request Body: JSON with key <code>url</code> = <em>URLs</em> (from step a)</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Get Dictionary Value</strong> - get <code>slug</code> from Dictionary</li>
+                                    <li><strong>Text</strong> - <code id="video-url-template">{{ request.url_root }}video/</code> + Dictionary Value
+                                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyVideoUrl()">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </li>
+                                    <li><strong>Copy to Clipboard</strong> - Text</li>
+                                    <li><strong>Show Notification</strong> - "NickClips link copied!"</li>
+                                </ol>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Name your shortcut</strong> something like "Save to NickClips"
+                            </li>
+                        </ol>
+
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>That's it!</strong> Now when you share any video URL, choose your shortcut
+                            from the Share Sheet and the NickClips link will be copied to your clipboard.
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5>Quick Copy Values</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted">API Endpoint</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control font-monospace"
+                                           value="{{ request.url_root }}api/download" readonly id="endpoint-copy">
+                                    <button class="btn btn-outline-secondary" onclick="copyValue('endpoint-copy')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted">Video URL Base</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control font-monospace"
+                                           value="{{ request.url_root }}video/" readonly id="base-url-copy">
+                                    <button class="btn btn-outline-secondary" onclick="copyValue('base-url-copy')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Toast for notifications -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="copy-toast" class="toast" role="alert">
+        <div class="toast-body">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <span id="toast-message">Copied to clipboard!</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const apiKeyDisplay = document.getElementById('api-key-display');
+    const toggleKeyBtn = document.getElementById('toggle-key-btn');
+    const copyKeyBtn = document.getElementById('copy-key-btn');
+    const regenerateBtn = document.getElementById('regenerate-key-btn');
+    const toast = new bootstrap.Toast(document.getElementById('copy-toast'));
+
+    function showToast(message) {
+        document.getElementById('toast-message').textContent = message;
+        toast.show();
+    }
+
+    // Toggle API key visibility
+    if (toggleKeyBtn) {
+        toggleKeyBtn.addEventListener('click', function() {
+            if (apiKeyDisplay.type === 'password') {
+                apiKeyDisplay.type = 'text';
+                this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+                apiKeyDisplay.type = 'password';
+                this.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+        });
+    }
+
+    // Copy API key
+    if (copyKeyBtn) {
+        copyKeyBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText(apiKeyDisplay.value).then(() => {
+                showToast('API key copied to clipboard!');
+            });
+        });
+    }
+
+    // Regenerate API key
+    if (regenerateBtn) {
+        regenerateBtn.addEventListener('click', function() {
+            if (!confirm('Are you sure? This will invalidate your current API key and any shortcuts using it.')) {
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+
+            fetch('/api/regenerate-api-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (apiKeyDisplay) {
+                        apiKeyDisplay.value = data.api_key;
+                    } else {
+                        // Reload the page if this was the first key generation
+                        location.reload();
+                    }
+                    showToast('New API key generated!');
+                } else {
+                    alert(data.error || 'Failed to generate API key');
+                }
+            })
+            .catch(err => {
+                alert('Error generating API key');
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Regenerate API Key';
+            });
+        });
+    }
+
+    // Section navigation
+    const activateSection = () => {
+        const hash = window.location.hash || '#api-section';
+        document.querySelectorAll('.list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const activeLink = document.querySelector(`.list-group-item[href="${hash}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+    };
+
+    activateSection();
+    window.addEventListener('hashchange', activateSection);
+});
+
+function copyValue(elementId) {
+    const input = document.getElementById(elementId);
+    navigator.clipboard.writeText(input.value).then(() => {
+        const toast = new bootstrap.Toast(document.getElementById('copy-toast'));
+        document.getElementById('toast-message').textContent = 'Copied to clipboard!';
+        toast.show();
+    });
+}
+
+function copyServerUrl() {
+    copyValue('endpoint-copy');
+}
+
+function copyVideoUrl() {
+    copyValue('base-url-copy');
+}
+</script>
+{% endblock %}

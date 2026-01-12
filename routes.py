@@ -11,9 +11,38 @@ from downloader import validate_url, queue_download
 import video_processor
 from forms import LoginForm, RegistrationForm
 from flask_login import login_user, logout_user, current_user, login_required
+from functools import wraps
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
+def get_user_from_api_key():
+    """Check for API key in request and return user if valid"""
+    api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+    if api_key:
+        user = User.query.filter_by(api_key=api_key).first()
+        return user
+    return None
+
+def api_auth_required(f):
+    """Decorator that allows either session auth or API key auth"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # First check if user is logged in via session
+        if current_user.is_authenticated:
+            return f(*args, **kwargs)
+
+        # Then check for API key
+        user = get_user_from_api_key()
+        if user:
+            # Temporarily set current_user for this request
+            from flask_login import login_user
+            login_user(user, remember=False)
+            return f(*args, **kwargs)
+
+        # No valid auth
+        return jsonify({'error': 'Authentication required. Provide X-API-Key header or login.'}), 401
+    return decorated_function
 
 def allowed_file(filename):
     """Check if the file extension is allowed"""
@@ -235,10 +264,10 @@ def register_routes(app):
                 logger.error(f"Error deleting HLS directory: {e}")
 
     @app.route('/api/upload', methods=['POST'])
-    @login_required
+    @api_auth_required
     @csrf.exempt
     def upload_file():
-        """Handle direct file upload"""
+        """Handle direct file upload (supports session auth or API key)"""
         try:
             if 'file' not in request.files:
                 return jsonify({'error': 'No file part'}), 400
@@ -308,10 +337,10 @@ def register_routes(app):
             return jsonify({'error': 'Server error occurred during upload'}), 500
     
     @app.route('/api/download', methods=['POST'])
-    @login_required
+    @api_auth_required
     @csrf.exempt
     def download_video():
-        """Handle video download from URL"""
+        """Handle video download from URL (supports session auth or API key)"""
         try:
             data = request.json
             if not data:
@@ -782,3 +811,22 @@ def register_routes(app):
                 for error in errors:
                     flash(f'{getattr(form, field).label.text}: {error}', 'danger')
             return redirect(url_for('profile', _anchor='appearance-section'))
+
+    @app.route('/api/regenerate-api-key', methods=['POST'])
+    @login_required
+    @csrf.exempt
+    def regenerate_api_key():
+        """Generate or regenerate the user's API key"""
+        try:
+            new_key = current_user.regenerate_api_key()
+            db.session.commit()
+            return jsonify({'success': True, 'api_key': new_key})
+        except Exception as e:
+            logger.error(f"Error regenerating API key: {e}")
+            return jsonify({'error': 'Failed to regenerate API key'}), 500
+
+    @app.route('/settings')
+    @login_required
+    def settings():
+        """User settings page with API key management"""
+        return render_template('settings.html')

@@ -9,22 +9,32 @@ def generate_slug():
     """Generate a random slug for video URLs"""
     return uuid.uuid4().hex[:8]
     
+def generate_api_key():
+    """Generate a random API key"""
+    return 'nc_' + uuid.uuid4().hex
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
     is_admin = db.Column(db.Boolean, default=False)
+    api_key = db.Column(db.String(64), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    
+
     # User-Video relationship
     videos = db.relationship('Video', backref='owner', lazy='dynamic', cascade="all, delete-orphan")
-    
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-        
+
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def regenerate_api_key(self):
+        """Generate a new API key for this user"""
+        self.api_key = generate_api_key()
+        return self.api_key
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
