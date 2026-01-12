@@ -117,20 +117,32 @@ def register_routes(app):
             data = request.json
             if not data:
                 return jsonify({'error': 'Invalid JSON data'}), 400
-                
+
             url = data.get('url')
-            
+
             if not url:
                 return jsonify({'error': 'No URL provided'}), 400
-            
+
             # Skip if URL is from our own domain
             if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
                 return jsonify({'error': 'Cannot download from our own domain'}), 400
-            
+
             # Validate URL
             if not validate_url(url):
                 return jsonify({'error': 'Invalid or unsupported URL'}), 400
-            
+
+            # Check for duplicate URL - normalize URL first
+            normalized_url = url.split('?')[0].rstrip('/')  # Remove query params and trailing slash
+            existing = Video.query.filter(
+                Video.source_url.ilike(f'%{normalized_url}%')
+            ).first()
+            if existing:
+                return jsonify({
+                    'error': 'This video has already been downloaded',
+                    'existing_slug': existing.slug,
+                    'existing_title': existing.title
+                }), 409
+
             # Create video entry in database
             video = Video(
                 source_url=url,

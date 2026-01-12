@@ -129,9 +129,20 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-10 mx-auto">
-            <div class="video-info pt-3">
-                <h1 class="video-title h2 mb-1" style="font-size: 1.5rem; font-weight: 500;">{{ video.title or 'Untitled Video' }}</h1>
-                
+            <div class="video-info pt-3" data-slug="{{ video.slug }}">
+                <!-- Editable Title -->
+                <div class="editable-field mb-1" id="title-container">
+                    <h1 class="video-title h2 mb-0 editable-text" id="video-title-text" style="font-size: 1.5rem; font-weight: 500; cursor: pointer;" title="Click to edit">
+                        {{ video.title or 'Untitled Video' }}
+                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                        <i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                        {% endif %}
+                    </h1>
+                    <input type="text" class="form-control d-none" id="video-title-input"
+                           value="{{ video.title or 'Untitled Video' }}" maxlength="255"
+                           style="font-size: 1.5rem; font-weight: 500;">
+                </div>
+
                 <div class="video-metadata d-flex flex-wrap gap-3 mb-3" style="font-size: 0.85rem;">
                     <span style="color: #6c757d !important;"><i class="fas fa-eye me-1" style="color: #6c757d !important;"></i>{{ video.views }} views</span>
                     <span style="color: #6c757d !important;"><i class="fas fa-calendar me-1" style="color: #6c757d !important;"></i>{{ video.created_at.strftime('%b %d, %Y') }}</span>
@@ -139,33 +150,28 @@
                     <span style="color: #6c757d !important;"><i class="fas fa-clock me-1" style="color: #6c757d !important;"></i>{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
                     {% endif %}
                 </div>
-                
-                {% if video.description %}
-                <div class="video-description mb-4">
-                    {% if video.description|length > 120 %}
-                    <div class="description-container">
-                        <div id="description-preview" class="description-preview">
-                            {{ video.description[:120] }}...
-                        </div>
-                        
-                        <div id="description-full" class="description-full d-none">
+
+                <!-- Editable Description -->
+                <div class="video-description mb-4 editable-field" id="description-container">
+                    <div id="description-display" class="editable-text" style="cursor: pointer;" title="Click to edit">
+                        {% if video.description %}
                             {{ video.description }}
-                        </div>
-                        
-                        <div class="mt-2">
-                            <button id="read-more-btn" class="btn btn-sm btn-link p-0 text-primary">
-                                Read more
-                            </button>
-                            <button id="read-less-btn" class="btn btn-sm btn-link p-0 text-primary d-none">
-                                Show less
-                            </button>
-                        </div>
+                        {% else %}
+                            {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                            <span class="text-muted"><i class="fas fa-plus me-1"></i>Add a description...</span>
+                            {% endif %}
+                        {% endif %}
+                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                        <i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <div>{{ video.description }}</div>
-                    {% endif %}
+                    <textarea class="form-control d-none" id="video-description-input" rows="3"
+                              placeholder="Add a description...">{{ video.description or '' }}</textarea>
+                    <div class="d-none mt-2" id="description-actions">
+                        <button class="btn btn-sm btn-primary" id="save-description-btn">Save</button>
+                        <button class="btn btn-sm btn-secondary" id="cancel-description-btn">Cancel</button>
+                    </div>
                 </div>
-                {% endif %}
                 
                 <!-- Share section -->
                 <div class="share-section pt-3 border-top">
@@ -205,40 +211,128 @@
 <script src="{{ url_for('static', filename='js/player.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Read more/less functionality for video description
-        const readMoreBtn = document.getElementById('read-more-btn');
-        const readLessBtn = document.getElementById('read-less-btn');
-        const descPreview = document.getElementById('description-preview');
-        const descFull = document.getElementById('description-full');
-        
-        if (readMoreBtn && readLessBtn && descPreview && descFull) {
-            readMoreBtn.addEventListener('click', function() {
-                descPreview.classList.add('d-none');
-                descFull.classList.remove('d-none');
-                readMoreBtn.classList.add('d-none');
-                readLessBtn.classList.remove('d-none');
+        const videoInfo = document.querySelector('.video-info');
+        const slug = videoInfo ? videoInfo.dataset.slug : null;
+        const isEditable = {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}true{% else %}false{% endif %};
+
+        // Title editing
+        const titleText = document.getElementById('video-title-text');
+        const titleInput = document.getElementById('video-title-input');
+
+        if (isEditable && titleText && titleInput) {
+            titleText.addEventListener('click', function() {
+                titleText.classList.add('d-none');
+                titleInput.classList.remove('d-none');
+                titleInput.focus();
+                titleInput.select();
             });
-            
-            readLessBtn.addEventListener('click', function() {
-                descPreview.classList.remove('d-none');
-                descFull.classList.add('d-none');
-                readMoreBtn.classList.remove('d-none');
-                readLessBtn.classList.add('d-none');
+
+            titleInput.addEventListener('blur', function() {
+                saveTitle();
+            });
+
+            titleInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    titleInput.blur();
+                } else if (e.key === 'Escape') {
+                    titleInput.value = titleText.textContent.trim().replace(/\s*$/, '');
+                    titleInput.classList.add('d-none');
+                    titleText.classList.remove('d-none');
+                }
             });
         }
-        
+
+        function saveTitle() {
+            const newTitle = titleInput.value.trim();
+            const oldTitle = titleText.textContent.trim().replace(/\s*$/, '');
+
+            if (newTitle === oldTitle || !newTitle) {
+                titleInput.classList.add('d-none');
+                titleText.classList.remove('d-none');
+                return;
+            }
+
+            fetch(`/api/video/${slug}/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the displayed title (keep the edit icon)
+                    const editIcon = titleText.querySelector('i');
+                    titleText.innerHTML = newTitle + ' ';
+                    if (editIcon) titleText.appendChild(editIcon);
+                }
+                titleInput.classList.add('d-none');
+                titleText.classList.remove('d-none');
+            })
+            .catch(() => {
+                titleInput.classList.add('d-none');
+                titleText.classList.remove('d-none');
+            });
+        }
+
+        // Description editing
+        const descDisplay = document.getElementById('description-display');
+        const descInput = document.getElementById('video-description-input');
+        const descActions = document.getElementById('description-actions');
+        const saveDescBtn = document.getElementById('save-description-btn');
+        const cancelDescBtn = document.getElementById('cancel-description-btn');
+
+        if (isEditable && descDisplay && descInput) {
+            descDisplay.addEventListener('click', function() {
+                descDisplay.classList.add('d-none');
+                descInput.classList.remove('d-none');
+                descActions.classList.remove('d-none');
+                descInput.focus();
+            });
+
+            cancelDescBtn.addEventListener('click', function() {
+                descInput.value = '{{ video.description|default("", true)|escapejs }}';
+                descInput.classList.add('d-none');
+                descActions.classList.add('d-none');
+                descDisplay.classList.remove('d-none');
+            });
+
+            saveDescBtn.addEventListener('click', function() {
+                const newDesc = descInput.value.trim();
+
+                fetch(`/api/video/${slug}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description: newDesc })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const editIcon = '<i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.8rem; opacity: 0.5;"></i>';
+                        if (newDesc) {
+                            descDisplay.innerHTML = newDesc + ' ' + editIcon;
+                        } else {
+                            descDisplay.innerHTML = '<span class="text-muted"><i class="fas fa-plus me-1"></i>Add a description...</span> ' + editIcon;
+                        }
+                    }
+                    descInput.classList.add('d-none');
+                    descActions.classList.add('d-none');
+                    descDisplay.classList.remove('d-none');
+                });
+            });
+        }
+
         // Copy link button functionality
         const copyLinkBtn = document.getElementById('copy-link-btn');
         if (copyLinkBtn) {
             copyLinkBtn.addEventListener('click', function() {
                 const linkInput = this.closest('.input-group').querySelector('input');
                 navigator.clipboard.writeText(linkInput.value).then(() => {
-                    // Visual feedback
                     const originalText = this.innerHTML;
                     this.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
                     this.classList.add('btn-success');
                     this.classList.remove('btn-outline-secondary');
-                    
+
                     setTimeout(() => {
                         this.innerHTML = originalText;
                         this.classList.remove('btn-success');
