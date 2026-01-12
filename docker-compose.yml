@@ -47,6 +47,16 @@ services:
       - ${LOCAL_UPLOAD_PATH:-./uploads}:${UPLOAD_FOLDER:-/app/uploads}
       # Mount the installation script
       - ./docker-install-ytdlp.sh:/app/docker-install-ytdlp.sh
+      # Mount code for hot updates (no rebuild needed, just restart)
+      - ./app.py:/app/app.py
+      - ./main.py:/app/main.py
+      - ./models.py:/app/models.py
+      - ./routes.py:/app/routes.py
+      - ./forms.py:/app/forms.py
+      - ./downloader.py:/app/downloader.py
+      - ./video_processor.py:/app/video_processor.py
+      - ./templates:/app/templates
+      - ./static:/app/static
       
       # If using Dockge/stacks, uncomment ONE of these options:
       # Option 1: Mount host yt-dlp binary directly
