@@ -405,6 +405,17 @@ header {
     box-shadow: var(--shadow-glow);
 }
 
+/* Platform badges */
+.platform-badge {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.4em 0.8em;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
 /* ============================================
    VIDEO PLAYER
    ============================================ */
