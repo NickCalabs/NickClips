@@ -3,45 +3,74 @@
 {% block title %}{{ video.title or 'Untitled Video' }} - NickClips{% endblock %}
 
 {% block head %}
-<!-- OpenGraph tags for link previews -->
-<meta property="og:title" content="{{ video.title or 'Untitled Video' }}">
+{% set video_url = request.url_root.rstrip('/') ~ '/uploads/' ~ video.processed_path if video.processed_path else '' %}
+{% set thumb_url = request.url_root.rstrip('/') ~ '/uploads/' ~ video.thumbnail_path if video.thumbnail_path else '' %}
+{% set page_url = request.url_root.rstrip('/') ~ '/video/' ~ video.slug %}
+
+<!-- OpenGraph tags for link previews (iMessage, Facebook, Discord, etc.) -->
+<meta property="og:title" content="{{ video.title or 'Video' }}">
 <meta property="og:type" content="video.other">
-<meta property="og:url" content="{{ request.url }}">
-{% if video.thumbnail_path %}
-<meta property="og:image" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.thumbnail_path }}">
-{% endif %}
+<meta property="og:url" content="{{ page_url }}">
 <meta property="og:site_name" content="NickClips">
 {% if video.description %}
 <meta property="og:description" content="{{ video.description }}">
+{% else %}
+<meta property="og:description" content="Watch this video on NickClips">
 {% endif %}
-{% if video.duration %}
-<meta property="video:duration" content="{{ video.duration|int }}">
-{% endif %}
+
+{% if video.status == 'completed' and video.processed_path %}
+<!-- Video meta tags - critical for inline playback -->
+<meta property="og:video" content="{{ video_url }}">
+<meta property="og:video:secure_url" content="{{ video_url }}">
+<meta property="og:video:type" content="video/mp4">
 {% if video.width and video.height %}
 <meta property="og:video:width" content="{{ video.width }}">
 <meta property="og:video:height" content="{{ video.height }}">
+{% else %}
+<meta property="og:video:width" content="1280">
+<meta property="og:video:height" content="720">
 {% endif %}
-{% if video.status == 'completed' and video.processed_path %}
-<meta property="og:video" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.processed_path }}">
-<meta property="og:video:type" content="video/mp4">
+{% endif %}
+
+{% if thumb_url %}
+<meta property="og:image" content="{{ thumb_url }}">
+<meta property="og:image:secure_url" content="{{ thumb_url }}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+{% endif %}
+
+{% if video.duration %}
+<meta property="video:duration" content="{{ video.duration|int }}">
 {% endif %}
 
 <!-- Twitter card tags -->
 <meta name="twitter:card" content="player">
-<meta name="twitter:title" content="{{ video.title or 'Untitled Video' }}">
+<meta name="twitter:title" content="{{ video.title or 'Video' }}">
 {% if video.description %}
 <meta name="twitter:description" content="{{ video.description }}">
+{% else %}
+<meta name="twitter:description" content="Watch this video on NickClips">
 {% endif %}
-{% if video.thumbnail_path %}
-<meta name="twitter:image" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.thumbnail_path }}">
+{% if thumb_url %}
+<meta name="twitter:image" content="{{ thumb_url }}">
 {% endif %}
 {% if video.status == 'completed' and video.processed_path %}
-<meta name="twitter:player" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.processed_path }}">
+<meta name="twitter:player" content="{{ page_url }}">
+<meta name="twitter:player:stream" content="{{ video_url }}">
+<meta name="twitter:player:stream:content_type" content="video/mp4">
 {% if video.width and video.height %}
 <meta name="twitter:player:width" content="{{ video.width }}">
 <meta name="twitter:player:height" content="{{ video.height }}">
+{% else %}
+<meta name="twitter:player:width" content="1280">
+<meta name="twitter:player:height" content="720">
 {% endif %}
 {% endif %}
+
+<!-- Additional meta for Apple/iMessage -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="alternate" type="application/json+oembed" href="{{ page_url }}?format=oembed">
 {% endblock %}
 
 {% block content %}
