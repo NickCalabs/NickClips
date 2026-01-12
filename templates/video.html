@@ -310,7 +310,7 @@
             });
 
             cancelDescBtn.addEventListener('click', function() {
-                descInput.value = '{{ video.description|default("", true)|escapejs }}';
+                descInput.value = {{ video.description|default("", true)|tojson }};
                 descInput.classList.add('d-none');
                 descActions.classList.add('d-none');
                 descDisplay.classList.remove('d-none');
