@@ -240,27 +240,40 @@
             },
             body: JSON.stringify({ url: url, is_public: isPublic })
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.error || `Server error: ${response.status}`);
-                });
+        .then(async response => {
+            let data;
+            try {
+                const text = await response.text();
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse response:', e);
+                throw new Error(`Server error: ${response.status}`);
             }
-            return response.json();
-        })
-        .then(data => {
+            if (!response.ok) {
+                throw new Error(data.error || `Server error: ${response.status}`);
+            }
             if (data.error) {
                 throw new Error(data.error);
             }
+            return data;
+        })
+        .then(data => {
             // Success - redirect to video page immediately
             downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Opening video...</div>';
             window.location.href = data.redirect || `/video/${data.slug}`;
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Download error:', error);
             downloadStatus.classList.remove('alert-info');
             downloadStatus.classList.add('alert-danger');
-            downloadStatus.textContent = error.message || 'An error occurred while processing your request.';
+
+            let errorMsg = 'An error occurred while processing your request.';
+            if (error && error.message) {
+                errorMsg = error.message;
+            } else if (typeof error === 'string') {
+                errorMsg = error;
+            }
+            downloadStatus.textContent = errorMsg;
 
             // Re-enable the button
             downloadUrlBtn.disabled = false;
