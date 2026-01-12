@@ -175,7 +175,7 @@ def queue_download(video_id, url):
     return True
 
 def download_video(video_id, url):
-    """Download a video from a URL using yt-dlp"""
+    """Download a video from a URL using yt-dlp with enhanced Twitter and Reddit support"""
     from app import app
     
     with app.app_context():
@@ -206,7 +206,7 @@ def download_video(video_id, url):
             # Get video info first to set title and description
             info = None
             
-            # For Reddit URLs, try direct info extraction first
+            # Platform-specific info extraction
             if 'reddit.com' in url.lower():
                 logger.info("Attempting direct Reddit info extraction first...")
                 info = get_reddit_info_directly(url)
@@ -214,8 +214,15 @@ def download_video(video_id, url):
                     logger.info(f"Successfully got Reddit info directly: {info}")
                 else:
                     logger.info("Direct Reddit info extraction failed, falling back to yt-dlp...")
+            elif 'twitter.com' in url.lower() or 'x.com' in url.lower():
+                logger.info("Attempting direct Twitter info extraction first...")
+                info = get_twitter_info_directly(url)
+                if info:
+                    logger.info(f"Successfully got Twitter info directly: {info}")
+                else:
+                    logger.info("Direct Twitter info extraction failed, falling back to yt-dlp...")
             
-            # If not Reddit or direct Reddit info extraction failed, try yt-dlp
+            # If platform-specific extraction failed, try yt-dlp
             if not info:
                 info = get_video_info(url)
             
@@ -231,13 +238,14 @@ def download_video(video_id, url):
                     db.session.commit()
                     logger.error(error_msg)
                     return False
-                elif 'reddit.com' in url.lower():
-                    # Try with direct Reddit info/download as a last resort before failing
-                    logger.info("No info available, directly proceeding with Reddit download attempt")
+                elif 'reddit.com' in url.lower() or 'twitter.com' in url.lower() or 'x.com' in url.lower():
+                    # Try with direct platform-specific download as a last resort before failing
+                    logger.info("No info available, directly proceeding with platform-specific download attempt")
                     # Continue with download attempts - don't return False yet
             
-            # For Reddit URLs, try direct download first
+            # Platform-specific download attempts
             downloaded_file = None
+            
             if 'reddit.com' in url.lower():
                 logger.info("Attempting direct Reddit video download first...")
                 downloaded_file = try_reddit_direct_download(url, output_template)
@@ -247,7 +255,16 @@ def download_video(video_id, url):
                 else:
                     logger.info("Direct Reddit download failed, falling back to yt-dlp...")
             
-            # If not Reddit or direct Reddit download failed, try yt-dlp
+            elif 'twitter.com' in url.lower() or 'x.com' in url.lower():
+                logger.info("Attempting direct Twitter video download first...")
+                downloaded_file = try_twitter_direct_download(url, output_template)
+                
+                if downloaded_file and os.path.exists(downloaded_file):
+                    logger.info(f"Direct Twitter download succeeded: {downloaded_file}")
+                else:
+                    logger.info("Direct Twitter download failed, falling back to yt-dlp...")
+            
+            # If platform-specific download failed, try yt-dlp
             if not downloaded_file or not os.path.exists(downloaded_file):
                 downloaded_file = download_with_ytdlp(url, output_template)
             
@@ -257,6 +274,8 @@ def download_video(video_id, url):
                     error_msg = "YouTube restricts automated downloads on shared hosting. This feature will work on your self-hosted setup."
                 elif 'reddit.com' in url.lower():
                     error_msg = "Reddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.\n\nNote: YouTube and Reddit downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment."
+                elif 'twitter.com' in url.lower() or 'x.com' in url.lower():
+                    error_msg = "Twitter/X restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.\n\nNote: Twitter/X downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment."
                 else:
                     error_msg = "Failed to download video. This will likely work in your self-hosted environment."
                 
@@ -291,6 +310,8 @@ def download_video(video_id, url):
                 error_msg = f"YouTube download failed on Replit: {str(e)}. This will work in your self-hosted environment."
             elif 'reddit.com' in url.lower():
                 error_msg = f"Reddit download failed: {str(e)}.\n\nReddit restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.\n\nNote: YouTube and Reddit downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment."
+            elif 'twitter.com' in url.lower() or 'x.com' in url.lower():
+                error_msg = f"Twitter/X download failed: {str(e)}.\n\nTwitter/X restricts automated downloads on shared hosting. This feature will work on your self-hosted setup.\n\nNote: Twitter/X downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment."
             
             # Update video status
             video.status = 'failed'
@@ -298,6 +319,152 @@ def download_video(video_id, url):
             db.session.commit()
             
             return False
+
+def get_twitter_info_directly(url):
+    """Get Twitter/X video information directly from the page, without yt-dlp"""
+    logger.info(f"Attempting to get Twitter info directly from: {url}")
+    try:
+        # Use a desktop browser user agent
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://twitter.com/',
+            'Origin': 'https://twitter.com',
+            'DNT': '1'
+        }
+        
+        # Request the page
+        response = requests.get(url, headers=headers, timeout=30)
+        
+        if response.status_code != 200:
+            logger.error(f"Failed to fetch Twitter page: {response.status_code}")
+            return None
+            
+        # Look for metadata in the HTML
+        html_content = response.text
+        
+        # Extract title
+        title_pattern = r'<title>(.*?)</title>'
+        title_match = re.search(title_pattern, html_content)
+        title = title_match.group(1) if title_match else 'Twitter Video'
+        
+        # Extract description (usually the tweet content)
+        description_pattern = r'<meta name="description" content="(.*?)"'
+        description_match = re.search(description_pattern, html_content)
+        description = description_match.group(1) if description_match else ''
+        
+        # Extract thumbnail
+        thumbnail_pattern = r'<meta property="og:image" content="(.*?)"'
+        thumbnail_match = re.search(thumbnail_pattern, html_content)
+        thumbnail = thumbnail_match.group(1) if thumbnail_match else None
+        
+        # Clean up the title (remove "Twitter" suffix)
+        if ' - ' in title and title.endswith('Twitter'):
+            title = title.rsplit(' - ', 1)[0]
+        
+        result = {
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'ext': 'mp4',  # Default extension
+            'duration': None  # We don't know the duration
+        }
+        
+        logger.info(f"Successfully extracted Twitter info: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Error getting Twitter info directly: {e}")
+        return None
+
+def try_twitter_direct_download(url, output_path):
+    """
+    Twitter/X downloader using yt-dlp with proper configuration.
+    Note: Twitter now requires authentication for many videos. Set YT_DLP_COOKIES
+    environment variable to a cookies.txt file exported from your browser.
+    """
+    logger = logging.getLogger('app.downloader')
+    logger.info(f"Twitter direct download starting for: {url}")
+
+    # Normalize URL - convert x.com to twitter.com for better yt-dlp compatibility
+    normalized_url = url.replace('x.com/', 'twitter.com/')
+
+    # Create base output filename
+    output_base = os.path.splitext(output_path)[0]
+    output_file = f"{output_base}.mp4"
+
+    # Import Flask app to get configuration
+    from app import app
+
+    try:
+        yt_dlp_path = get_yt_dlp_path()
+        if not yt_dlp_path:
+            logger.error("yt-dlp not found")
+            return None
+
+        # Build yt-dlp command with Twitter-optimized settings
+        cmd = [
+            yt_dlp_path,
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "--referer", "https://twitter.com/",
+            "--format", "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best",
+            "--merge-output-format", "mp4",
+            "--no-playlist",
+            "--no-check-certificate",
+            "--geo-bypass",
+            "--socket-timeout", "60",
+            "--retries", "10",
+            "--fragment-retries", "10",
+            "-o", output_file,
+            "--verbose"
+        ]
+
+        # Add cookies if configured - essential for Twitter/X
+        if app.config.get("YT_DLP_COOKIES"):
+            cookies_path = app.config["YT_DLP_COOKIES"]
+            if os.path.exists(cookies_path):
+                cmd.extend(["--cookies", cookies_path])
+                logger.info(f"Using cookies file: {cookies_path}")
+            else:
+                logger.warning(f"Cookies file not found: {cookies_path}")
+
+        # Add proxy if configured
+        if app.config.get("YT_DLP_PROXY"):
+            cmd.extend(["--proxy", app.config["YT_DLP_PROXY"]])
+
+        cmd.append(normalized_url)
+
+        # Run yt-dlp for Twitter
+        logger.info(f"Running Twitter download: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+
+        # Log output for debugging
+        if result.stderr:
+            logger.debug(f"yt-dlp stderr: {result.stderr}")
+        if result.stdout:
+            logger.debug(f"yt-dlp stdout: {result.stdout}")
+
+        # Check if file was created and has size
+        if os.path.exists(output_file) and os.path.getsize(output_file) > 1000:
+            logger.info(f"Successfully downloaded Twitter video to: {output_file}")
+            return output_file
+
+        # Check for common error patterns
+        if "requires authentication" in result.stderr.lower() or "login required" in result.stderr.lower():
+            logger.error("Twitter requires authentication. Please set YT_DLP_COOKIES to a cookies.txt file.")
+        elif "video unavailable" in result.stderr.lower():
+            logger.error("Video is unavailable or has been deleted.")
+        else:
+            logger.error(f"yt-dlp failed to download Twitter video. stderr: {result.stderr[-500:]}")
+
+        return None
+
+    except subprocess.TimeoutExpired:
+        logger.error("Twitter download timed out after 5 minutes")
+        return None
+    except Exception as e:
+        logger.error(f"Error in Twitter download: {str(e)}")
+        return None
 
 def get_reddit_info_directly(url):
     """Get Reddit video information directly from the page, without yt-dlp"""
@@ -396,13 +563,18 @@ def get_video_info(url):
             logger.error("yt-dlp executable not found in any location for info retrieval!")
             return None
         
-        # Common command arguments for all sites
+        # Common command arguments for all sites with enhanced headers
         common_args = [
-            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            '--add-header', 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            '--add-header', 'Accept-Language: en-US,en;q=0.9',
+            '--add-header', 'DNT: 1',
             '--skip-download',
             '--print-json',
             '--no-check-certificate',
             '--geo-bypass',
+            '--socket-timeout', '30',
+            '--retries', '5',
             '--verbose'  # Add verbose logging
         ]
         
@@ -414,6 +586,18 @@ def get_video_info(url):
         if app.config["YT_DLP_RATE_LIMIT"]:
             common_args.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
             
+        # Add cookies if configured
+        if app.config["YT_DLP_COOKIES"]:
+            common_args.extend(['--cookies', app.config["YT_DLP_COOKIES"]])
+            
+        # Add custom user agent if configured
+        if app.config["YT_DLP_USER_AGENT"]:
+            # Replace the default user agent
+            for i, arg in enumerate(common_args):
+                if arg == '--user-agent':
+                    common_args[i+1] = app.config["YT_DLP_USER_AGENT"]
+                    break
+            
         # Add max duration limit if configured
         max_duration = app.config["YT_DLP_MAX_DURATION"]
         if max_duration > 0:
@@ -424,11 +608,43 @@ def get_video_info(url):
             logger.info("Using enhanced Reddit-specific info retrieval")
             cmd = [
                 actual_ytdlp_path,
-                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                '--add-header', 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                '--add-header', 'Accept-Language: en-US,en;q=0.9',
+                '--add-header', 'DNT: 1',
                 '--skip-download',
                 '--print-json',
                 '--no-check-certificate',
                 '--geo-bypass',
+                '--socket-timeout', '30',
+                '--retries', '5',
+                '--verbose',
+                url
+            ]
+            
+            # Add rate limit if configured
+            if app.config["YT_DLP_RATE_LIMIT"]:
+                cmd.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
+                
+            # Add max duration limit if configured
+            if max_duration > 0:
+                cmd.extend(['--match-filter', f'duration < {max_duration}'])
+        elif 'twitter.com' in url.lower() or 'x.com' in url.lower():
+            # Enhanced Twitter-specific info retrieval
+            logger.info("Using enhanced Twitter-specific info retrieval")
+            cmd = [
+                actual_ytdlp_path,
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                '--add-header', 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                '--add-header', 'Accept-Language: en-US,en;q=0.9',
+                '--add-header', 'DNT: 1',
+                '--add-header', 'Referer: https://twitter.com/',
+                '--skip-download',
+                '--print-json',
+                '--no-check-certificate',
+                '--geo-bypass',
+                '--socket-timeout', '30',
+                '--retries', '5',
                 '--verbose',
                 url
             ]
@@ -502,419 +718,288 @@ def get_video_info(url):
 
 def try_reddit_direct_download(url, output_path):
     """
-    Simplified Reddit downloader with better reliability and error handling.
-    Completely rebuilt to avoid all previous issues.
+    Reddit video downloader using yt-dlp with proper configuration.
+    Handles Reddit's separate video/audio streams automatically.
     """
     logger = logging.getLogger('app.downloader')
     logger.info(f"Reddit direct download starting for: {url}")
-    
+
     # Create base output filename
     output_base = os.path.splitext(output_path)[0]
     output_file = f"{output_base}.mp4"
-    
-    # Try direct YouTube-DL approach with specific Reddit format selector
+
+    # Import Flask app to get configuration
+    from app import app
+
     try:
         yt_dlp_path = get_yt_dlp_path()
         if not yt_dlp_path:
             logger.error("yt-dlp not found")
             return None
-            
+
+        # Build yt-dlp command with Reddit-optimized settings
+        # Reddit videos often have separate audio/video streams that need merging
         cmd = [
             yt_dlp_path,
-            "--format", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "--format", "bestvideo+bestaudio/best",
             "--merge-output-format", "mp4",
             "--no-playlist",
+            "--no-check-certificate",
+            "--geo-bypass",
+            "--socket-timeout", "60",
+            "--retries", "10",
+            "--fragment-retries", "10",
             "-o", output_file,
-            "--no-warnings",
-            url
+            "--verbose"
         ]
-        
+
+        # Add proxy if configured
+        if app.config.get("YT_DLP_PROXY"):
+            cmd.extend(["--proxy", app.config["YT_DLP_PROXY"]])
+
+        cmd.append(url)
+
         # Run yt-dlp for Reddit
-        logger.info(f"Running specialized Reddit download: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
+        logger.info(f"Running Reddit download: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+
+        # Log output for debugging
+        if result.stderr:
+            logger.debug(f"yt-dlp stderr: {result.stderr}")
+        if result.stdout:
+            logger.debug(f"yt-dlp stdout: {result.stdout}")
+
         # Check if file was created and has size
         if os.path.exists(output_file) and os.path.getsize(output_file) > 1000:
             logger.info(f"Successfully downloaded Reddit video to: {output_file}")
             return output_file
-        else:
-            logger.warning("yt-dlp failed to download Reddit video, trying fallback method")
+
+        # If main attempt failed, try the JSON API fallback
+        logger.info("yt-dlp failed, trying Reddit JSON API fallback...")
+        return try_reddit_json_api_download(url, output_file)
+
+    except subprocess.TimeoutExpired:
+        logger.error("Reddit download timed out after 5 minutes")
+        return None
     except Exception as e:
-        logger.error(f"Error in yt-dlp download: {str(e)}")
-    
-    # Try fallback direct HTTP approach
+        logger.error(f"Error in Reddit download: {str(e)}")
+        return None
+
+
+def try_reddit_json_api_download(url, output_file):
+    """
+    Fallback Reddit downloader using the JSON API.
+    Reddit provides a .json endpoint for posts that contains video URLs.
+    """
+    logger = logging.getLogger('app.downloader')
+    logger.info(f"Trying Reddit JSON API fallback for: {url}")
+
     try:
-        # Initialize session with browser-like headers
-        session = requests.Session()
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://www.google.com/'
-        }
-        session.headers.update(headers)
-        
-        # Extract post ID if available for JSON API
+        # Extract post ID from URL
         post_id = None
         if '/comments/' in url:
             parts = url.split('/comments/')
             if len(parts) > 1:
                 post_id = parts[1].split('/')[0]
-                logger.info(f"Extracted Reddit post ID: {post_id}")
-                
-        # Try Reddit JSON API first if we have a post ID
-        if post_id:
-            json_url = f"https://www.reddit.com/comments/{post_id}/.json"
-            logger.info(f"Trying Reddit JSON API: {json_url}")
-            
-            try:
-                api_headers = headers.copy()
-                api_headers['Accept'] = 'application/json'
-                json_response = session.get(json_url, headers=api_headers, timeout=10)
-                
-                if json_response.status_code == 200:
-                    data = json_response.json()
-                    if len(data) > 0 and 'data' in data[0] and 'children' in data[0]['data']:
-                        children = data[0]['data']['children']
-                        if len(children) > 0 and 'data' in children[0]:
-                            post_data = children[0]['data']
-                            if 'media' in post_data and post_data['media'] and 'reddit_video' in post_data['media']:
-                                reddit_video = post_data['media']['reddit_video']
-                                if 'fallback_url' in reddit_video:
-                                    video_url = reddit_video['fallback_url']
-                                    logger.info(f"Found video URL from JSON API: {video_url}")
-                                    
-                                    # Download the video
-                                    video_response = session.get(video_url, stream=True, timeout=30)
-                                    if video_response.status_code == 200:
-                                        with open(output_file, 'wb') as f:
-                                            for chunk in video_response.iter_content(chunk_size=8192):
-                                                f.write(chunk)
-                                                
-                                        if os.path.exists(output_file) and os.path.getsize(output_file) > 1000:
-                                            logger.info(f"Successfully downloaded Reddit video via API to: {output_file}")
-                                            return output_file
-            except Exception as e:
-                logger.warning(f"Reddit API download failed: {str(e)}")
-                
-        # If API approach failed, try direct page scraping
+
+        if not post_id:
+            logger.error("Could not extract Reddit post ID from URL")
+            return None
+
+        # Initialize session with browser-like headers
+        session = requests.Session()
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+            'Accept-Language': 'en-US,en;q=0.9',
+        }
+        session.headers.update(headers)
+
+        # Try Reddit JSON API
+        json_url = f"https://www.reddit.com/comments/{post_id}/.json"
+        logger.info(f"Fetching Reddit JSON: {json_url}")
+
+        response = session.get(json_url, timeout=30)
+        if response.status_code != 200:
+            logger.error(f"Reddit JSON API returned status {response.status_code}")
+            return None
+
+        data = response.json()
+
+        # Navigate the JSON structure to find the video URL
+        video_url = None
+        audio_url = None
+
         try:
-            page_response = session.get(url, timeout=30)
-            if page_response.status_code == 200:
-                html = page_response.text
-                
-                # Look for MP4 video URLs
-                mp4_patterns = [
-                    r'(https?://v\.redd\.it/[a-zA-Z0-9]+/DASH_[0-9]+\.mp4)',
-                    r'(https?://v\.redd\.it/[a-zA-Z0-9]+\.mp4)',
-                    r'fallback_url":\s*"(https?:\\u002F\\u002Fv\.redd\.it\\u002F[^"]+\.mp4)"'
-                ]
-                
-                video_urls = []
-                for pattern in mp4_patterns:
-                    urls = re.findall(pattern, html)
-                    video_urls.extend(urls)
-                    
-                # Clean up escaped URLs
-                video_urls = [url.replace('\\u002F', '/') for url in video_urls]
-                
-                if video_urls:
-                    # Sort by quality (DASH_720, DASH_1080, etc.)
-                    def get_quality(url):
-                        match = re.search(r'DASH_(\d+)', url)
-                        return int(match.group(1)) if match else 0
-                        
-                    video_urls.sort(key=get_quality, reverse=True)
-                    logger.info(f"Found {len(video_urls)} potential video URLs")
-                    
-                    # Try downloading each URL until one works
-                    for video_url in video_urls:
-                        try:
-                            logger.info(f"Trying to download: {video_url}")
-                            video_response = session.get(video_url, stream=True, timeout=30)
-                            
-                            if video_response.status_code == 200:
-                                with open(output_file, 'wb') as f:
-                                    for chunk in video_response.iter_content(chunk_size=8192):
-                                        f.write(chunk)
-                                        
-                                if os.path.exists(output_file) and os.path.getsize(output_file) > 1000:
-                                    logger.info(f"Successfully downloaded Reddit video via scraping: {output_file}")
-                                    return output_file
-                        except Exception as dl_err:
-                            logger.warning(f"Failed to download {video_url}: {str(dl_err)}")
-        except Exception as page_err:
-            logger.warning(f"Page scraping failed: {str(page_err)}")
-                
-        # All approaches failed
-        logger.error("All Reddit download approaches failed")
+            post_data = data[0]['data']['children'][0]['data']
+
+            # Check for reddit_video in media
+            if 'media' in post_data and post_data['media']:
+                if 'reddit_video' in post_data['media']:
+                    reddit_video = post_data['media']['reddit_video']
+                    video_url = reddit_video.get('fallback_url') or reddit_video.get('hls_url')
+                    # Audio is usually at a predictable URL
+                    if video_url and 'DASH_' in video_url:
+                        audio_url = re.sub(r'DASH_\d+\.mp4', 'DASH_audio.mp4', video_url)
+
+            # Check for crosspost_parent_list
+            if not video_url and 'crosspost_parent_list' in post_data:
+                for crosspost in post_data['crosspost_parent_list']:
+                    if 'media' in crosspost and crosspost['media']:
+                        if 'reddit_video' in crosspost['media']:
+                            reddit_video = crosspost['media']['reddit_video']
+                            video_url = reddit_video.get('fallback_url') or reddit_video.get('hls_url')
+                            if video_url and 'DASH_' in video_url:
+                                audio_url = re.sub(r'DASH_\d+\.mp4', 'DASH_audio.mp4', video_url)
+                            break
+        except (KeyError, IndexError, TypeError) as e:
+            logger.error(f"Error parsing Reddit JSON: {e}")
+            return None
+
+        if not video_url:
+            logger.error("Could not find video URL in Reddit JSON response")
+            return None
+
+        logger.info(f"Found Reddit video URL: {video_url}")
+
+        # Download video
+        video_response = session.get(video_url, stream=True, timeout=60)
+        if video_response.status_code != 200:
+            logger.error(f"Failed to download video: HTTP {video_response.status_code}")
+            return None
+
+        temp_video = output_file + ".video.tmp"
+        with open(temp_video, 'wb') as f:
+            for chunk in video_response.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+        # Try to download and merge audio if available
+        if audio_url:
+            try:
+                logger.info(f"Downloading Reddit audio: {audio_url}")
+                audio_response = session.get(audio_url, stream=True, timeout=60)
+                if audio_response.status_code == 200:
+                    temp_audio = output_file + ".audio.tmp"
+                    with open(temp_audio, 'wb') as f:
+                        for chunk in audio_response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+
+                    # Merge video and audio using ffmpeg
+                    logger.info("Merging video and audio with ffmpeg...")
+                    merge_cmd = [
+                        "ffmpeg", "-y",
+                        "-i", temp_video,
+                        "-i", temp_audio,
+                        "-c:v", "copy",
+                        "-c:a", "aac",
+                        "-strict", "experimental",
+                        output_file
+                    ]
+                    merge_result = subprocess.run(merge_cmd, capture_output=True, text=True, timeout=120)
+
+                    # Clean up temp files
+                    if os.path.exists(temp_video):
+                        os.remove(temp_video)
+                    if os.path.exists(temp_audio):
+                        os.remove(temp_audio)
+
+                    if os.path.exists(output_file) and os.path.getsize(output_file) > 1000:
+                        logger.info(f"Successfully merged Reddit video with audio: {output_file}")
+                        return output_file
+            except Exception as e:
+                logger.warning(f"Failed to download/merge audio: {e}")
+
+        # If no audio or audio merge failed, just use the video
+        if os.path.exists(temp_video):
+            os.rename(temp_video, output_file)
+            logger.info(f"Downloaded Reddit video (no audio): {output_file}")
+            return output_file
+
         return None
+
     except Exception as e:
-        logger.error(f"Error in Reddit download process: {str(e)}")
+        logger.error(f"Reddit JSON API download failed: {str(e)}")
         return None
 
 def download_with_ytdlp(url, output_template):
-    """Download a video using yt-dlp with enhanced error recovery"""
+    """
+    Generic yt-dlp download function as a fallback.
+    Platform-specific handlers (try_twitter_direct_download, try_reddit_direct_download)
+    are called first by download_video().
+    """
     try:
         # Skip if URL is from our own domain
         if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
             logger.error(f"Cannot download from own domain: {url}")
             return None
-        
-        # Import Flask app to get configuration
-        from app import app
-        
-        # Before running command, do a sanity check to make sure yt-dlp exists
-        ytdlp_exists = False
-        ytdlp_paths_to_try = [
-            YT_DLP_PATH,  # First try the module-level resolved path
-            '/app/bin/yt-dlp',
-            '/usr/local/bin/yt-dlp',
-            '/usr/bin/yt-dlp',
-            '/opt/stacks/nickclips/bin/yt-dlp',
-            os.path.join(os.getcwd(), 'bin', 'yt-dlp'),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin', 'yt-dlp'),
-            shutil.which('yt-dlp')  # Finally try using PATH
-        ]
-        
-        actual_ytdlp_path = None
-        for path in ytdlp_paths_to_try:
-            if path and os.path.isfile(path) and os.access(path, os.X_OK):
-                ytdlp_exists = True
-                actual_ytdlp_path = path
-                logger.info(f"Found usable yt-dlp for download at: {actual_ytdlp_path}")
-                break
-        
-        if not ytdlp_exists:
-            logger.error("yt-dlp executable not found in any location for download!")
-            # Try to install it as last resort
-            try:
-                logger.info("Attempting emergency yt-dlp installation...")
-                bin_dir = os.path.join(os.getcwd(), 'bin')
-                os.makedirs(bin_dir, exist_ok=True)
-                ytdlp_path = os.path.join(bin_dir, 'yt-dlp-emergency')
-                
-                # Try using Python's urllib to download it
-                import urllib.request
-                logger.info("Downloading with urllib.request...")
-                urllib.request.urlretrieve(
-                    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp",
-                    ytdlp_path
-                )
-                os.chmod(ytdlp_path, 0o755)
-                logger.info(f"Emergency yt-dlp installed at {ytdlp_path}")
-                actual_ytdlp_path = ytdlp_path
-            except Exception as install_error:
-                logger.error(f"Emergency yt-dlp installation failed: {install_error}")
-                return None
-            
-        # Base command arguments - shared across all sites
-        base_args = [
-            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            '--output', output_template,
-            '--no-check-certificate',  # Skip HTTPS certificate validation
-            '--geo-bypass',  # Try to bypass geo-restrictions
-            '--no-playlist',  # Don't download playlists
-            '--verbose'  # Show detailed logs
-        ]
-        
-        # Add proxy if configured
-        if app.config["YT_DLP_PROXY"]:
-            base_args.extend(['--proxy', app.config["YT_DLP_PROXY"]])
-            
-        # Add rate limit if configured
-        if app.config["YT_DLP_RATE_LIMIT"]:
-            base_args.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
-            
-        # Add max duration limit if configured
-        max_duration = app.config["YT_DLP_MAX_DURATION"]
-        if max_duration > 0:
-            base_args.extend(['--match-filter', f'duration < {max_duration}'])
-        
-        # Construct site-specific command arguments
-        if 'reddit.com' in url.lower():
-            # REDDIT HANDLING: Complete special case handling for Reddit URLs
-            logger.info("Using ENHANCED Reddit-specific download parameters")
-            
-            # First, try to list available formats for debugging and use these formats explicitly
-            reddit_formats = []
-            try:
-                available_formats_cmd = [
-                    actual_ytdlp_path,
-                    '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    '--list-formats',
-                    '--verbose',
-                    '--no-check-certificate',
-                    '--geo-bypass',
-                    url
-                ]
-                logger.info(f"Checking available Reddit formats: {' '.join(available_formats_cmd)}")
-                format_process = subprocess.run(available_formats_cmd, capture_output=True, text=True)
-                
-                # Parse stdout to extract format IDs 
-                if format_process.stdout:
-                    logger.info(f"Available Reddit formats: {format_process.stdout}")
-                    
-                    # Parse format listing to extract available format IDs
-                    for line in format_process.stdout.splitlines():
-                        if line.strip() and 'ID  ' not in line and '[info]' not in line:
-                            parts = line.split()
-                            if parts and parts[0].isdigit():
-                                reddit_formats.append(parts[0])
-                    
-                    logger.info(f"Extracted Reddit format IDs: {reddit_formats}")
-                
-                if format_process.stderr:
-                    logger.info(f"Format listing stderr: {format_process.stderr}")
-            except Exception as e:
-                logger.warning(f"Format listing error: {e}")
-            
-            # Base command with mandatory options
-            cmd = [
-                actual_ytdlp_path,
-                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                '--output', output_template,
-                '--no-check-certificate',
-                '--geo-bypass',
-                '--verbose',
-                '--force-ipv4',  # Force IPv4 to avoid potential IPv6 issues
-                '--add-header', 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                '--add-header', 'Accept-Language: en-US,en;q=0.9',
-                '--add-header', 'DNT: 1',
-                '--socket-timeout', '30',  # Increase timeout for slower connections
-                '--retries', '10',         # Increase retry attempts
-                '--fragment-retries', '10' # Increase fragment retry attempts
-            ]
-            
-            # For Reddit, we need to first list available formats, then pick one explicitly
 
-            # Step 1: Get available formats
-            logger.info("Running yt-dlp to list available formats for Reddit video")
-            formats_cmd = [
-                actual_ytdlp_path,
-                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                '--list-formats',
-                '--no-check-certificate',
-                '--verbose',
-                url
-            ]
-            
-            # Run the format listing command
-            format_ids = []  # Initialize here to avoid "possibly unbound" error
-            try:
-                formats_process = subprocess.run(formats_cmd, capture_output=True, text=True)
-                if formats_process.stdout:
-                    logger.info(f"Format listing output: {formats_process.stdout}")
-                    
-                    # Parse the output to find available format IDs
-                    for line in formats_process.stdout.splitlines():
-                        if 'dash-video' in line or 'dash-audio' in line:
-                            # Extract format IDs for dash formats
-                            parts = line.split()
-                            if parts and parts[0].isdigit():
-                                format_ids.append(parts[0])
-                
-                # If we found dash formats, use them explicitly
-                if format_ids:
-                    logger.info(f"Found dash format IDs: {format_ids}")
-                    best_format = format_ids[0]  # Use the first one (usually best)
-                    
-                    # Step 2: Use the explicit format ID
-                    cmd = [
-                        actual_ytdlp_path,
-                        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                        '--format', best_format,
-                        '--output', output_template,
-                        '--no-check-certificate',
-                        '--verbose',
-                        '--no-playlist',
-                        url
-                    ]
-                    logger.info(f"Using format ID {best_format} for Reddit download")
-                else:
-                    # No dash formats found, try with "bestaudio+bestvideo" format
-                    cmd = [
-                        actual_ytdlp_path,
-                        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                        '--format', 'bestaudio+bestvideo/best',
-                        '--output', output_template,
-                        '--no-check-certificate',
-                        '--verbose',
-                        '--no-playlist',
-                        url
-                    ]
-                    logger.info("Using bestaudio+bestvideo format for Reddit download")
-            except Exception as e:
-                logger.error(f"Error listing formats: {e}")
-                # Fallback to a simpler command with no format specification
-                cmd = [
-                    actual_ytdlp_path,
-                    '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                    '--output', output_template,
-                    '--no-check-certificate',
-                    '--verbose',
-                    '--no-playlist',
-                    url
-                ]
-                logger.info("Failed to get formats, using minimal command for Reddit download")
-            
-            # Add the rate limit for shared hosting
-            if app.config["YT_DLP_RATE_LIMIT"]:
-                cmd.extend(['--limit-rate', app.config["YT_DLP_RATE_LIMIT"]])
-                
-            # Add duration limit
-            if max_duration > 0:
-                cmd.extend(['--match-filter', f'duration < {max_duration}'])
-        elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
-            # YouTube-specific command
-            logger.info("Using YouTube-specific download parameters")
-            cmd = [actual_ytdlp_path] + base_args + [
-                '--format', 'best[ext=mp4]/best',
-                '--merge-output-format', 'mp4',
-                '--concurrent-fragments', '5',  # Use 5 fragments at a time
-                url
-            ]
-        else:
-            # Default command for all other sites
-            logger.info("Using default download parameters")
-            cmd = [actual_ytdlp_path] + base_args + [
-                '--format', 'best[ext=mp4]/best',
-                '--merge-output-format', 'mp4',
-                url
-            ]
-        
-        # Log the full command for debugging
-        logger.info(f"Running download command: {' '.join(str(arg) for arg in cmd)}")
-        
-        # Run the command and capture output
-        process = subprocess.run(cmd, capture_output=True, text=True)
-        
-        # Log the output for debugging
-        if process.stdout:
-            logger.debug(f"yt-dlp stdout: {process.stdout}")
-        if process.stderr:
-            logger.debug(f"yt-dlp stderr: {process.stderr}")
-        
-        # Check if the process was successful
-        process.check_returncode()
-        
-        # Determine the actual filename
+        from app import app
+
+        yt_dlp_path = get_yt_dlp_path()
+        if not yt_dlp_path:
+            logger.error("yt-dlp not found")
+            return None
+
+        # Build command with sensible defaults
+        cmd = [
+            yt_dlp_path,
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "--format", "bestvideo+bestaudio/best[ext=mp4]/best",
+            "--merge-output-format", "mp4",
+            "--no-playlist",
+            "--no-check-certificate",
+            "--geo-bypass",
+            "--socket-timeout", "60",
+            "--retries", "10",
+            "--fragment-retries", "10",
+            "-o", output_template,
+            "--verbose"
+        ]
+
+        # Add cookies if configured
+        if app.config.get("YT_DLP_COOKIES"):
+            cookies_path = app.config["YT_DLP_COOKIES"]
+            if os.path.exists(cookies_path):
+                cmd.extend(["--cookies", cookies_path])
+
+        # Add proxy if configured
+        if app.config.get("YT_DLP_PROXY"):
+            cmd.extend(["--proxy", app.config["YT_DLP_PROXY"]])
+
+        # Add rate limit if configured
+        if app.config.get("YT_DLP_RATE_LIMIT"):
+            cmd.extend(["--limit-rate", app.config["YT_DLP_RATE_LIMIT"]])
+
+        # Add max duration limit if configured
+        max_duration = app.config.get("YT_DLP_MAX_DURATION", 0)
+        if max_duration > 0:
+            cmd.extend(["--match-filter", f"duration < {max_duration}"])
+
+        cmd.append(url)
+
+        logger.info(f"Running yt-dlp: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+
+        if result.stdout:
+            logger.debug(f"yt-dlp stdout: {result.stdout}")
+        if result.stderr:
+            logger.debug(f"yt-dlp stderr: {result.stderr}")
+
+        # Find the downloaded file
         slug = os.path.basename(output_template).split('.')[0]
         dir_path = os.path.dirname(output_template)
-        
-        # Look for files with the slug
+
         for filename in os.listdir(dir_path):
             if filename.startswith(slug + '.'):
-                return os.path.join(dir_path, filename)
-        
+                filepath = os.path.join(dir_path, filename)
+                if os.path.getsize(filepath) > 1000:
+                    return filepath
+
         return None
-        
-    except subprocess.CalledProcessError as e:
-        logger.error(f"yt-dlp process error: {e}")
-        if e.stderr:
-            logger.error(f"yt-dlp stderr: {e.stderr}")
-        if e.stdout:
-            logger.error(f"yt-dlp stdout: {e.stdout}")
+
+    except subprocess.TimeoutExpired:
+        logger.error("yt-dlp download timed out after 5 minutes")
         return None
     except Exception as e:
         logger.error(f"Error downloading with yt-dlp: {e}")

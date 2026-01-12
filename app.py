@@ -42,6 +42,8 @@ app.config["CONCURRENT_PROCESSING"] = int(os.environ.get("CONCURRENT_PROCESSING"
 app.config["YT_DLP_PROXY"] = os.environ.get("YT_DLP_PROXY", "")
 app.config["YT_DLP_RATE_LIMIT"] = os.environ.get("YT_DLP_RATE_LIMIT", "")
 app.config["YT_DLP_MAX_DURATION"] = int(os.environ.get("YT_DLP_MAX_DURATION", 3600))  # 1 hour default
+app.config["YT_DLP_COOKIES"] = os.environ.get("YT_DLP_COOKIES", "")  # Path to cookies file
+app.config["YT_DLP_USER_AGENT"] = os.environ.get("YT_DLP_USER_AGENT", "")  # Custom user agent
 
 # Ensure upload directory exists with proper permissions
 upload_base = app.config["UPLOAD_FOLDER"]
