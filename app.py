@@ -109,6 +109,22 @@ with app.app_context():
     # Import models and create tables
     import models
     db.create_all()
+
+    # Auto-migration: Add missing columns to existing tables
+    def add_column_if_not_exists(table, column, column_type):
+        """Add a column to a table if it doesn't exist"""
+        try:
+            columns = [c['name'] for c in inspector.get_columns(table)]
+            if column not in columns:
+                db.session.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {column_type}'))
+                db.session.commit()
+                logging.info(f"Added column '{column}' to table '{table}'")
+        except Exception as e:
+            logging.warning(f"Could not add column {column} to {table}: {e}")
+            db.session.rollback()
+
+    # Add api_key column to user table if missing
+    add_column_if_not_exists('user', 'api_key', 'VARCHAR(64) UNIQUE')
     
     # Import and register routes
     from routes import register_routes
