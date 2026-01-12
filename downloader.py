@@ -321,60 +321,80 @@ def download_video(video_id, url):
             return False
 
 def get_twitter_info_directly(url):
-    """Get Twitter/X video information directly from the page, without yt-dlp"""
-    logger.info(f"Attempting to get Twitter info directly from: {url}")
+    """Get Twitter/X video information using yt-dlp metadata for accurate titles"""
+    logger.info(f"Attempting to get Twitter info via yt-dlp: {url}")
     try:
-        # Use a desktop browser user agent
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://twitter.com/',
-            'Origin': 'https://twitter.com',
-            'DNT': '1'
-        }
-        
-        # Request the page
-        response = requests.get(url, headers=headers, timeout=30)
-        
-        if response.status_code != 200:
-            logger.error(f"Failed to fetch Twitter page: {response.status_code}")
+        from app import app
+
+        yt_dlp_path = get_yt_dlp_path()
+        if not yt_dlp_path:
+            logger.error("yt-dlp not found for Twitter info extraction")
             return None
-            
-        # Look for metadata in the HTML
-        html_content = response.text
-        
-        # Extract title
-        title_pattern = r'<title>(.*?)</title>'
-        title_match = re.search(title_pattern, html_content)
-        title = title_match.group(1) if title_match else 'Twitter Video'
-        
-        # Extract description (usually the tweet content)
-        description_pattern = r'<meta name="description" content="(.*?)"'
-        description_match = re.search(description_pattern, html_content)
-        description = description_match.group(1) if description_match else ''
-        
-        # Extract thumbnail
-        thumbnail_pattern = r'<meta property="og:image" content="(.*?)"'
-        thumbnail_match = re.search(thumbnail_pattern, html_content)
-        thumbnail = thumbnail_match.group(1) if thumbnail_match else None
-        
-        # Clean up the title (remove "Twitter" suffix)
-        if ' - ' in title and title.endswith('Twitter'):
-            title = title.rsplit(' - ', 1)[0]
-        
-        result = {
+
+        # Normalize URL
+        normalized_url = url.replace('x.com/', 'twitter.com/')
+
+        # Use yt-dlp to get metadata without downloading
+        cmd = [
+            yt_dlp_path,
+            "--dump-json",
+            "--no-download",
+            "--no-playlist",
+            "--socket-timeout", "30",
+            normalized_url
+        ]
+
+        # Add cookies if configured
+        if app.config.get("YT_DLP_COOKIES"):
+            cookies_path = app.config["YT_DLP_COOKIES"]
+            if os.path.exists(cookies_path):
+                cmd.insert(-1, "--cookies")
+                cmd.insert(-1, cookies_path)
+
+        logger.info(f"Running Twitter info extraction: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+
+        if result.returncode != 0:
+            logger.error(f"yt-dlp failed to get Twitter info: {result.stderr[:500]}")
+            return None
+
+        if not result.stdout.strip():
+            logger.error("No JSON output from yt-dlp for Twitter")
+            return None
+
+        data = json.loads(result.stdout)
+
+        # Extract info from yt-dlp output
+        # Twitter titles are usually the tweet text (description field)
+        title = data.get('description', '') or data.get('title', 'Twitter Video')
+
+        # Truncate long tweets for title (first 100 chars)
+        if len(title) > 100:
+            title = title[:97] + '...'
+
+        # Get uploader info for description
+        uploader = data.get('uploader', '') or data.get('uploader_id', '')
+        description = f"Posted by @{uploader}" if uploader else ''
+
+        result_info = {
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
-            'ext': 'mp4',  # Default extension
-            'duration': None  # We don't know the duration
+            'thumbnail': data.get('thumbnail'),
+            'ext': 'mp4',
+            'duration': data.get('duration')
         }
-        
-        logger.info(f"Successfully extracted Twitter info: {result}")
-        return result
+
+        logger.info(f"Successfully extracted Twitter info via yt-dlp: {result_info}")
+        return result_info
+
+    except subprocess.TimeoutExpired:
+        logger.error("Twitter info extraction timed out")
+        return None
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse Twitter JSON: {e}")
+        return None
     except Exception as e:
-        logger.error(f"Error getting Twitter info directly: {e}")
+        logger.error(f"Error getting Twitter info: {e}")
         return None
 
 def try_twitter_direct_download(url, output_path):
