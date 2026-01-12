@@ -531,10 +531,151 @@ header {
 
 .time-display {
     color: white;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     margin-left: 10px;
     margin-right: auto;
     font-variant-numeric: tabular-nums;
+    opacity: 0.9;
+}
+
+/* Skip buttons */
+.skip-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    padding: 6px 8px;
+    margin-right: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 6px;
+    opacity: 0.8;
+}
+
+.skip-button:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+}
+
+/* Volume container */
+.volume-container {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.volume-slider {
+    width: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: width 0.2s ease;
+}
+
+.volume-container:hover .volume-slider {
+    width: 60px;
+    margin-left: 8px;
+}
+
+/* Speed control */
+.speed-container {
+    position: relative;
+    margin-right: 8px;
+}
+
+.speed-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.speed-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.speed-dropdown {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 25, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 6px;
+    margin-bottom: 8px;
+    flex-direction: column;
+    min-width: 80px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.speed-option {
+    padding: 8px 12px;
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 4px;
+    text-align: center;
+    transition: background 0.15s ease;
+}
+
+.speed-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.speed-option.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+/* PiP button */
+.pip-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    padding: 6px 8px;
+    margin-right: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 6px;
+    opacity: 0.8;
+}
+
+.pip-button:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Time preview tooltip */
+.video-time-preview {
+    position: absolute;
+    bottom: 100%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    margin-bottom: 8px;
+    white-space: nowrap;
+}
+
+.video-progress-bar:hover .video-time-preview {
+    opacity: 1;
 }
 
 /* ============================================

@@ -127,90 +127,73 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-10 mx-auto">
-            <div class="video-info pt-3" data-slug="{{ video.slug }}">
-                <!-- Title and metadata row -->
-                <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
-                    <div class="flex-grow-1">
-                        <!-- Editable Title -->
-                        <div class="editable-field" id="title-container">
-                            <h1 class="video-title h4 mb-1 editable-text" id="video-title-text" style="cursor: pointer;" title="Click to edit">
-                                {{ video.title or 'Untitled Video' }}
-                                {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                                <i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                                {% endif %}
-                            </h1>
-                            <input type="text" class="form-control d-none" id="video-title-input"
-                                   value="{{ video.title or 'Untitled Video' }}" maxlength="255">
-                        </div>
-                        <div class="video-metadata d-flex flex-wrap gap-3" style="font-size: 0.8rem;">
-                            <span class="text-muted"><i class="fas fa-eye me-1"></i>{{ video.views }} views</span>
-                            <span class="text-muted"><i class="fas fa-calendar me-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</span>
-                            {% if video.duration %}
-                            <span class="text-muted"><i class="fas fa-clock me-1"></i>{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
+            <div class="video-info pt-3 pb-2" data-slug="{{ video.slug }}">
+                <!-- Title row -->
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="editable-field flex-grow-1" id="title-container">
+                        <h1 class="video-title h5 mb-0 editable-text" id="video-title-text" style="cursor: pointer;" title="Click to edit">
+                            {{ video.title or 'Untitled Video' }}
+                            {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                            <i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.65rem; opacity: 0.4;"></i>
                             {% endif %}
-                        </div>
+                        </h1>
+                        <input type="text" class="form-control form-control-sm d-none" id="video-title-input"
+                               value="{{ video.title or 'Untitled Video' }}" maxlength="255">
                     </div>
-
-                    <!-- Actions -->
-                    <div class="d-flex gap-2 align-items-center">
-                        <button class="btn btn-sm btn-outline-secondary" type="button" id="copy-link-btn" title="Copy link">
-                            <i class="fas fa-link"></i>
-                        </button>
-                        {% if video.status == 'completed' and video.processed_path %}
-                        <a href="/uploads/{{ video.processed_path }}" class="btn btn-sm btn-primary" download title="Download">
-                            <i class="fas fa-download"></i>
-                        </a>
-                        {% endif %}
-                    </div>
+                    {% if video.status == 'completed' and video.processed_path %}
+                    <a href="/uploads/{{ video.processed_path }}" class="btn btn-sm btn-primary" download title="Download MP4">
+                        <i class="fas fa-download"></i>
+                    </a>
+                    {% endif %}
                 </div>
 
-                <!-- Description (only show if exists or if owner) -->
+                <!-- Metadata row -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2" style="font-size: 0.75rem;">
+                    <span class="text-muted"><i class="fas fa-eye me-1"></i>{{ video.views }}</span>
+                    <span class="text-muted">·</span>
+                    <span class="text-muted">{{ video.created_at.strftime('%b %d, %Y') }}</span>
+                    {% if video.duration %}
+                    <span class="text-muted">·</span>
+                    <span class="text-muted">{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Share link row -->
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="input-group input-group-sm flex-grow-1" style="max-width: 400px;">
+                        <input type="text" class="form-control form-control-sm" id="video-url" value="{{ request.url }}" readonly style="font-size: 0.75rem;">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" id="copy-link-btn">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                    <div class="form-check form-switch mb-0 ms-2">
+                        <input class="form-check-input" type="checkbox" id="visibility-toggle" {% if video.is_public %}checked{% endif %} style="cursor: pointer;">
+                        <label class="form-check-label small text-muted" for="visibility-toggle" style="font-size: 0.75rem; cursor: pointer;">
+                            {% if video.is_public %}Public{% else %}Private{% endif %}
+                        </label>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Description (only show if exists or if owner can edit) -->
                 {% if video.description or (current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id)) %}
-                <div class="video-description mb-3 editable-field" id="description-container">
-                    <div id="description-display" class="editable-text small" style="cursor: pointer;" title="Click to edit">
+                <div class="video-description editable-field" id="description-container">
+                    <div id="description-display" class="editable-text text-muted" style="cursor: pointer; font-size: 0.8rem;" title="Click to edit">
                         {% if video.description %}
                         {{ video.description }}
                         {% elif current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                        <span class="text-muted"><i class="fas fa-plus me-1"></i>Add description</span>
-                        {% endif %}
-                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                        <i class="fas fa-pencil-alt ms-1 text-muted" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                        <span style="opacity: 0.6;"><i class="fas fa-plus me-1"></i>Add description</span>
                         {% endif %}
                     </div>
-                    <textarea class="form-control d-none" id="video-description-input" rows="2"
-                              placeholder="Add a description...">{{ video.description or '' }}</textarea>
-                    <div class="d-none mt-2" id="description-actions">
-                        <button class="btn btn-sm btn-primary" id="save-description-btn">Save</button>
-                        <button class="btn btn-sm btn-secondary" id="cancel-description-btn">Cancel</button>
+                    <textarea class="form-control form-control-sm d-none" id="video-description-input" rows="2"
+                              placeholder="Add a description..." style="font-size: 0.8rem;">{{ video.description or '' }}</textarea>
+                    <div class="d-none mt-1" id="description-actions">
+                        <button class="btn btn-sm btn-primary py-0 px-2" id="save-description-btn" style="font-size: 0.75rem;">Save</button>
+                        <button class="btn btn-sm btn-secondary py-0 px-2" id="cancel-description-btn" style="font-size: 0.75rem;">Cancel</button>
                     </div>
                 </div>
                 {% endif %}
-
-                <!-- Visibility toggle (only for owner) - inline -->
-                {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                <div class="visibility-toggle d-flex align-items-center gap-2 py-2 border-top">
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" id="visibility-toggle" {% if video.is_public %}checked{% endif %}>
-                        <label class="form-check-label small" for="visibility-toggle">
-                            {% if video.is_public %}
-                            <i class="fas fa-globe me-1"></i> Public
-                            {% else %}
-                            <i class="fas fa-lock me-1"></i> Private
-                            {% endif %}
-                        </label>
-                    </div>
-                    <small class="text-muted">
-                        {% if video.is_public %}
-                        Visible on <a href="/u/{{ current_user.username }}">your profile</a>
-                        {% else %}
-                        Only people with the link can view
-                        {% endif %}
-                    </small>
-                </div>
-                {% endif %}
-
-                <!-- Hidden copy input for clipboard -->
-                <input type="hidden" id="video-url" value="{{ request.url }}">
             </div>
         </div>
     </div>
@@ -358,7 +341,15 @@
         const copyLinkBtn = document.getElementById('copy-link-btn');
         if (copyLinkBtn) {
             copyLinkBtn.addEventListener('click', function() {
-                const videoUrl = document.getElementById('video-url')?.value || window.location.href;
+                const videoUrlInput = document.getElementById('video-url');
+                const videoUrl = videoUrlInput?.value || window.location.href;
+
+                // Select the input text
+                if (videoUrlInput) {
+                    videoUrlInput.select();
+                    videoUrlInput.setSelectionRange(0, 99999);
+                }
+
                 navigator.clipboard.writeText(videoUrl).then(() => {
                     const originalHTML = this.innerHTML;
                     this.innerHTML = '<i class="fas fa-check"></i>';
@@ -369,7 +360,7 @@
                         this.innerHTML = originalHTML;
                         this.classList.remove('btn-success');
                         this.classList.add('btn-outline-secondary');
-                    }, 2000);
+                    }, 1500);
                 });
             });
         }
