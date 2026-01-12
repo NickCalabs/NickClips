@@ -242,19 +242,30 @@
         })
         .then(async response => {
             let data;
+            const text = await response.text();
+
             try {
-                const text = await response.text();
                 data = JSON.parse(text);
             } catch (e) {
-                console.error('Failed to parse response:', e);
-                throw new Error(`Server error: ${response.status}`);
+                console.error('Failed to parse response:', e, 'Raw:', text.substring(0, 200));
+                throw new Error(`Server returned invalid response (status ${response.status})`);
             }
+
             if (!response.ok) {
-                throw new Error(data.error || `Server error: ${response.status}`);
+                const errorMessage = data.error || data.message || `Server error: ${response.status}`;
+                throw new Error(errorMessage);
             }
+
             if (data.error) {
                 throw new Error(data.error);
             }
+
+            // Make sure we have the required fields for redirect
+            if (!data.slug && !data.redirect) {
+                console.error('Response missing slug/redirect:', data);
+                throw new Error('Server response missing redirect information');
+            }
+
             return data;
         })
         .then(data => {
@@ -268,11 +279,17 @@
             downloadStatus.classList.add('alert-danger');
 
             let errorMsg = 'An error occurred while processing your request.';
-            if (error && error.message) {
+            if (error && error.message && error.message !== 'undefined') {
                 errorMsg = error.message;
-            } else if (typeof error === 'string') {
+            } else if (typeof error === 'string' && error !== 'undefined') {
                 errorMsg = error;
             }
+
+            // Never show just "undefined" - always show a real message
+            if (!errorMsg || errorMsg === 'undefined' || errorMsg.toLowerCase() === 'error undefined') {
+                errorMsg = 'An unexpected error occurred. Please check if the video is processing.';
+            }
+
             downloadStatus.textContent = errorMsg;
 
             // Re-enable the button
