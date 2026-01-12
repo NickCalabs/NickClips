@@ -25,10 +25,10 @@
             <!-- Profile section -->
             <section id="profile-section" class="mb-5">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h3 class="mb-0">Profile Information</h3>
                     </div>
-                    <div class="card-body text-dark">
+                    <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-md-3">
                                 <strong>Username</strong>
@@ -60,10 +60,10 @@
             <!-- Appearance section -->
             <section id="appearance-section" class="mb-5">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h3 class="mb-0">Appearance Settings</h3>
                     </div>
-                    <div class="card-body text-dark">
+                    <div class="card-body">
                         <form id="themeForm" method="post" action="/profile/update-theme">
                             {{ theme_form.hidden_tag() }}
                             
@@ -108,10 +108,10 @@
             <!-- Security section -->
             <section id="security-section" class="mb-5">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h3 class="mb-0">Security Settings</h3>
                     </div>
-                    <div class="card-body text-dark">
+                    <div class="card-body">
                         <h5>Change Password</h5>
                         <form id="changePasswordForm" method="post" action="/profile/change-password">
                             {{ form.hidden_tag() }}
