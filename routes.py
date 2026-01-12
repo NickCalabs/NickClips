@@ -59,6 +59,7 @@ def register_routes(app):
         # Video stats
         total_videos = Video.query.count()
         orphaned_videos = Video.query.filter_by(user_id=None).order_by(Video.created_at.desc()).all()
+        failed_videos = Video.query.filter_by(status='failed').order_by(Video.created_at.desc()).all()
         recent_videos = Video.query.order_by(Video.created_at.desc()).limit(50).all()
 
         # Status breakdown
@@ -84,6 +85,7 @@ def register_routes(app):
             users=users,
             total_videos=total_videos,
             orphaned_videos=orphaned_videos,
+            failed_videos=failed_videos,
             recent_videos=recent_videos,
             status_counts=status_counts,
             total_storage=total_storage
@@ -110,6 +112,127 @@ def register_routes(app):
 
         db.session.commit()
         return jsonify({'success': True, 'message': 'Video assigned to user'})
+
+    @app.route('/api/admin/toggle-admin', methods=['POST'])
+    @login_required
+    def toggle_admin():
+        """Toggle admin status for a user (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.json
+        user_id = data.get('user_id')
+        is_admin = data.get('is_admin', False)
+
+        if int(user_id) == current_user.id:
+            return jsonify({'error': 'Cannot change your own admin status'}), 400
+
+        user = User.query.get_or_404(user_id)
+        user.is_admin = is_admin
+        db.session.commit()
+        return jsonify({'success': True})
+
+    @app.route('/api/admin/delete-user', methods=['POST'])
+    @login_required
+    def delete_user():
+        """Delete a user and all their videos (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.json
+        user_id = data.get('user_id')
+
+        if int(user_id) == current_user.id:
+            return jsonify({'error': 'Cannot delete yourself'}), 400
+
+        user = User.query.get_or_404(user_id)
+
+        # Delete all user's videos and their files
+        for video in user.videos:
+            delete_video_files(video, app.config.get('UPLOAD_FOLDER', 'uploads'))
+            db.session.delete(video)
+
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({'success': True})
+
+    @app.route('/api/admin/delete-orphaned', methods=['POST'])
+    @login_required
+    def delete_orphaned():
+        """Delete all orphaned videos (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        orphaned = Video.query.filter_by(user_id=None).all()
+        upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+
+        for video in orphaned:
+            delete_video_files(video, upload_folder)
+            db.session.delete(video)
+
+        db.session.commit()
+        return jsonify({'success': True, 'deleted': len(orphaned)})
+
+    @app.route('/api/admin/delete-failed', methods=['POST'])
+    @login_required
+    def delete_failed():
+        """Delete all failed videos (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        failed = Video.query.filter_by(status='failed').all()
+        upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+
+        for video in failed:
+            delete_video_files(video, upload_folder)
+            db.session.delete(video)
+
+        db.session.commit()
+        return jsonify({'success': True, 'deleted': len(failed)})
+
+    def delete_video_files(video, upload_folder):
+        """Helper to delete all files associated with a video"""
+        import shutil
+
+        # Delete original file
+        if video.original_path:
+            try:
+                if os.path.isabs(video.original_path):
+                    if os.path.exists(video.original_path):
+                        os.remove(video.original_path)
+                else:
+                    path = os.path.join(upload_folder, 'original', os.path.basename(video.original_path))
+                    if os.path.exists(path):
+                        os.remove(path)
+            except Exception as e:
+                logger.error(f"Error deleting original file: {e}")
+
+        # Delete processed file
+        if video.processed_path:
+            try:
+                path = os.path.join(upload_folder, video.processed_path)
+                if os.path.exists(path):
+                    os.remove(path)
+            except Exception as e:
+                logger.error(f"Error deleting processed file: {e}")
+
+        # Delete thumbnail
+        if video.thumbnail_path:
+            try:
+                path = os.path.join(upload_folder, video.thumbnail_path)
+                if os.path.exists(path):
+                    os.remove(path)
+            except Exception as e:
+                logger.error(f"Error deleting thumbnail: {e}")
+
+        # Delete HLS directory
+        if video.hls_path:
+            try:
+                hls_dir = os.path.join(upload_folder, 'hls', video.slug)
+                if os.path.exists(hls_dir):
+                    shutil.rmtree(hls_dir)
+            except Exception as e:
+                logger.error(f"Error deleting HLS directory: {e}")
 
     @app.route('/api/upload', methods=['POST'])
     @login_required

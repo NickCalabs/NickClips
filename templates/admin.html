@@ -65,16 +65,31 @@
                     <th>Videos</th>
                     <th>Admin</th>
                     <th>Joined</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for user, video_count in users %}
-                <tr>
+                <tr data-user-id="{{ user.id }}">
                     <td><a href="/u/{{ user.username }}">{{ user.username }}</a></td>
                     <td>{{ user.email }}</td>
                     <td>{{ video_count }}</td>
-                    <td>{% if user.is_admin %}<i class="fas fa-check text-success"></i>{% endif %}</td>
+                    <td>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input admin-toggle" type="checkbox"
+                                   data-user-id="{{ user.id }}"
+                                   {% if user.is_admin %}checked{% endif %}
+                                   {% if user.id == current_user.id %}disabled title="Can't change your own admin status"{% endif %}>
+                        </div>
+                    </td>
                     <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if user.id != current_user.id %}
+                        <button class="btn btn-sm btn-outline-danger delete-user-btn" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -85,18 +100,21 @@
 <!-- Orphaned Videos -->
 {% if orphaned_videos %}
 <div class="card mb-4">
-    <div class="card-header bg-warning text-dark">
+    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Orphaned Videos (No Owner)</h5>
+        <button class="btn btn-sm btn-danger" id="delete-all-orphaned">
+            <i class="fas fa-trash me-1"></i>Delete All Orphaned
+        </button>
     </div>
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table table-sm mb-0" id="orphaned-table">
             <thead>
                 <tr>
                     <th>Thumbnail</th>
                     <th>Title</th>
                     <th>Status</th>
                     <th>Created</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -110,11 +128,64 @@
                         {% endif %}
                     </td>
                     <td><a href="/video/{{ video.slug }}">{{ video.title or 'Untitled' }}</a></td>
-                    <td><span class="badge bg-{{ 'success' if video.status == 'completed' else 'warning' }}">{{ video.status }}</span></td>
+                    <td>
+                        {% if video.status == 'failed' %}
+                        <span class="badge bg-danger">{{ video.status }}</span>
+                        {% elif video.status == 'completed' %}
+                        <span class="badge bg-success">{{ video.status }}</span>
+                        {% else %}
+                        <span class="badge bg-warning">{{ video.status }}</span>
+                        {% endif %}
+                    </td>
                     <td>{{ video.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary claim-btn" data-slug="{{ video.slug }}">
-                            <i class="fas fa-hand-holding me-1"></i>Claim
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-primary claim-btn" data-slug="{{ video.slug }}" title="Claim">
+                                <i class="fas fa-hand-holding"></i>
+                            </button>
+                            <button class="btn btn-danger delete-video-btn" data-slug="{{ video.slug }}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Failed Videos -->
+{% if failed_videos %}
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-times-circle me-2"></i>Failed Videos</h5>
+        <button class="btn btn-sm btn-light" id="delete-all-failed">
+            <i class="fas fa-trash me-1"></i>Delete All Failed
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0" id="failed-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Owner</th>
+                    <th>Error</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for video in failed_videos %}
+                <tr data-slug="{{ video.slug }}">
+                    <td>{{ video.title or 'Untitled' }}</td>
+                    <td>{% if video.owner %}{{ video.owner.username }}{% else %}<span class="text-warning">—</span>{% endif %}</td>
+                    <td><small class="text-muted">{{ (video.error or 'Unknown error')[:50] }}{% if video.error and video.error|length > 50 %}...{% endif %}</small></td>
+                    <td>{{ video.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger delete-video-btn" data-slug="{{ video.slug }}" title="Delete">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 </tr>
@@ -140,11 +211,12 @@
                     <th>Status</th>
                     <th>Views</th>
                     <th>Created</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for video in recent_videos %}
-                <tr>
+                <tr data-slug="{{ video.slug }}">
                     <td style="width: 80px;">
                         {% if video.thumbnail_path %}
                         <img src="/uploads/{{ video.thumbnail_path }}" class="rounded" style="width: 60px; height: 34px; object-fit: cover;">
@@ -167,6 +239,11 @@
                     </td>
                     <td>{{ video.views }}</td>
                     <td>{{ video.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger delete-video-btn" data-slug="{{ video.slug }}" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -177,6 +254,14 @@
 
 {% block scripts %}
 <script>
+// Helper to remove row with animation
+function removeRow(row) {
+    row.style.transition = 'opacity 0.3s';
+    row.style.opacity = '0';
+    setTimeout(() => row.remove(), 300);
+}
+
+// Claim video buttons
 document.querySelectorAll('.claim-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const slug = this.dataset.slug;
@@ -193,29 +278,161 @@ document.querySelectorAll('.claim-btn').forEach(btn => {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                row.style.transition = 'opacity 0.3s';
-                row.style.opacity = '0';
-                setTimeout(() => row.remove(), 300);
-
-                // Update orphaned count in stats
-                const orphanedCount = document.querySelector('.col-md-3:nth-child(3) .h2');
-                if (orphanedCount) {
-                    const count = parseInt(orphanedCount.textContent) - 1;
-                    orphanedCount.textContent = count;
-                    if (count === 0) {
-                        orphanedCount.classList.remove('text-warning');
-                    }
-                }
+                removeRow(row);
             } else {
                 this.disabled = false;
-                this.innerHTML = '<i class="fas fa-hand-holding me-1"></i>Claim';
+                this.innerHTML = '<i class="fas fa-hand-holding"></i>';
                 alert(data.error || 'Failed to claim video');
             }
         })
         .catch(err => {
             this.disabled = false;
-            this.innerHTML = '<i class="fas fa-hand-holding me-1"></i>Claim';
+            this.innerHTML = '<i class="fas fa-hand-holding"></i>';
             alert('Error claiming video');
+        });
+    });
+});
+
+// Delete video buttons
+document.querySelectorAll('.delete-video-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const slug = this.dataset.slug;
+        const row = this.closest('tr');
+
+        if (!confirm('Delete this video and all its files?')) return;
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        fetch(`/api/video/${slug}`, {
+            method: 'DELETE'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                removeRow(row);
+            } else {
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-trash"></i>';
+                alert(data.error || 'Failed to delete video');
+            }
+        })
+        .catch(err => {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-trash"></i>';
+            alert('Error deleting video');
+        });
+    });
+});
+
+// Delete all orphaned videos
+const deleteAllOrphanedBtn = document.getElementById('delete-all-orphaned');
+if (deleteAllOrphanedBtn) {
+    deleteAllOrphanedBtn.addEventListener('click', function() {
+        const table = document.getElementById('orphaned-table');
+        const rows = table.querySelectorAll('tbody tr');
+        if (!confirm(`Delete all ${rows.length} orphaned videos?`)) return;
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
+
+        fetch('/api/admin/delete-orphaned', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                rows.forEach(row => removeRow(row));
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert(data.error || 'Failed to delete orphaned videos');
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-trash me-1"></i>Delete All Orphaned';
+            }
+        });
+    });
+}
+
+// Delete all failed videos
+const deleteAllFailedBtn = document.getElementById('delete-all-failed');
+if (deleteAllFailedBtn) {
+    deleteAllFailedBtn.addEventListener('click', function() {
+        const table = document.getElementById('failed-table');
+        const rows = table.querySelectorAll('tbody tr');
+        if (!confirm(`Delete all ${rows.length} failed videos?`)) return;
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
+
+        fetch('/api/admin/delete-failed', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                rows.forEach(row => removeRow(row));
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert(data.error || 'Failed to delete failed videos');
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-trash me-1"></i>Delete All Failed';
+            }
+        });
+    });
+}
+
+// Admin toggle
+document.querySelectorAll('.admin-toggle').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+        const userId = this.dataset.userId;
+        const isAdmin = this.checked;
+
+        fetch('/api/admin/toggle-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, is_admin: isAdmin })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                this.checked = !isAdmin;
+                alert(data.error || 'Failed to update admin status');
+            }
+        })
+        .catch(() => {
+            this.checked = !isAdmin;
+            alert('Error updating admin status');
+        });
+    });
+});
+
+// Delete user
+document.querySelectorAll('.delete-user-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const userId = this.dataset.userId;
+        const username = this.dataset.username;
+        const row = this.closest('tr');
+
+        if (!confirm(`Delete user "${username}" and all their videos?`)) return;
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        fetch('/api/admin/delete-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                removeRow(row);
+            } else {
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-trash"></i>';
+                alert(data.error || 'Failed to delete user');
+            }
+        })
+        .catch(err => {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-trash"></i>';
+            alert('Error deleting user');
         });
     });
 });
