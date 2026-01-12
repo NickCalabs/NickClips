@@ -41,7 +41,76 @@ def register_routes(app):
                 videos = Video.query.filter_by(user_id=current_user.id).order_by(Video.created_at.desc()).all()
             return render_template('dashboard.html', videos=videos)
         return redirect(url_for('login'))
-    
+
+    @app.route('/admin')
+    @login_required
+    def admin_dashboard():
+        """Admin-only dashboard with system statistics"""
+        if not current_user.is_admin:
+            flash('Access denied. Admin only.', 'danger')
+            return redirect(url_for('dashboard'))
+
+        # User stats with video counts
+        users = db.session.query(
+            User,
+            db.func.count(Video.id).label('video_count')
+        ).outerjoin(Video).group_by(User.id).all()
+
+        # Video stats
+        total_videos = Video.query.count()
+        orphaned_videos = Video.query.filter_by(user_id=None).order_by(Video.created_at.desc()).all()
+        recent_videos = Video.query.order_by(Video.created_at.desc()).limit(50).all()
+
+        # Status breakdown
+        status_counts = {
+            'completed': Video.query.filter_by(status='completed').count(),
+            'processing': Video.query.filter_by(status='processing').count(),
+            'pending': Video.query.filter_by(status='pending').count(),
+            'downloading': Video.query.filter_by(status='downloading').count(),
+            'failed': Video.query.filter_by(status='failed').count()
+        }
+
+        # Storage calculation
+        total_storage = 0
+        upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+        if os.path.exists(upload_folder):
+            for dirpath, dirnames, filenames in os.walk(upload_folder):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    if os.path.isfile(fp):
+                        total_storage += os.path.getsize(fp)
+
+        return render_template('admin.html',
+            users=users,
+            total_videos=total_videos,
+            orphaned_videos=orphaned_videos,
+            recent_videos=recent_videos,
+            status_counts=status_counts,
+            total_storage=total_storage
+        )
+
+    @app.route('/api/admin/claim-video', methods=['POST'])
+    @login_required
+    def claim_video():
+        """Assign an orphaned video to a user (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.json
+        video_slug = data.get('slug')
+        user_id = data.get('user_id')
+
+        video = Video.query.filter_by(slug=video_slug).first_or_404()
+
+        if user_id:
+            user = User.query.get_or_404(user_id)
+            video.user_id = user.id
+        else:
+            video.user_id = current_user.id
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Video assigned to user'})
+
     @app.route('/api/upload', methods=['POST'])
     @login_required
     @csrf.exempt
