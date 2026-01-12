@@ -168,11 +168,11 @@ def process_video(video, upload_folder):
             trim_start = video.trim_start or 0
             trim_end = video.trim_end or original_duration
             video.duration = trim_end - trim_start
-        
-        # Create HLS stream
-        create_hls_stream(mp4_output, hls_dir)
-        video.hls_path = os.path.join('hls', video.slug, 'playlist.m3u8')
-        
+
+        # Skip HLS generation - MP4 with faststart is already streamable
+        # HLS adds processing time and is only needed for very long videos
+        video.hls_path = None
+
         db.session.commit()
         return True
         
@@ -335,7 +335,7 @@ def extract_thumbnail(video_path, output_path, seek_time=None):
         return False
 
 def transcode_to_mp4(input_path, output_path, trim_start=None, trim_end=None):
-    """Transcode video to MP4 format with H.264 video and AAC audio
+    """Transcode video to MP4 format - uses stream copy when possible for speed
 
     Args:
         input_path: Path to input video file
@@ -344,73 +344,86 @@ def transcode_to_mp4(input_path, output_path, trim_start=None, trim_end=None):
         trim_end: End time in seconds (optional)
     """
     try:
-        logger.debug(f"Transcoding {input_path} to MP4 at {output_path}")
-        if trim_start or trim_end:
-            logger.debug(f"Trimming from {trim_start}s to {trim_end}s")
+        logger.debug(f"Processing {input_path} to MP4 at {output_path}")
 
         # Ensure the output directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        cmd = ['ffmpeg', '-y']
+        needs_reencode = trim_start or trim_end
 
-        # Add seek parameter for trimming (before input for faster seeking)
-        if trim_start and trim_start > 0:
-            cmd.extend(['-ss', str(trim_start)])
+        # If no trimming, try fast stream copy first
+        if not needs_reencode:
+            logger.info("Attempting fast stream copy (no re-encoding)...")
+            cmd = [
+                'ffmpeg', '-y',
+                '-i', input_path,
+                '-c:v', 'copy',  # Copy video stream
+                '-c:a', 'copy',  # Copy audio stream
+                '-movflags', '+faststart',
+                output_path
+            ]
 
-        cmd.extend(['-i', input_path])
-
-        # Add duration parameter for trimming (after input)
-        if trim_end:
-            duration = trim_end - (trim_start or 0)
-            if duration > 0:
-                cmd.extend(['-t', str(duration)])
-
-        cmd.extend([
-            '-c:v', 'libx264',  # Video codec
-            '-preset', 'medium',  # Compression preset
-            '-crf', '22',  # Quality (lower is better)
-            '-c:a', 'aac',  # Audio codec
-            '-b:a', '128k',  # Audio bitrate
-            '-movflags', '+faststart',  # Optimize for web streaming
-            output_path
-        ])
-        
-        logger.debug(f"Running command: {' '.join(cmd)}")
-        
-        try:
             result = subprocess.run(cmd, capture_output=True, text=True)
-            
-            # Check if FFmpeg succeeded
-            if result.returncode != 0:
-                logger.warning(f"FFmpeg transcoding failed with error: {result.stderr}")
-                raise Exception(f"ffmpeg transcoding error: {result.stderr}")
-            
-            # Verify the output file was created
-            if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
-                logger.warning(f"Transcoded file not created or is empty: {output_path}")
-                raise Exception("Transcoding failed, output file is empty or missing")
-                
-            logger.info(f"Transcoding successfully completed at {output_path}")
-            return True
-            
-        except Exception as ffmpeg_error:
-            # FFmpeg failed - use fallback method
-            logger.warning(f"Transcoding failed, using fallback: {ffmpeg_error}")
-            
-            # Use a direct file copy as fallback
-            logger.info(f"FALLBACK: Copying original file to {output_path} since transcoding failed")
-            shutil.copy2(input_path, output_path)
-            
-            # Verify the fallback copy worked
-            if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-                logger.info(f"Fallback copy successful: {output_path}")
+
+            if result.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                logger.info(f"Fast stream copy successful: {output_path}")
                 return True
             else:
-                logger.error(f"Fallback copy also failed for {input_path}")
-                return False
-    
+                logger.info("Stream copy failed, falling back to re-encode...")
+                needs_reencode = True
+
+        # Re-encode if needed (trimming or stream copy failed)
+        if needs_reencode:
+            if trim_start or trim_end:
+                logger.debug(f"Trimming from {trim_start}s to {trim_end}s")
+
+            cmd = ['ffmpeg', '-y']
+
+            # Add seek parameter for trimming (before input for faster seeking)
+            if trim_start and trim_start > 0:
+                cmd.extend(['-ss', str(trim_start)])
+
+            cmd.extend(['-i', input_path])
+
+            # Add duration parameter for trimming (after input)
+            if trim_end:
+                duration = trim_end - (trim_start or 0)
+                if duration > 0:
+                    cmd.extend(['-t', str(duration)])
+
+            cmd.extend([
+                '-c:v', 'libx264',
+                '-preset', 'fast',  # Faster encoding
+                '-crf', '23',  # Slightly lower quality for speed
+                '-c:a', 'aac',
+                '-b:a', '128k',
+                '-movflags', '+faststart',
+                output_path
+            ])
+
+            logger.debug(f"Running re-encode: {' '.join(cmd)}")
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                logger.warning(f"FFmpeg re-encode failed: {result.stderr}")
+                raise Exception(f"ffmpeg error: {result.stderr}")
+
+            if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+                raise Exception("Output file is empty or missing")
+
+            logger.info(f"Re-encode completed: {output_path}")
+            return True
+
     except Exception as e:
         logger.error(f"Error in transcode_to_mp4: {e}")
+        # Fallback: just copy the file
+        try:
+            logger.info(f"FALLBACK: Copying original file")
+            shutil.copy2(input_path, output_path)
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                return True
+        except:
+            pass
         return False
 
 def create_hls_stream(input_path, output_dir):
