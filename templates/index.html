@@ -15,6 +15,24 @@
 
 <div class="row">
     <div class="col-md-10 mx-auto card p-4">
+        {% if not current_user.is_authenticated %}
+        <!-- Login prompt for unauthenticated users -->
+        <div class="text-center py-4">
+            <div class="mb-4">
+                <i class="fas fa-lock" style="font-size: 3rem; color: var(--accent-primary);"></i>
+            </div>
+            <h4 class="mb-3">Login Required</h4>
+            <p class="text-muted mb-4">You need an account to upload or download videos.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/login" class="btn btn-primary px-4">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+                <a href="/register" class="btn btn-outline-secondary px-4">
+                    <i class="fas fa-user-plus me-2"></i>Register
+                </a>
+            </div>
+        </div>
+        {% else %}
         <ul class="nav nav-tabs upload-nav mb-4" id="uploadTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-panel" type="button" role="tab" aria-controls="url-panel" aria-selected="true">
@@ -123,6 +141,7 @@
                 <span class="badge platform-badge"><i class="fas fa-ellipsis-h me-1"></i>Many more...</span>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 

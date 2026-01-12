@@ -388,9 +388,13 @@
 
         // Visibility toggle functionality
         const visibilityToggle = document.getElementById('visibility-toggle');
-        if (isEditable && visibilityToggle) {
+        const visibilityLabel = document.querySelector('label[for="visibility-toggle"]');
+        if (isEditable && visibilityToggle && visibilityLabel) {
             visibilityToggle.addEventListener('change', function() {
                 const isPublic = this.checked;
+
+                // Update the label immediately for responsiveness
+                visibilityLabel.textContent = isPublic ? 'Public' : 'Private';
 
                 fetch(`/api/video/${slug}/update`, {
                     method: 'POST',
@@ -399,15 +403,16 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        // Update the helper text
-                        const helpText = this.closest('.visibility-toggle').querySelector('.form-text');
-                        if (isPublic) {
-                            helpText.innerHTML = 'This video is visible on <a href="/u/{{ current_user.username }}">your public profile</a>.';
-                        } else {
-                            helpText.textContent = 'This video is private. Only people with the link can view it.';
-                        }
+                    if (!data.success) {
+                        // Revert on failure
+                        visibilityToggle.checked = !isPublic;
+                        visibilityLabel.textContent = !isPublic ? 'Public' : 'Private';
                     }
+                })
+                .catch(() => {
+                    // Revert on error
+                    visibilityToggle.checked = !isPublic;
+                    visibilityLabel.textContent = !isPublic ? 'Public' : 'Private';
                 });
             });
         }

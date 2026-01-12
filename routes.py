@@ -43,6 +43,7 @@ def register_routes(app):
         return redirect(url_for('login'))
     
     @app.route('/api/upload', methods=['POST'])
+    @login_required
     @csrf.exempt
     def upload_file():
         """Handle direct file upload"""
@@ -115,6 +116,7 @@ def register_routes(app):
             return jsonify({'error': 'Server error occurred during upload'}), 500
     
     @app.route('/api/download', methods=['POST'])
+    @login_required
     @csrf.exempt
     def download_video():
         """Handle video download from URL"""
