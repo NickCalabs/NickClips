@@ -254,6 +254,51 @@
 
 {% block scripts %}
 <script>
+// Toast notification helper
+function showToast(message, type = 'info') {
+    const container = document.getElementById('alerts-container') || document.body;
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
+    toast.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// Confirmation modal helper
+function confirmAction(message) {
+    return new Promise((resolve) => {
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center py-4">
+                        <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2.5rem;"></i>
+                        <p class="mb-0">${message}</p>
+                    </div>
+                    <div class="modal-footer justify-content-center border-0 pt-0">
+                        <button type="button" class="btn btn-secondary" data-action="cancel">Cancel</button>
+                        <button type="button" class="btn btn-danger" data-action="confirm">Delete</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        const bsModal = new bootstrap.Modal(modal);
+
+        modal.querySelector('[data-action="cancel"]').onclick = () => { bsModal.hide(); resolve(false); };
+        modal.querySelector('[data-action="confirm"]').onclick = () => { bsModal.hide(); resolve(true); };
+        modal.addEventListener('hidden.bs.modal', () => modal.remove());
+
+        bsModal.show();
+    });
+}
+
 // Helper to remove row with animation
 function removeRow(row) {
     row.style.transition = 'opacity 0.3s';
@@ -278,28 +323,29 @@ document.querySelectorAll('.claim-btn').forEach(btn => {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
+                showToast('Video claimed successfully', 'success');
                 removeRow(row);
             } else {
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-hand-holding"></i>';
-                alert(data.error || 'Failed to claim video');
+                showToast(data.error || 'Failed to claim video', 'danger');
             }
         })
         .catch(err => {
             this.disabled = false;
             this.innerHTML = '<i class="fas fa-hand-holding"></i>';
-            alert('Error claiming video');
+            showToast('Error claiming video', 'danger');
         });
     });
 });
 
 // Delete video buttons
 document.querySelectorAll('.delete-video-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
         const slug = this.dataset.slug;
         const row = this.closest('tr');
 
-        if (!confirm('Delete this video and all its files?')) return;
+        if (!await confirmAction('Delete this video and all its files?')) return;
 
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -310,17 +356,18 @@ document.querySelectorAll('.delete-video-btn').forEach(btn => {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
+                showToast('Video deleted', 'success');
                 removeRow(row);
             } else {
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-trash"></i>';
-                alert(data.error || 'Failed to delete video');
+                showToast(data.error || 'Failed to delete video', 'danger');
             }
         })
         .catch(err => {
             this.disabled = false;
             this.innerHTML = '<i class="fas fa-trash"></i>';
-            alert('Error deleting video');
+            showToast('Error deleting video', 'danger');
         });
     });
 });
@@ -328,10 +375,10 @@ document.querySelectorAll('.delete-video-btn').forEach(btn => {
 // Delete all orphaned videos
 const deleteAllOrphanedBtn = document.getElementById('delete-all-orphaned');
 if (deleteAllOrphanedBtn) {
-    deleteAllOrphanedBtn.addEventListener('click', function() {
+    deleteAllOrphanedBtn.addEventListener('click', async function() {
         const table = document.getElementById('orphaned-table');
         const rows = table.querySelectorAll('tbody tr');
-        if (!confirm(`Delete all ${rows.length} orphaned videos?`)) return;
+        if (!await confirmAction(`Delete all ${rows.length} orphaned videos?`)) return;
 
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
@@ -340,10 +387,11 @@ if (deleteAllOrphanedBtn) {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
+                showToast(`Deleted ${data.deleted} orphaned videos`, 'success');
                 rows.forEach(row => removeRow(row));
                 setTimeout(() => location.reload(), 500);
             } else {
-                alert(data.error || 'Failed to delete orphaned videos');
+                showToast(data.error || 'Failed to delete orphaned videos', 'danger');
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-trash me-1"></i>Delete All Orphaned';
             }
@@ -354,10 +402,10 @@ if (deleteAllOrphanedBtn) {
 // Delete all failed videos
 const deleteAllFailedBtn = document.getElementById('delete-all-failed');
 if (deleteAllFailedBtn) {
-    deleteAllFailedBtn.addEventListener('click', function() {
+    deleteAllFailedBtn.addEventListener('click', async function() {
         const table = document.getElementById('failed-table');
         const rows = table.querySelectorAll('tbody tr');
-        if (!confirm(`Delete all ${rows.length} failed videos?`)) return;
+        if (!await confirmAction(`Delete all ${rows.length} failed videos?`)) return;
 
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
@@ -366,10 +414,11 @@ if (deleteAllFailedBtn) {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
+                showToast(`Deleted ${data.deleted} failed videos`, 'success');
                 rows.forEach(row => removeRow(row));
                 setTimeout(() => location.reload(), 500);
             } else {
-                alert(data.error || 'Failed to delete failed videos');
+                showToast(data.error || 'Failed to delete failed videos', 'danger');
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-trash me-1"></i>Delete All Failed';
             }
@@ -390,26 +439,28 @@ document.querySelectorAll('.admin-toggle').forEach(toggle => {
         })
         .then(r => r.json())
         .then(data => {
-            if (!data.success) {
+            if (data.success) {
+                showToast(`Admin status updated`, 'success');
+            } else {
                 this.checked = !isAdmin;
-                alert(data.error || 'Failed to update admin status');
+                showToast(data.error || 'Failed to update admin status', 'danger');
             }
         })
         .catch(() => {
             this.checked = !isAdmin;
-            alert('Error updating admin status');
+            showToast('Error updating admin status', 'danger');
         });
     });
 });
 
 // Delete user
 document.querySelectorAll('.delete-user-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
         const userId = this.dataset.userId;
         const username = this.dataset.username;
         const row = this.closest('tr');
 
-        if (!confirm(`Delete user "${username}" and all their videos?`)) return;
+        if (!await confirmAction(`Delete user "${username}" and all their videos?`)) return;
 
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -422,17 +473,18 @@ document.querySelectorAll('.delete-user-btn').forEach(btn => {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
+                showToast(`User "${username}" deleted`, 'success');
                 removeRow(row);
             } else {
                 this.disabled = false;
                 this.innerHTML = '<i class="fas fa-trash"></i>';
-                alert(data.error || 'Failed to delete user');
+                showToast(data.error || 'Failed to delete user', 'danger');
             }
         })
         .catch(err => {
             this.disabled = false;
             this.innerHTML = '<i class="fas fa-trash"></i>';
-            alert('Error deleting user');
+            showToast('Error deleting user', 'danger');
         });
     });
 });
