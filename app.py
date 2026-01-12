@@ -106,25 +106,34 @@ with app.app_context():
     create_enum_if_not_exists('video_statuses', ['pending', 'downloading', 'processing', 'completed', 'failed'])
     create_enum_if_not_exists('queue_statuses', ['queued', 'processing', 'completed', 'failed'])
     
+    # Auto-migration: Add missing columns BEFORE importing models
+    # This must happen before SQLAlchemy tries to map the new columns
+    def safe_add_column(table, column, column_type):
+        """Safely add a column - ignores if already exists"""
+        try:
+            # Try to add the column - will fail if it already exists
+            db.session.execute(text(f'ALTER TABLE "{table}" ADD COLUMN {column} {column_type}'))
+            db.session.commit()
+            logging.info(f"Added column '{column}' to table '{table}'")
+        except Exception as e:
+            # Column likely already exists, or table doesn't exist yet
+            db.session.rollback()
+            if 'duplicate column' in str(e).lower() or 'already exists' in str(e).lower():
+                logging.debug(f"Column '{column}' already exists in '{table}'")
+            else:
+                logging.debug(f"Could not add column {column} to {table}: {e}")
+
+    # Check if user table exists, then add api_key column if needed
+    try:
+        tables = inspector.get_table_names()
+        if 'user' in tables:
+            safe_add_column('user', 'api_key', 'VARCHAR(64)')
+    except Exception as e:
+        logging.debug(f"Migration check skipped: {e}")
+
     # Import models and create tables
     import models
     db.create_all()
-
-    # Auto-migration: Add missing columns to existing tables
-    def add_column_if_not_exists(table, column, column_type):
-        """Add a column to a table if it doesn't exist"""
-        try:
-            columns = [c['name'] for c in inspector.get_columns(table)]
-            if column not in columns:
-                db.session.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {column_type}'))
-                db.session.commit()
-                logging.info(f"Added column '{column}' to table '{table}'")
-        except Exception as e:
-            logging.warning(f"Could not add column {column} to {table}: {e}")
-            db.session.rollback()
-
-    # Add api_key column to user table if missing
-    add_column_if_not_exists('user', 'api_key', 'VARCHAR(64) UNIQUE')
     
     # Import and register routes
     from routes import register_routes
