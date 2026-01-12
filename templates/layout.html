@@ -1,30 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Video Sharing Platform{% endblock %}</title>
+    <title>{% block title %}NickClips{% endblock %}</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#F59E0B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NickClips">
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg">
     
     <!-- Theme initialization script -->
     <script>
         // Apply saved theme before page renders to prevent flash of wrong theme
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            // Determine the actual theme to apply
-            let themeToApply = 'light';
-            
-            if (savedTheme === 'dark') {
-                themeToApply = 'dark';
+
+            // Determine the actual theme to apply (default to dark if no preference saved)
+            let themeToApply = 'dark';
+
+            if (savedTheme === 'light') {
+                themeToApply = 'light';
             } else if (savedTheme === 'auto') {
                 themeToApply = prefersDark ? 'dark' : 'light';
+            } else if (savedTheme === 'dark') {
+                themeToApply = 'dark';
             }
-            
+            // If no savedTheme, defaults to 'dark'
+
             // Apply the theme to the html element
             document.documentElement.setAttribute('data-bs-theme', themeToApply);
             document.documentElement.classList.add(`theme-${themeToApply}`);
-            
+
             // Store the applied theme for reference
             window.currentTheme = themeToApply;
         })();
@@ -91,13 +102,13 @@
             background-color: #f8f9fa !important;
         }
         
-        /* Primary blue color */
+        /* Primary yellow color */
         .btn-primary, .bg-primary {
-            background-color: #1e88e5 !important;
+            background-color: #F59E0B !important;
         }
-        
+
         .text-primary, .nav-link.active {
-            color: #1e88e5 !important;
+            color: #F59E0B !important;
         }
         
         /* Fix embed modal in dark mode */
@@ -147,6 +158,24 @@
             font-weight: 500 !important;
             margin-bottom: 0.25rem !important;
         }
+
+        /* Theme toggle button */
+        #theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        #theme-toggle:hover {
+            background-color: rgba(245, 158, 11, 0.1);
+            transform: scale(1.1);
+        }
+        #theme-toggle i {
+            color: #F59E0B;
+        }
     </style>
     
     <!-- Bootstrap CSS -->
@@ -169,16 +198,22 @@
         <div class="container d-flex flex-wrap justify-content-between align-items-center">
             <a href="/" class="d-flex align-items-center text-decoration-none text-primary">
                 <i class="fas fa-play-circle me-2" style="font-size: 1.75rem;"></i>
-                <span class="fs-4 fw-bold">Video Share</span>
+                <span class="fs-4 fw-bold">NickClips</span>
             </a>
             
             <div class="d-flex gap-2 align-items-center">
                 <div class="nav">
                     {% if current_user.is_authenticated %}
-                    <a href="/dashboard" class="nav-link fw-medium px-3 {% if request.path == '/dashboard' %}active fw-bold{% endif %}" style="color: #1e88e5;">My Videos</a>
+                    <a href="/dashboard" class="nav-link fw-medium px-3 {% if request.path == '/dashboard' %}active fw-bold{% endif %}" style="color: #F59E0B;">My Videos</a>
                     {% endif %}
                 </div>
-                
+
+                <!-- Dark/Light Mode Toggle -->
+                <button class="btn btn-sm btn-outline-secondary border-0" id="theme-toggle" title="Toggle dark/light mode" style="font-size: 1.1rem;">
+                    <i class="fas fa-moon" id="theme-icon-dark"></i>
+                    <i class="fas fa-sun d-none" id="theme-icon-light"></i>
+                </button>
+
                 <div class="d-flex gap-2">
                     {% if current_user.is_authenticated %}
                     <div class="dropdown">
@@ -186,7 +221,8 @@
                             <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-cog me-2"></i>Profile Settings</a></li>
+                            <li><a class="dropdown-item" href="/u/{{ current_user.username }}"><i class="fas fa-user me-2"></i>My Public Profile</a></li>
+                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-cog me-2"></i>Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                         </ul>
@@ -225,8 +261,8 @@
         <footer class="pt-4 my-5 text-body-secondary border-top">
             <div class="row">
                 <div class="col-12 col-md text-center text-md-start">
-                    <p>Video Share Platform &copy; {{ now.year }}</p>
-                    <small class="d-block mb-3">A lightweight, self-hosted video sharing platform</small>
+                    <p>NickClips &copy; {{ now.year }}</p>
+                    <small class="d-block mb-3">Your personal video sharing platform</small>
                 </div>
             </div>
         </footer>
@@ -237,7 +273,63 @@
     
     <!-- Main JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Theme Toggle -->
+    <script>
+        (function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const iconDark = document.getElementById('theme-icon-dark');
+            const iconLight = document.getElementById('theme-icon-light');
+
+            function updateIcons(theme) {
+                if (theme === 'dark') {
+                    iconDark.classList.add('d-none');
+                    iconLight.classList.remove('d-none');
+                } else {
+                    iconDark.classList.remove('d-none');
+                    iconLight.classList.add('d-none');
+                }
+            }
+
+            function setTheme(theme) {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+                document.documentElement.classList.remove('theme-light', 'theme-dark');
+                document.documentElement.classList.add(`theme-${theme}`);
+                localStorage.setItem('theme', theme);
+                window.currentTheme = theme;
+                updateIcons(theme);
+            }
+
+            // Initialize icons based on current theme
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            updateIcons(currentTheme);
+
+            // Toggle handler
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-bs-theme');
+                    const newTheme = current === 'dark' ? 'light' : 'dark';
+                    setTheme(newTheme);
+                });
+            }
+        })();
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

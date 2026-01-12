@@ -146,13 +146,28 @@ def process_video(video, upload_folder):
         
         db.session.commit()
         
-        # Generate thumbnail
-        extract_thumbnail(video.original_path, thumbnail_output)
+        # Determine thumbnail time - use trim_start if trimming, otherwise default
+        thumbnail_time = video.trim_start if video.trim_start else None
+
+        # Generate thumbnail (at trim start if trimming)
+        extract_thumbnail(video.original_path, thumbnail_output, seek_time=thumbnail_time)
         video.thumbnail_path = os.path.join('thumbnails', f"{video.slug}.jpg")
-        
-        # Transcode to MP4
-        transcode_to_mp4(video.original_path, mp4_output)
+
+        # Transcode to MP4 with optional trimming
+        transcode_to_mp4(
+            video.original_path,
+            mp4_output,
+            trim_start=video.trim_start,
+            trim_end=video.trim_end
+        )
         video.processed_path = os.path.join('processed', f"{video.slug}.mp4")
+
+        # Update duration if video was trimmed
+        if video.trim_start or video.trim_end:
+            original_duration = video.duration or 0
+            trim_start = video.trim_start or 0
+            trim_end = video.trim_end or original_duration
+            video.duration = trim_end - trim_start
         
         # Create HLS stream
         create_hls_stream(mp4_output, hls_dir)
@@ -216,15 +231,25 @@ def get_video_info(video_path):
         logger.error(f"Error getting video info: {e}")
         return {}
 
-def extract_thumbnail(video_path, output_path):
-    """Extract a thumbnail from the video at the 5 second mark or 25% point"""
+def extract_thumbnail(video_path, output_path, seek_time=None):
+    """Extract a thumbnail from the video
+
+    Args:
+        video_path: Path to video file
+        output_path: Path to output thumbnail
+        seek_time: Optional specific time in seconds to extract thumbnail
+    """
     try:
         # Get video duration
         info = get_video_info(video_path)
         duration = float(info.get('duration', 0))
-        
-        # Extract at 5 seconds or 25% of duration if less than 20 seconds
-        seek_time = min(5, max(1, duration * 0.25)) if duration > 0 else 0
+
+        # Use provided seek_time or calculate default (5 seconds or 25% of duration)
+        if seek_time is None:
+            seek_time = min(5, max(1, duration * 0.25)) if duration > 0 else 0
+        else:
+            # Ensure seek_time is within video duration
+            seek_time = max(0, min(seek_time, duration - 0.5)) if duration > 0 else 0
         
         logger.debug(f"Extracting thumbnail for {video_path} at {seek_time}s to {output_path}")
         
@@ -309,18 +334,38 @@ def extract_thumbnail(video_path, output_path):
         logger.error(f"Error in extract_thumbnail: {e}")
         return False
 
-def transcode_to_mp4(input_path, output_path):
-    """Transcode video to MP4 format with H.264 video and AAC audio"""
+def transcode_to_mp4(input_path, output_path, trim_start=None, trim_end=None):
+    """Transcode video to MP4 format with H.264 video and AAC audio
+
+    Args:
+        input_path: Path to input video file
+        output_path: Path to output MP4 file
+        trim_start: Start time in seconds (optional)
+        trim_end: End time in seconds (optional)
+    """
     try:
         logger.debug(f"Transcoding {input_path} to MP4 at {output_path}")
-        
+        if trim_start or trim_end:
+            logger.debug(f"Trimming from {trim_start}s to {trim_end}s")
+
         # Ensure the output directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        
-        cmd = [
-            'ffmpeg',
-            '-y',  # Overwrite output files
-            '-i', input_path,  # Input file
+
+        cmd = ['ffmpeg', '-y']
+
+        # Add seek parameter for trimming (before input for faster seeking)
+        if trim_start and trim_start > 0:
+            cmd.extend(['-ss', str(trim_start)])
+
+        cmd.extend(['-i', input_path])
+
+        # Add duration parameter for trimming (after input)
+        if trim_end:
+            duration = trim_end - (trim_start or 0)
+            if duration > 0:
+                cmd.extend(['-t', str(duration)])
+
+        cmd.extend([
             '-c:v', 'libx264',  # Video codec
             '-preset', 'medium',  # Compression preset
             '-crf', '22',  # Quality (lower is better)
@@ -328,7 +373,7 @@ def transcode_to_mp4(input_path, output_path):
             '-b:a', '128k',  # Audio bitrate
             '-movflags', '+faststart',  # Optimize for web streaming
             output_path
-        ]
+        ])
         
         logger.debug(f"Running command: {' '.join(cmd)}")
         

@@ -1,3 +1,4 @@
+import os
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
@@ -42,6 +43,7 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField(
         'Confirm Password', validators=[DataRequired(), EqualTo('password')]
     )
+    invite_code = StringField('Invite Code', validators=[DataRequired()])
     submit = SubmitField('Register')
 
     def validate_username(self, username):
@@ -53,3 +55,10 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Email already registered. Please use a different email or sign in.')
+
+    def validate_invite_code(self, invite_code):
+        valid_code = os.environ.get('INVITE_CODE', '')
+        if not valid_code:
+            raise ValidationError('Registration is currently closed.')
+        if invite_code.data != valid_code:
+            raise ValidationError('Invalid invite code.')

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Video Share - Upload or Share Videos{% endblock %}
+{% block title %}NickClips - Upload or Share Videos{% endblock %}
 
 {% block content %}
 <div class="px-4 pt-4 pb-2 mb-3 text-center">
@@ -41,6 +41,17 @@
                         Enter a URL from YouTube, Twitter, Vimeo, and many other platforms.
                     </div>
                 </div>
+                {% if current_user.is_authenticated %}
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="is-public-url">
+                    <label class="form-check-label" for="is-public-url">
+                        Add to my public profile
+                    </label>
+                    <small class="form-text text-muted d-block">
+                        Public clips appear on your profile page. Private clips require the direct link.
+                    </small>
+                </div>
+                {% endif %}
                 
                 <div class="mt-4">
                     <h5>Supported platforms include:</h5>
@@ -74,6 +85,17 @@
                         Maximum file size: 1GB<br>
                         Supported formats: MP4, MOV, AVI, MKV, WEBM, FLV, WMV
                     </p>
+                    {% if current_user.is_authenticated %}
+                    <div class="form-check mt-3 text-start">
+                        <input class="form-check-input" type="checkbox" id="is-public-upload">
+                        <label class="form-check-label" for="is-public-upload">
+                            Add to my public profile
+                        </label>
+                        <small class="form-text text-muted d-block">
+                            Public clips appear on your profile page. Private clips require the direct link.
+                        </small>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -176,24 +198,28 @@
     function handleUrlSubmit() {
         const url = urlInput.value.trim();
         if (!url) return;
-        
+
+        // Get is_public checkbox value
+        const isPublicCheckbox = document.getElementById('is-public-url');
+        const isPublic = isPublicCheckbox ? isPublicCheckbox.checked : false;
+
         // Show download status
         downloadStatus.classList.remove('d-none');
         downloadStatus.classList.remove('alert-danger');
         downloadStatus.classList.add('alert-info');
         downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Validating and downloading URL...</div>';
-        
+
         // Disable the button
         downloadUrlBtn.disabled = true;
         downloadUrlBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-        
+
         // Call API to download video from URL
         fetch('/api/download', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ url: url })
+            body: JSON.stringify({ url: url, is_public: isPublic })
         })
         .then(response => response.json())
         .then(data => {
@@ -228,10 +254,15 @@
             showAlert('Please select a file to upload.', 'warning');
             return;
         }
-        
+
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
+
+        // Get is_public checkbox value
+        const isPublicCheckbox = document.getElementById('is-public-upload');
+        const isPublic = isPublicCheckbox ? isPublicCheckbox.checked : false;
+        formData.append('is_public', isPublic);
         
         // Show upload progress
         uploadProgress.classList.remove('d-none');

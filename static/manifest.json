@@ -1,0 +1,53 @@
+{
+  "name": "NickClips",
+  "short_name": "NickClips",
+  "description": "Self-hosted video sharing - your personal Streamable",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#F59E0B",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "video",
+          "accept": ["video/*"]
+        }
+      ]
+    }
+  },
+  "categories": ["entertainment", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Upload Video",
+      "url": "/",
+      "description": "Upload a new video"
+    },
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "View your videos"
+    }
+  ]
+}

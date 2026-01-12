@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ profile_user.username }}'s Clips - NickClips{% endblock %}
+
+{% block content %}
+<div class="profile-header mb-4">
+    <div class="d-flex align-items-center">
+        <div class="profile-avatar me-3">
+            <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem;">
+                {{ profile_user.username[0].upper() }}
+            </div>
+        </div>
+        <div>
+            <h1 class="mb-1">{{ profile_user.username }}</h1>
+            <p class="text-muted mb-0">
+                <i class="fas fa-video me-1"></i> {{ videos|length }} public clip{% if videos|length != 1 %}s{% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+{% if videos %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for video in videos %}
+    <div class="col">
+        <div class="card h-100 video-card shadow-sm">
+            <a href="/video/{{ video.slug }}" class="video-thumbnail-link">
+                {% if video.thumbnail_path %}
+                <img src="/uploads/{{ video.thumbnail_path }}" class="card-img-top" alt="{{ video.title or 'Video' }}">
+                {% else %}
+                <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="aspect-ratio: 16/9;">
+                    <i class="fas fa-video text-muted" style="font-size: 2rem;"></i>
+                </div>
+                {% endif %}
+                {% if video.duration %}
+                <span class="video-duration badge bg-dark position-absolute" style="bottom: 8px; right: 8px;">
+                    {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}
+                </span>
+                {% endif %}
+            </a>
+            <div class="card-body">
+                <h6 class="card-title mb-1">
+                    <a href="/video/{{ video.slug }}" class="text-decoration-none" style="color: inherit;">
+                        {{ video.title or 'Untitled' }}
+                    </a>
+                </h6>
+                <small class="text-muted">
+                    <i class="fas fa-eye me-1"></i>{{ video.views }} views
+                    <span class="mx-1">&middot;</span>
+                    {{ video.created_at.strftime('%b %d, %Y') }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-video-slash text-muted mb-3" style="font-size: 4rem;"></i>
+    <h4 class="text-muted">No public clips yet</h4>
+    <p class="text-muted">
+        {% if current_user.is_authenticated and current_user.id == profile_user.id %}
+        Upload a video and mark it as public to show it here.
+        {% else %}
+        {{ profile_user.username }} hasn't shared any public clips yet.
+        {% endif %}
+    </p>
+</div>
+{% endif %}
+
+<style>
+    .video-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .video-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .video-thumbnail-link {
+        position: relative;
+        display: block;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+    }
+    .video-thumbnail-link img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    .video-thumbnail-link:hover img {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ video.title or 'Untitled Video' }} - Video Share{% endblock %}
+{% block title %}{{ video.title or 'Untitled Video' }} - NickClips{% endblock %}
 
 {% block head %}
 <!-- OpenGraph tags for link previews -->
@@ -10,7 +10,7 @@
 {% if video.thumbnail_path %}
 <meta property="og:image" content="{{ request.url_root.rstrip('/') }}/uploads/{{ video.thumbnail_path }}">
 {% endif %}
-<meta property="og:site_name" content="Video Share">
+<meta property="og:site_name" content="NickClips">
 {% if video.description %}
 <meta property="og:description" content="{{ video.description }}">
 {% endif %}
@@ -172,7 +172,26 @@
                         <button class="btn btn-sm btn-secondary" id="cancel-description-btn">Cancel</button>
                     </div>
                 </div>
-                
+
+                <!-- Visibility toggle (only for owner) -->
+                {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                <div class="visibility-toggle mb-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="visibility-toggle" {% if video.is_public %}checked{% endif %}>
+                        <label class="form-check-label" for="visibility-toggle">
+                            <i class="fas fa-globe me-1"></i> Show on public profile
+                        </label>
+                    </div>
+                    <small class="form-text text-muted">
+                        {% if video.is_public %}
+                        This video is visible on <a href="/u/{{ current_user.username }}">your public profile</a>.
+                        {% else %}
+                        This video is private. Only people with the link can view it.
+                        {% endif %}
+                    </small>
+                </div>
+                {% endif %}
+
                 <!-- Share section -->
                 <div class="share-section pt-3 border-top">
                     <div class="row">
@@ -338,6 +357,32 @@
                         this.classList.remove('btn-success');
                         this.classList.add('btn-outline-secondary');
                     }, 2000);
+                });
+            });
+        }
+
+        // Visibility toggle functionality
+        const visibilityToggle = document.getElementById('visibility-toggle');
+        if (isEditable && visibilityToggle) {
+            visibilityToggle.addEventListener('change', function() {
+                const isPublic = this.checked;
+
+                fetch(`/api/video/${slug}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_public: isPublic })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the helper text
+                        const helpText = this.closest('.visibility-toggle').querySelector('.form-text');
+                        if (isPublic) {
+                            helpText.innerHTML = 'This video is visible on <a href="/u/{{ current_user.username }}">your public profile</a>.';
+                        } else {
+                            helpText.textContent = 'This video is private. Only people with the link can view it.';
+                        }
+                    }
                 });
             });
         }

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Register - Video Share{% endblock %}
+{% block title %}Register - NickClips{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -43,7 +43,16 @@
                             <div class="text-danger">{{ error }}</div>
                         {% endfor %}
                     </div>
-                    
+
+                    <div class="mb-3">
+                        {{ form.invite_code.label(class="form-label") }}
+                        {{ form.invite_code(class="form-control", placeholder="Enter your invite code") }}
+                        <small class="form-text text-muted">Registration requires an invite code.</small>
+                        {% for error in form.invite_code.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
                     <div class="d-grid gap-2">
                         {{ form.submit(class="btn btn-primary") }}
                     </div>

@@ -1,8 +1,8 @@
 /* Custom styles for the video sharing platform */
 
 :root {
-    --bs-primary: #1E88E5;
-    --bs-primary-rgb: 30, 136, 229;
+    --bs-primary: #F59E0B;
+    --bs-primary-rgb: 245, 158, 11;
 }
 
 body {
@@ -22,9 +22,9 @@ html[data-bs-theme="light"] {
     --input-bg: #f8f9fa;
     --video-container-bg: #000000; /* Always black for proper video display */
     --tab-bg: #f8f9fa;
-    --active-tab-bg: #1e88e5;
+    --active-tab-bg: #F59E0B;
     --active-tab-color: #ffffff;
-    --accent-color: #1e88e5;
+    --accent-color: #F59E0B;
     --form-bg: #f8f9fa;
     --upload-area-bg: #ffffff;
 }
@@ -55,11 +55,11 @@ html[data-bs-theme="light"] .upload-area {
 }
 
 html[data-bs-theme="light"] .nav-link {
-    color: #1e88e5;
+    color: #F59E0B;
 }
 
 html[data-bs-theme="light"] .nav-link:hover {
-    color: #1565c0;
+    color: #D97706;
 }
 
 html[data-bs-theme="light"] .form-control,
@@ -84,9 +84,9 @@ html[data-bs-theme="dark"] {
     --input-bg: #2c2f33;
     --video-container-bg: #000000;
     --tab-bg: #1e2124;
-    --active-tab-bg: #1e88e5;
+    --active-tab-bg: #F59E0B;
     --active-tab-color: #ffffff;
-    --accent-color: #1e88e5;
+    --accent-color: #F59E0B;
     --form-bg: #2c2f33;
     --upload-area-bg: #2c2f33;
 }
@@ -136,21 +136,21 @@ body {
 
 /* Consistent button styling */
 .btn-primary {
-    background-color: #1e88e5 !important;
-    border-color: #1e88e5 !important;
+    background-color: #F59E0B !important;
+    border-color: #F59E0B !important;
 }
 
 .btn-outline-primary {
-    color: #1e88e5 !important;
-    border-color: #1e88e5 !important;
+    color: #F59E0B !important;
+    border-color: #F59E0B !important;
 }
 
 .btn-outline-primary:hover {
-    background-color: rgba(30, 136, 229, 0.1) !important;
+    background-color: rgba(245, 158, 11, 0.1) !important;
 }
 
 .nav-link.active {
-    color: #1e88e5 !important;
+    color: #F59E0B !important;
 }
 
 .video-thumbnail {
@@ -183,12 +183,12 @@ body {
 
 .upload-area:hover {
     border-color: var(--accent-color);
-    background-color: rgba(30, 136, 229, 0.05);
+    background-color: rgba(245, 158, 11, 0.05);
 }
 
 .upload-area.highlight {
     border-color: var(--accent-color);
-    background-color: rgba(30, 136, 229, 0.1);
+    background-color: rgba(245, 158, 11, 0.1);
 }
 
 .url-input-group {
@@ -319,7 +319,7 @@ html[data-bs-theme="dark"] .fade-overlay {
 }
 
 .nav-tabs .nav-link {
-    color: #1e88e5;
+    color: #F59E0B;
     background-color: transparent;
     border: 1px solid transparent;
     border-bottom: none;
@@ -332,7 +332,7 @@ html[data-bs-theme="dark"] .fade-overlay {
 }
 
 .nav-tabs .nav-link:hover {
-    background-color: rgba(30, 136, 229, 0.05);
+    background-color: rgba(245, 158, 11, 0.05);
     border-color: #e5e5e5 #e5e5e5 transparent;
 }
 
@@ -370,7 +370,7 @@ html[data-bs-theme="dark"] .fade-overlay {
 }
 
 #uploadTabs .nav-link.active {
-    color: #1e88e5;
+    color: #F59E0B;
 }
 
 #uploadTabs .nav-link i, 
@@ -478,7 +478,7 @@ html[data-bs-theme="dark"] .video-main-container {
 }
 
 .custom-video-control:hover {
-    color: #1E88E5;
+    color: #F59E0B;
 }
 
 .video-progress-bar {
@@ -496,7 +496,7 @@ html[data-bs-theme="dark"] .video-main-container {
 
 .video-progress-value {
     height: 100%;
-    background-color: #1E88E5;
+    background-color: #F59E0B;
     width: 0%;
     transition: width 0.1s;
     position: relative;
@@ -511,7 +511,7 @@ html[data-bs-theme="dark"] .video-main-container {
     transform: translateY(-50%);
     width: 12px;
     height: 12px;
-    background-color: #1E88E5;
+    background-color: #F59E0B;
     border-radius: 50%;
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
@@ -569,7 +569,7 @@ html[data-bs-theme="dark"] .video-main-container {
 
 .volume-level {
     height: 100%;
-    background-color: #1E88E5;
+    background-color: #F59E0B;
     border-radius: 2px;
     width: 100%;
 }
@@ -632,7 +632,7 @@ html[data-bs-theme="dark"] .video-main-container {
 }
 
 .skip-button:hover {
-    color: #1E88E5;
+    color: #F59E0B;
 }
 
 /* PiP button */
@@ -768,7 +768,7 @@ html[data-bs-theme="dark"] .video-main-container {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #1e88e5;
+    color: #F59E0B;
     text-decoration: none;
 }
 

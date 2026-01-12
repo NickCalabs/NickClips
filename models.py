@@ -69,7 +69,14 @@ class Video(db.Model):
     
     # View count
     views = db.Column(db.Integer, default=0)
-    
+
+    # Visibility - public videos appear on user's profile
+    is_public = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Trimming parameters (for clipping videos)
+    trim_start = db.Column(db.Float, nullable=True)  # Start time in seconds
+    trim_end = db.Column(db.Float, nullable=True)    # End time in seconds
+
     def __repr__(self):
         return f'<Video {self.id}: {self.title or "Untitled"}>'
     
@@ -87,6 +94,7 @@ class Video(db.Model):
             'size': self.size,
             'status': self.status,
             'views': self.views,
+            'is_public': self.is_public,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'user_id': self.user_id

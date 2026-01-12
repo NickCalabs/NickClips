@@ -1,0 +1,295 @@
+{% extends "layout.html" %}
+
+{% block title %}Trim Video - NickClips{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h2 class="mb-4"><i class="fas fa-cut me-2"></i>Trim Your Video</h2>
+
+            <!-- Video player -->
+            <div class="video-preview mb-4">
+                {% if video.original_path %}
+                <video id="trim-player" controls playsinline class="w-100 rounded" style="max-height: 60vh; background: #000;">
+                    <source src="/uploads/original/{{ video.original_path.split('/')[-1] }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-spinner fa-spin me-2"></i>Video is still downloading. Please wait...
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Trim controls -->
+            <div class="trim-controls bg-white rounded p-4 shadow-sm mb-4">
+                <h5 class="mb-3">Set Clip Range</h5>
+
+                <!-- Time range slider -->
+                <div class="range-container mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span id="range-start-label">0:00</span>
+                        <span id="range-end-label">--:--</span>
+                    </div>
+                    <div class="trim-slider-container position-relative" style="height: 40px;">
+                        <div class="trim-track bg-secondary rounded" style="height: 8px; position: absolute; top: 16px; left: 0; right: 0;"></div>
+                        <div id="trim-selection" class="bg-primary rounded" style="height: 8px; position: absolute; top: 16px;"></div>
+                        <input type="range" id="start-slider" class="form-range position-absolute" style="top: 0; pointer-events: auto;" min="0" max="100" value="0" step="0.1">
+                        <input type="range" id="end-slider" class="form-range position-absolute" style="top: 0; pointer-events: auto;" min="0" max="100" value="100" step="0.1">
+                    </div>
+                </div>
+
+                <!-- Time input fields -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label for="start-time" class="form-label">Start Time</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-play"></i></span>
+                            <input type="text" class="form-control" id="start-time" value="0:00" placeholder="0:00">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end-time" class="form-label">End Time</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-stop"></i></span>
+                            <input type="text" class="form-control" id="end-time" value="0:00" placeholder="0:00">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Clip Duration</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                            <input type="text" class="form-control" id="clip-duration" value="0:00" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview and jump buttons -->
+                <div class="d-flex gap-2 mb-4">
+                    <button type="button" class="btn btn-outline-secondary" id="preview-start-btn">
+                        <i class="fas fa-step-backward me-1"></i>Jump to Start
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="preview-end-btn">
+                        <i class="fas fa-step-forward me-1"></i>Jump to End
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="set-start-btn">
+                        <i class="fas fa-play me-1"></i>Set Start to Current
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="set-end-btn">
+                        <i class="fas fa-stop me-1"></i>Set End to Current
+                    </button>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="d-flex justify-content-between">
+                    <a href="/video/{{ video.slug }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-forward me-1"></i>Skip Trimming
+                    </a>
+                    <button type="button" class="btn btn-primary" id="apply-trim-btn">
+                        <i class="fas fa-check me-1"></i>Process Video
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Tip:</strong> Use the sliders or input fields to set your clip range. Click "Skip Trimming" to process the full video.
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .trim-slider-container input[type="range"] {
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .trim-slider-container input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #F59E0B;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .trim-slider-container input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #F59E0B;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('trim-player');
+    const startSlider = document.getElementById('start-slider');
+    const endSlider = document.getElementById('end-slider');
+    const startTimeInput = document.getElementById('start-time');
+    const endTimeInput = document.getElementById('end-time');
+    const clipDuration = document.getElementById('clip-duration');
+    const rangeStartLabel = document.getElementById('range-start-label');
+    const rangeEndLabel = document.getElementById('range-end-label');
+    const trimSelection = document.getElementById('trim-selection');
+    const applyTrimBtn = document.getElementById('apply-trim-btn');
+
+    let videoDuration = 0;
+    let startTime = 0;
+    let endTime = 0;
+
+    // Format seconds to MM:SS
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Parse MM:SS to seconds
+    function parseTime(timeStr) {
+        const parts = timeStr.split(':');
+        if (parts.length === 2) {
+            return parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+        }
+        return parseFloat(timeStr) || 0;
+    }
+
+    // Update the visual selection bar
+    function updateSelectionBar() {
+        const startPercent = (startTime / videoDuration) * 100;
+        const endPercent = (endTime / videoDuration) * 100;
+        trimSelection.style.left = startPercent + '%';
+        trimSelection.style.width = (endPercent - startPercent) + '%';
+    }
+
+    // Update all displays
+    function updateDisplays() {
+        startTimeInput.value = formatTime(startTime);
+        endTimeInput.value = formatTime(endTime);
+        rangeStartLabel.textContent = formatTime(startTime);
+        rangeEndLabel.textContent = formatTime(endTime);
+        clipDuration.value = formatTime(endTime - startTime);
+        updateSelectionBar();
+    }
+
+    // Initialize when video metadata loads
+    if (video) {
+        video.addEventListener('loadedmetadata', function() {
+            videoDuration = video.duration;
+            endTime = videoDuration;
+
+            startSlider.max = videoDuration;
+            endSlider.max = videoDuration;
+            startSlider.value = 0;
+            endSlider.value = videoDuration;
+
+            updateDisplays();
+        });
+
+        // Start slider change
+        startSlider.addEventListener('input', function() {
+            startTime = parseFloat(this.value);
+            if (startTime >= endTime) {
+                startTime = endTime - 0.5;
+                this.value = startTime;
+            }
+            updateDisplays();
+        });
+
+        // End slider change
+        endSlider.addEventListener('input', function() {
+            endTime = parseFloat(this.value);
+            if (endTime <= startTime) {
+                endTime = startTime + 0.5;
+                this.value = endTime;
+            }
+            updateDisplays();
+        });
+
+        // Time input changes
+        startTimeInput.addEventListener('change', function() {
+            startTime = parseTime(this.value);
+            if (startTime >= endTime) startTime = endTime - 0.5;
+            if (startTime < 0) startTime = 0;
+            startSlider.value = startTime;
+            updateDisplays();
+        });
+
+        endTimeInput.addEventListener('change', function() {
+            endTime = parseTime(this.value);
+            if (endTime <= startTime) endTime = startTime + 0.5;
+            if (endTime > videoDuration) endTime = videoDuration;
+            endSlider.value = endTime;
+            updateDisplays();
+        });
+
+        // Preview buttons
+        document.getElementById('preview-start-btn').addEventListener('click', function() {
+            video.currentTime = startTime;
+        });
+
+        document.getElementById('preview-end-btn').addEventListener('click', function() {
+            video.currentTime = Math.max(0, endTime - 2);
+        });
+
+        // Set buttons
+        document.getElementById('set-start-btn').addEventListener('click', function() {
+            startTime = video.currentTime;
+            if (startTime >= endTime) startTime = endTime - 0.5;
+            startSlider.value = startTime;
+            updateDisplays();
+        });
+
+        document.getElementById('set-end-btn').addEventListener('click', function() {
+            endTime = video.currentTime;
+            if (endTime <= startTime) endTime = startTime + 0.5;
+            endSlider.value = endTime;
+            updateDisplays();
+        });
+    }
+
+    // Apply trim button
+    applyTrimBtn.addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+
+        fetch('/api/video/{{ video.slug }}/trim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                start: startTime,
+                end: endTime
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.error || 'Failed to apply trim');
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-check me-1"></i>Process Video';
+            }
+        })
+        .catch(error => {
+            alert('Error applying trim');
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-check me-1"></i>Process Video';
+        });
+    });
+});
+</script>
+{% endblock %}

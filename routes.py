@@ -79,14 +79,19 @@ def register_routes(app):
             
             # Extract title from filename
             title = original_filename.rsplit('.', 1)[0] if '.' in original_filename else original_filename
-            
+
+            # Get is_public from form data (checkbox sends 'true' or 'false' as string)
+            is_public_str = request.form.get('is_public', 'false')
+            is_public = is_public_str.lower() == 'true'
+
             # Create video entry in database
             video = Video(
                 title=title,
                 original_path=file_path,
                 source_type='upload',
                 status='pending',
-                user_id=current_user.id if current_user.is_authenticated else None
+                user_id=current_user.id if current_user.is_authenticated else None,
+                is_public=is_public
             )
             db.session.add(video)
             db.session.commit()
@@ -143,16 +148,20 @@ def register_routes(app):
                     'existing_title': existing.title
                 }), 409
 
+            # Get is_public from JSON body
+            is_public = data.get('is_public', False)
+
             # Create video entry in database
             video = Video(
                 source_url=url,
                 source_type='link',
                 status='downloading',
-                user_id=current_user.id if current_user.is_authenticated else None
+                user_id=current_user.id if current_user.is_authenticated else None,
+                is_public=is_public
             )
             db.session.add(video)
             db.session.commit()
-            
+
             # Queue download in background
             queue_download(video.id, url)
             
@@ -201,7 +210,9 @@ def register_routes(app):
             video.title = data['title']
         if 'description' in data:
             video.description = data['description']
-        
+        if 'is_public' in data:
+            video.is_public = bool(data['is_public'])
+
         db.session.commit()
         return jsonify({'success': True, 'video': video.to_dict()})
     
@@ -328,7 +339,145 @@ def register_routes(app):
     def serve_hls(filename):
         """Serve HLS stream files"""
         return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'hls'), filename)
-        
+
+    @app.route('/share-target', methods=['GET', 'POST'])
+    @csrf.exempt
+    def share_target():
+        """Handle incoming shares from mobile share sheet (PWA Share Target API)"""
+        import re
+
+        # Get the shared data from either form data or query params
+        if request.method == 'POST':
+            title = request.form.get('title', '')
+            text = request.form.get('text', '')
+            url = request.form.get('url', '')
+        else:
+            title = request.args.get('title', '')
+            text = request.args.get('text', '')
+            url = request.args.get('url', '')
+
+        logger.info(f"Share target received - title: {title}, text: {text}, url: {url}")
+
+        # Try to extract a URL from the shared content
+        shared_url = None
+
+        # First priority: direct URL parameter
+        if url and url.startswith('http'):
+            shared_url = url
+
+        # Second priority: URL in text content (common for share sheets)
+        if not shared_url and text:
+            # Find URLs in the text
+            url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            urls = re.findall(url_pattern, text)
+            if urls:
+                shared_url = urls[0]
+
+        # Third priority: URL in title (less common but possible)
+        if not shared_url and title:
+            url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            urls = re.findall(url_pattern, title)
+            if urls:
+                shared_url = urls[0]
+
+        # If we found a URL, try to queue it for download
+        if shared_url:
+            # Validate URL
+            if validate_url(shared_url):
+                # Check for duplicate URL
+                normalized_url = shared_url.split('?')[0].rstrip('/')
+                existing = Video.query.filter(
+                    Video.source_url.ilike(f'%{normalized_url}%')
+                ).first()
+
+                if existing:
+                    flash(f'This video has already been downloaded: "{existing.title}"', 'info')
+                    return redirect(url_for('view_video', slug=existing.slug))
+
+                # Create video entry
+                video = Video(
+                    source_url=shared_url,
+                    source_type='link',
+                    status='downloading',
+                    user_id=current_user.id if current_user.is_authenticated else None
+                )
+                db.session.add(video)
+                db.session.commit()
+
+                # Queue download
+                queue_download(video.id, shared_url)
+
+                flash('Video download started!', 'success')
+                return redirect(url_for('view_video', slug=video.slug))
+            else:
+                flash('The shared URL is not a supported video platform.', 'warning')
+                return redirect(url_for('index'))
+
+        # No URL found - redirect to index with any shared text pre-filled
+        if text or url:
+            flash('Could not find a video URL in the shared content.', 'warning')
+
+        return redirect(url_for('index'))
+
+    # Video trimming page
+    @app.route('/video/<slug>/trim')
+    def trim_video(slug):
+        """Video trimming interface"""
+        video = Video.query.filter_by(slug=slug).first_or_404()
+
+        # Only allow trimming for videos that have been downloaded but not yet processed
+        if video.status == 'completed':
+            return redirect(url_for('view_video', slug=slug))
+
+        # Check authorization
+        if current_user.is_authenticated:
+            if not current_user.is_admin and video.user_id != current_user.id:
+                return redirect(url_for('view_video', slug=slug))
+
+        return render_template('trim.html', video=video)
+
+    @app.route('/api/video/<slug>/trim', methods=['POST'])
+    @csrf.exempt
+    @login_required
+    def apply_trim(slug):
+        """Apply trim settings and start processing"""
+        video = Video.query.filter_by(slug=slug).first_or_404()
+
+        # Check authorization
+        if not current_user.is_admin and video.user_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.json
+        video.trim_start = data.get('start', 0)
+        video.trim_end = data.get('end')
+        video.status = 'pending'
+        db.session.commit()
+
+        # Add to processing queue
+        queue_item = ProcessingQueue(video_id=video.id, priority=1)
+        db.session.add(queue_item)
+        db.session.commit()
+
+        # Start processing
+        video_processor.process_next()
+
+        return jsonify({
+            'success': True,
+            'redirect': url_for('view_video', slug=slug)
+        })
+
+    # Public profile page
+    @app.route('/u/<username>')
+    def public_profile(username):
+        """Public profile page showing user's public videos"""
+        user = User.query.filter_by(username=username).first_or_404()
+        videos = Video.query.filter_by(
+            user_id=user.id,
+            is_public=True,
+            status='completed'
+        ).order_by(Video.created_at.desc()).all()
+        return render_template('profile_public.html', profile_user=user, videos=videos)
+
     # Authentication routes
     @app.route('/login', methods=['GET', 'POST'])
     def login():
