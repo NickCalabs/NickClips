@@ -14,7 +14,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-10 mx-auto bg-white rounded p-4">
+    <div class="col-md-10 mx-auto card p-4">
         <ul class="nav nav-tabs upload-nav mb-4" id="uploadTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-panel" type="button" role="tab" aria-controls="url-panel" aria-selected="true">
@@ -227,13 +227,14 @@
                 downloadStatus.classList.remove('alert-info');
                 downloadStatus.classList.add('alert-danger');
                 downloadStatus.textContent = data.error || 'An error occurred';
-                
+
                 // Re-enable the button
                 downloadUrlBtn.disabled = false;
                 downloadUrlBtn.textContent = 'Download';
             } else {
-                // Success - redirect to dashboard instead of showing error
-                window.location.href = '/dashboard';
+                // Success - redirect to video page immediately
+                downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Opening video...</div>';
+                window.location.href = data.redirect || `/video/${data.slug}`;
             }
         })
         .catch(error => {

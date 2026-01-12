@@ -168,7 +168,7 @@ def register_routes(app):
             return jsonify({
                 'message': 'Download queued successfully',
                 'slug': video.slug,
-                'redirect': url_for('dashboard')
+                'redirect': url_for('view_video', slug=video.slug)
             }), 200
             
         except Exception as e:

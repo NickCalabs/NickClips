@@ -45,37 +45,12 @@
 {% endblock %}
 
 {% block content %}
-<!-- Full-width video section with light gray background, Streamable-style -->
-<div class="video-main-container bg-body-tertiary py-0">
+<!-- Video section -->
+<div class="video-main-container py-0">
     <div class="container-fluid px-0">
-        <!-- Video status alert for pending/processing videos -->
-        <div id="video-status" class="video-status">
-            {% if video.status == 'pending' %}
-            <div class="alert alert-info m-2">Your video is pending processing...</div>
-            {% elif video.status == 'downloading' %}
-            <div class="alert alert-info m-2">Downloading video from source...</div>
-            {% elif video.status == 'processing' %}
-            <div class="alert alert-info m-2">
-                <div class="d-flex align-items-center">
-                    <strong>Processing your video...</strong>
-                    <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
-                </div>
-            </div>
-            {% elif video.status == 'failed' %}
-            <div class="alert alert-danger m-2">
-                <h5 class="alert-heading">Processing failed</h5>
-                <p>{{ video.error or 'Unknown error' }}</p>
-                {% if 'YouTube' in video.error or 'Reddit' in video.error %}
-                <hr>
-                <p class="mb-0">Note: YouTube and Reddit downloads are often blocked on cloud hosting. The app will work properly when self-hosted on your homelab.</p>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- Video player container - fullscreen width -->
-        <div id="video-container" 
-            data-slug="{{ video.slug }}" 
+        <!-- Video player container -->
+        <div id="video-container"
+            data-slug="{{ video.slug }}"
             data-status="{{ video.status }}"
             {% if video.status == 'completed' %}
             data-player-type="{% if video.hls_path %}hls{% else %}native{% endif %}"
@@ -85,141 +60,157 @@
             {% if video.height %}data-video-height="{{ video.height }}"{% endif %}
             {% endif %}
             class="video-player-container mb-0 mx-auto px-0" style="max-width: 1200px;">
-            
+
             {% if video.status == 'completed' %}
                 <!-- Video player will be inserted here by JavaScript -->
-                <!-- Video wrapper will be created to size player correctly -->
             {% elif video.status == 'failed' %}
-                <div class="text-center p-4 bg-body-tertiary rounded">
-                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
-                    <h4 class="mt-3">Video Processing Failed</h4>
-                    <p class="text-muted">{{ video.error or 'There was an error processing this video.' }}</p>
-                    {% if 'YouTube' in video.error or 'Reddit' in video.error %}
-                    <div class="alert alert-info mt-3">
-                        <p class="mb-0"><strong>Note:</strong> YouTube and Reddit downloads are often blocked on cloud platforms. This feature will work properly when self-hosted on your homelab environment.</p>
+                <div class="processing-state text-center py-5">
+                    <div class="processing-icon mb-4">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #ef4444;"></i>
+                    </div>
+                    <h3 class="mb-2">Processing Failed</h3>
+                    <p class="text-muted mb-4">{{ video.error or 'There was an error processing this video.' }}</p>
+                    {% if video.error and ('YouTube' in video.error or 'Reddit' in video.error or 'Twitter' in video.error) %}
+                    <div class="alert alert-info d-inline-block text-start" style="max-width: 500px;">
+                        <small><strong>Note:</strong> Some platforms restrict automated downloads on cloud hosting. This will work properly when self-hosted.</small>
                     </div>
                     {% endif %}
                 </div>
             {% elif video.original_path %}
-                <!-- Show original video immediately while processing -->
-                <video id="preview-player" controls playsinline class="w-100" style="max-height: 80vh; background: #000;">
-                    <source src="/uploads/original/{{ video.original_path.split('/')[-1] }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                <div class="alert alert-info m-2 mt-2">
-                    <div class="d-flex align-items-center">
-                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                        <span>Optimizing video for sharing... You can watch now!</span>
-                    </div>
+                <!-- Video available - show player with processing overlay -->
+                <div class="position-relative">
+                    <video id="preview-player" controls playsinline autoplay muted class="w-100 rounded-3" style="max-height: 80vh; background: #000;">
+                        <source src="/uploads/original/{{ video.original_path.split('/')[-1] }}" type="video/mp4">
+                    </video>
                 </div>
             {% else %}
-                <!-- Placeholder while video is downloading -->
-                <div class="text-center p-4 bg-body-tertiary rounded">
-                    <i class="fas fa-spinner fa-spin" style="font-size: 3rem;"></i>
-                    <h4 class="mt-3">Downloading Video</h4>
-                    <p class="text-muted">Fetching from source...</p>
+                <!-- Downloading state - clean loading UI -->
+                <div class="processing-state text-center py-5">
+                    <div class="processing-icon mb-4">
+                        <div class="spinner-grow" style="width: 4rem; height: 4rem; color: var(--accent-primary);" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <h3 class="mb-2">Downloading Video</h3>
+                    <p class="text-muted mb-4">Fetching from source...</p>
+                    <div class="progress mx-auto" style="max-width: 300px; height: 4px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; background: var(--accent-gradient);"></div>
+                    </div>
                 </div>
             {% endif %}
         </div>
-        
+
+        <!-- Processing status bar (shows below video when processing) -->
+        {% if video.status in ['pending', 'processing'] or (video.original_path and video.status != 'completed' and video.status != 'failed') %}
+        <div class="processing-bar mx-auto py-3 px-4" style="max-width: 1200px;">
+            <div class="d-flex align-items-center justify-content-center gap-3">
+                <div class="spinner-border spinner-border-sm" style="color: var(--accent-primary);" role="status"></div>
+                <span class="text-muted">
+                    {% if video.status == 'pending' %}
+                    Queued for processing...
+                    {% elif video.status == 'processing' %}
+                    Optimizing video for sharing...
+                    {% else %}
+                    Processing video...
+                    {% endif %}
+                </span>
+            </div>
+            <div class="progress mt-2" style="height: 3px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; background: var(--accent-gradient);"></div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<!-- Video information in standard container with reduced spacing -->
+<!-- Video information - compact layout -->
 <div class="container">
     <div class="row">
         <div class="col-lg-10 mx-auto">
             <div class="video-info pt-3" data-slug="{{ video.slug }}">
-                <!-- Editable Title -->
-                <div class="editable-field mb-1" id="title-container">
-                    <h1 class="video-title h2 mb-0 editable-text" id="video-title-text" style="font-size: 1.5rem; font-weight: 500; cursor: pointer;" title="Click to edit">
-                        {{ video.title or 'Untitled Video' }}
-                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                        <i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.8rem; opacity: 0.5;"></i>
-                        {% endif %}
-                    </h1>
-                    <input type="text" class="form-control d-none" id="video-title-input"
-                           value="{{ video.title or 'Untitled Video' }}" maxlength="255"
-                           style="font-size: 1.5rem; font-weight: 500;">
-                </div>
-
-                <div class="video-metadata d-flex flex-wrap gap-3 mb-3" style="font-size: 0.85rem;">
-                    <span style="color: #6c757d !important;"><i class="fas fa-eye me-1" style="color: #6c757d !important;"></i>{{ video.views }} views</span>
-                    <span style="color: #6c757d !important;"><i class="fas fa-calendar me-1" style="color: #6c757d !important;"></i>{{ video.created_at.strftime('%b %d, %Y') }}</span>
-                    {% if video.duration %}
-                    <span style="color: #6c757d !important;"><i class="fas fa-clock me-1" style="color: #6c757d !important;"></i>{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
-                    {% endif %}
-                </div>
-
-                <!-- Editable Description -->
-                <div class="video-description mb-4 editable-field" id="description-container">
-                    <div id="description-display" class="editable-text" style="cursor: pointer;" title="Click to edit">
-                        {% if video.description %}
-                            {{ video.description }}
-                        {% else %}
-                            {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                            <span class="text-muted"><i class="fas fa-plus me-1"></i>Add a description...</span>
+                <!-- Title and metadata row -->
+                <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+                    <div class="flex-grow-1">
+                        <!-- Editable Title -->
+                        <div class="editable-field" id="title-container">
+                            <h1 class="video-title h4 mb-1 editable-text" id="video-title-text" style="cursor: pointer;" title="Click to edit">
+                                {{ video.title or 'Untitled Video' }}
+                                {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                                <i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                                {% endif %}
+                            </h1>
+                            <input type="text" class="form-control d-none" id="video-title-input"
+                                   value="{{ video.title or 'Untitled Video' }}" maxlength="255">
+                        </div>
+                        <div class="video-metadata d-flex flex-wrap gap-3" style="font-size: 0.8rem;">
+                            <span class="text-muted"><i class="fas fa-eye me-1"></i>{{ video.views }} views</span>
+                            <span class="text-muted"><i class="fas fa-calendar me-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</span>
+                            {% if video.duration %}
+                            <span class="text-muted"><i class="fas fa-clock me-1"></i>{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
                             {% endif %}
-                        {% endif %}
-                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                        <i class="fas fa-pencil-alt ms-2 text-muted" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" id="copy-link-btn" title="Copy link">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        {% if video.status == 'completed' and video.processed_path %}
+                        <a href="/uploads/{{ video.processed_path }}" class="btn btn-sm btn-primary" download title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
                         {% endif %}
                     </div>
-                    <textarea class="form-control d-none" id="video-description-input" rows="3"
+                </div>
+
+                <!-- Description (only show if exists or if owner) -->
+                {% if video.description or (current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id)) %}
+                <div class="video-description mb-3 editable-field" id="description-container">
+                    <div id="description-display" class="editable-text small" style="cursor: pointer;" title="Click to edit">
+                        {% if video.description %}
+                        {{ video.description }}
+                        {% elif current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                        <span class="text-muted"><i class="fas fa-plus me-1"></i>Add description</span>
+                        {% endif %}
+                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
+                        <i class="fas fa-pencil-alt ms-1 text-muted" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                        {% endif %}
+                    </div>
+                    <textarea class="form-control d-none" id="video-description-input" rows="2"
                               placeholder="Add a description...">{{ video.description or '' }}</textarea>
                     <div class="d-none mt-2" id="description-actions">
                         <button class="btn btn-sm btn-primary" id="save-description-btn">Save</button>
                         <button class="btn btn-sm btn-secondary" id="cancel-description-btn">Cancel</button>
                     </div>
                 </div>
+                {% endif %}
 
-                <!-- Visibility toggle (only for owner) -->
+                <!-- Visibility toggle (only for owner) - inline -->
                 {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}
-                <div class="visibility-toggle mb-4">
-                    <div class="form-check form-switch">
+                <div class="visibility-toggle d-flex align-items-center gap-2 py-2 border-top">
+                    <div class="form-check form-switch mb-0">
                         <input class="form-check-input" type="checkbox" id="visibility-toggle" {% if video.is_public %}checked{% endif %}>
-                        <label class="form-check-label" for="visibility-toggle">
-                            <i class="fas fa-globe me-1"></i> Show on public profile
+                        <label class="form-check-label small" for="visibility-toggle">
+                            {% if video.is_public %}
+                            <i class="fas fa-globe me-1"></i> Public
+                            {% else %}
+                            <i class="fas fa-lock me-1"></i> Private
+                            {% endif %}
                         </label>
                     </div>
-                    <small class="form-text text-muted">
+                    <small class="text-muted">
                         {% if video.is_public %}
-                        This video is visible on <a href="/u/{{ current_user.username }}">your public profile</a>.
+                        Visible on <a href="/u/{{ current_user.username }}">your profile</a>
                         {% else %}
-                        This video is private. Only people with the link can view it.
+                        Only people with the link can view
                         {% endif %}
                     </small>
                 </div>
                 {% endif %}
 
-                <!-- Share section -->
-                <div class="share-section pt-3 border-top">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5><i class="fas fa-share-alt me-2"></i>Share this video</h5>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control" value="{{ request.url }}" readonly>
-                                <button class="btn btn-outline-secondary" type="button" id="copy-link-btn">
-                                    <i class="fas fa-copy me-1"></i> Copy
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <h5><i class="fas fa-download me-2"></i>Download</h5>
-                            {% if video.status == 'completed' and video.processed_path %}
-                            <a href="/uploads/{{ video.processed_path }}" class="btn btn-primary" download>
-                                <i class="fas fa-download me-1"></i> Download MP4
-                            </a>
-                            {% else %}
-                            <button class="btn btn-primary" disabled>
-                                <i class="fas fa-download me-1"></i> Download MP4
-                            </button>
-                            <small class="d-block mt-1 text-muted">Available after processing</small>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+                <!-- Hidden copy input for clipboard -->
+                <input type="hidden" id="video-url" value="{{ request.url }}">
             </div>
         </div>
     </div>
@@ -233,6 +224,28 @@
         const videoInfo = document.querySelector('.video-info');
         const slug = videoInfo ? videoInfo.dataset.slug : null;
         const isEditable = {% if current_user.is_authenticated and (current_user.is_admin or current_user.id == video.user_id) %}true{% else %}false{% endif %};
+        const currentStatus = '{{ video.status }}';
+
+        // Auto-refresh for videos that are still processing
+        if (currentStatus === 'downloading' || currentStatus === 'pending' || currentStatus === 'processing') {
+            let pollInterval = setInterval(function() {
+                fetch(`/api/video/${slug}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // If status changed, reload the page
+                        if (data.status !== currentStatus) {
+                            clearInterval(pollInterval);
+                            location.reload();
+                        }
+                        // If video now has original_path but we don't have a player, reload
+                        if (data.original_path && !document.getElementById('preview-player') && currentStatus === 'downloading') {
+                            clearInterval(pollInterval);
+                            location.reload();
+                        }
+                    })
+                    .catch(err => console.error('Status poll error:', err));
+            }, 2000); // Poll every 2 seconds
+        }
 
         // Title editing
         const titleText = document.getElementById('video-title-text');
@@ -345,15 +358,15 @@
         const copyLinkBtn = document.getElementById('copy-link-btn');
         if (copyLinkBtn) {
             copyLinkBtn.addEventListener('click', function() {
-                const linkInput = this.closest('.input-group').querySelector('input');
-                navigator.clipboard.writeText(linkInput.value).then(() => {
-                    const originalText = this.innerHTML;
-                    this.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+                const videoUrl = document.getElementById('video-url')?.value || window.location.href;
+                navigator.clipboard.writeText(videoUrl).then(() => {
+                    const originalHTML = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i>';
                     this.classList.add('btn-success');
                     this.classList.remove('btn-outline-secondary');
 
                     setTimeout(() => {
-                        this.innerHTML = originalText;
+                        this.innerHTML = originalHTML;
                         this.classList.remove('btn-success');
                         this.classList.add('btn-outline-secondary');
                     }, 2000);
