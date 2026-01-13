@@ -271,9 +271,24 @@
         .then(data => {
             // Success - redirect to video page immediately
             downloadStatus.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Opening video...</div>';
-            window.location.href = data.redirect || `/video/${data.slug}`;
+
+            // Set flag to prevent catch from showing error during redirect
+            window._isRedirecting = true;
+
+            const redirectUrl = data.redirect || `/video/${data.slug}`;
+            console.log('Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
+
+            // Return a never-resolving promise to prevent further chain execution
+            return new Promise(() => {});
         })
         .catch(error => {
+            // Don't show error if we're already redirecting
+            if (window._isRedirecting) {
+                console.log('Ignoring error during redirect:', error);
+                return;
+            }
+
             console.error('Download error:', error);
             downloadStatus.classList.remove('alert-info');
             downloadStatus.classList.add('alert-danger');
