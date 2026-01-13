@@ -46,6 +46,11 @@
                     </button>
                 </div>
 
+                <!-- Sound toggle (shows when playing) -->
+                <button class="sound-btn" type="button" aria-label="Toggle sound">
+                    <i class="fas fa-volume-mute"></i>
+                </button>
+
                 <!-- Duration badge -->
                 {% if video.duration %}
                 <span class="video-duration badge bg-dark position-absolute" style="bottom: 8px; right: 8px;">
@@ -131,13 +136,14 @@
     }
     .video-thumbnail-wrapper.playing .play-overlay {
         opacity: 0;
+        pointer-events: none;
     }
-    .video-thumbnail-wrapper.playing:hover .play-overlay,
-    .video-thumbnail-wrapper.playing.show-controls .play-overlay {
+    .video-thumbnail-wrapper.paused .play-overlay {
         opacity: 1;
+        pointer-events: auto;
     }
-    .video-thumbnail-wrapper.playing .play-overlay .play-btn i:before {
-        content: "\f04c"; /* pause icon */
+    .video-thumbnail-wrapper.paused .play-overlay .play-btn i:before {
+        content: "\f04b"; /* play icon */
     }
 
     /* Play button overlay */
@@ -219,6 +225,36 @@
         background: rgba(0,0,0,0.9);
         color: #fff;
     }
+
+    /* Sound toggle button */
+    .sound-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.7);
+        color: #fff;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease, background 0.2s ease;
+        z-index: 10;
+    }
+    .video-thumbnail-wrapper.playing .sound-btn {
+        opacity: 1;
+    }
+    .sound-btn:hover {
+        background: rgba(0,0,0,0.9);
+    }
+    .sound-btn.unmuted i:before {
+        content: "\f028"; /* volume-up icon */
+    }
 </style>
 {% endblock %}
 
@@ -230,54 +266,75 @@ document.addEventListener('DOMContentLoaded', function() {
     wrappers.forEach(wrapper => {
         const video = wrapper.querySelector('.inline-video');
         const playBtn = wrapper.querySelector('.play-btn');
+        const soundBtn = wrapper.querySelector('.sound-btn');
 
         if (!video || !playBtn) return;
 
-        // Toggle play/pause on play button click
+        function pauseOthers() {
+            document.querySelectorAll('.video-thumbnail-wrapper.playing').forEach(other => {
+                if (other !== wrapper) {
+                    const otherVideo = other.querySelector('.inline-video');
+                    if (otherVideo) {
+                        otherVideo.pause();
+                        otherVideo.muted = true;
+                    }
+                    other.classList.remove('playing', 'paused');
+                    const otherSoundBtn = other.querySelector('.sound-btn');
+                    if (otherSoundBtn) otherSoundBtn.classList.remove('unmuted');
+                }
+            });
+        }
+
+        function playVideo() {
+            pauseOthers();
+            video.play().then(() => {
+                wrapper.classList.add('playing');
+                wrapper.classList.remove('paused');
+            }).catch(() => {});
+        }
+
+        function pauseVideo() {
+            video.pause();
+            wrapper.classList.remove('playing');
+            wrapper.classList.add('paused');
+        }
+
+        // Play button click - start playback
         playBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-
-            if (wrapper.classList.contains('playing')) {
-                video.pause();
-                wrapper.classList.remove('playing');
-            } else {
-                // Pause any other playing videos
-                document.querySelectorAll('.video-thumbnail-wrapper.playing').forEach(other => {
-                    const otherVideo = other.querySelector('.inline-video');
-                    if (otherVideo) otherVideo.pause();
-                    other.classList.remove('playing');
-                });
-
-                video.play().then(() => {
-                    wrapper.classList.add('playing');
-                }).catch(() => {});
-            }
+            playVideo();
         });
 
-        // Click on video to pause (mobile friendly)
+        // Tap on video to toggle play/pause
         video.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            video.pause();
-            wrapper.classList.remove('playing');
+
+            if (video.paused) {
+                playVideo();
+            } else {
+                pauseVideo();
+            }
         });
 
-        // When video ends, show thumbnail again
+        // Sound toggle
+        if (soundBtn) {
+            soundBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                video.muted = !video.muted;
+                soundBtn.classList.toggle('unmuted', !video.muted);
+            });
+        }
+
+        // When video ends, show paused state
         video.addEventListener('ended', function() {
             wrapper.classList.remove('playing');
+            wrapper.classList.add('paused');
             video.currentTime = 0;
         });
-
-        // Show controls briefly on touch
-        let touchTimeout;
-        wrapper.addEventListener('touchstart', function() {
-            wrapper.classList.add('show-controls');
-            clearTimeout(touchTimeout);
-            touchTimeout = setTimeout(() => {
-                wrapper.classList.remove('show-controls');
-            }, 3000);
-        }, { passive: true });
     });
 });
 </script>
