@@ -38,6 +38,10 @@ app.config["ALLOWED_EXTENSIONS"] = {"mp4", "mov", "avi", "mkv", "webm", "flv", "
 app.config["MAX_VIDEOS_PER_USER"] = int(os.environ.get("MAX_VIDEOS_PER_USER", 50))
 app.config["CONCURRENT_PROCESSING"] = int(os.environ.get("CONCURRENT_PROCESSING", 1))
 
+# Public base URL for meta tags (critical for iMessage/social previews)
+# Set this to your public domain, e.g., "https://nickclips.com"
+app.config["BASE_URL"] = os.environ.get("BASE_URL", "").rstrip("/")
+
 # yt-dlp configuration
 app.config["YT_DLP_PROXY"] = os.environ.get("YT_DLP_PROXY", "")
 app.config["YT_DLP_RATE_LIMIT"] = os.environ.get("YT_DLP_RATE_LIMIT", "")
@@ -147,4 +151,10 @@ with app.app_context():
 @app.context_processor
 def inject_globals():
     import datetime
-    return {'now': datetime.datetime.now()}
+    from flask import request
+    # Use BASE_URL if set, otherwise fall back to request.url_root
+    base_url = app.config.get("BASE_URL") or request.url_root.rstrip("/")
+    return {
+        'now': datetime.datetime.now(),
+        'base_url': base_url
+    }

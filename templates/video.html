@@ -3,9 +3,9 @@
 {% block title %}{{ video.title or 'Untitled Video' }} - NickClips{% endblock %}
 
 {% block head %}
-{% set video_url = request.url_root.rstrip('/') ~ '/uploads/' ~ video.processed_path if video.processed_path else '' %}
-{% set thumb_url = request.url_root.rstrip('/') ~ '/uploads/' ~ video.thumbnail_path if video.thumbnail_path else '' %}
-{% set page_url = request.url_root.rstrip('/') ~ '/video/' ~ video.slug %}
+{% set video_url = base_url ~ '/uploads/' ~ video.processed_path if video.processed_path else '' %}
+{% set thumb_url = base_url ~ '/uploads/' ~ video.thumbnail_path if video.thumbnail_path else '' %}
+{% set page_url = base_url ~ '/video/' ~ video.slug %}
 
 <!-- OpenGraph tags for link previews (iMessage, Facebook, Discord, etc.) -->
 <meta property="og:title" content="{{ video.title or 'Video' }}">
