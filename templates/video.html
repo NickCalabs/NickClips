@@ -213,6 +213,10 @@
                     <span class="text-muted">·</span>
                     <span class="text-muted">{{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}</span>
                     {% endif %}
+                    {% if video.owner %}
+                    <span class="text-muted">·</span>
+                    <a href="/u/{{ video.owner.username }}" class="text-muted text-decoration-none" style="opacity: 0.8;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">{{ video.owner.username }}</a>
+                    {% endif %}
                 </div>
 
                 <!-- Share link row -->
