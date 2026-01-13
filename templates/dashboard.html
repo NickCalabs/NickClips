@@ -197,6 +197,41 @@ html[data-bs-theme="light"] #embedModal .form-control {
 html[data-bs-theme="light"] #embedModal .modal-content {
     background-color: #fff !important;
 }
+
+/* Video hover preview styles */
+.thumbnail-container {
+    overflow: hidden;
+}
+
+.thumbnail-container .preview-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+/* Desktop: show video on hover */
+@media (hover: hover) and (pointer: fine) {
+    .thumbnail-container:hover .preview-video {
+        opacity: 1;
+    }
+    .thumbnail-container:hover .thumbnail-img {
+        opacity: 0;
+    }
+}
+
+/* Mobile: handled via JS intersection observer */
+.thumbnail-container.mobile-preview .preview-video {
+    opacity: 1;
+}
+.thumbnail-container.mobile-preview .thumbnail-img {
+    opacity: 0;
+}
 </style>
 
 <div class="row">
@@ -207,11 +242,20 @@ html[data-bs-theme="light"] #embedModal .modal-content {
                 {% for video in videos %}
                 <div class="col-md-6 col-xl-4 video-card">
                     <div class="card border-0 shadow-sm rounded-3 mb-0 h-100">
-                        <div class="position-relative thumbnail-container">
+                        <div class="position-relative thumbnail-container"
+                             {% if video.status == 'completed' and video.processed_path %}
+                             data-video-src="/uploads/{{ video.processed_path }}"
+                             {% endif %}>
                             {% if video.thumbnail_path %}
                             <a href="{{ url_for('view_video', slug=video.slug) }}" class="video-thumbnail-link">
-                                <img src="/uploads/{{ video.thumbnail_path }}" class="card-img-top rounded-top" alt="{{ video.title or 'Untitled Video' }}">
-                                
+                                <img src="/uploads/{{ video.thumbnail_path }}" class="card-img-top rounded-top thumbnail-img" alt="{{ video.title or 'Untitled Video' }}">
+
+                                {% if video.status == 'completed' and video.processed_path %}
+                                <video class="card-img-top rounded-top preview-video" muted loop playsinline preload="none">
+                                    <source src="/uploads/{{ video.processed_path }}" type="video/mp4">
+                                </video>
+                                {% endif %}
+
                                 <!-- Processing overlay -->
                                 {% if video.status != 'completed' and video.status != 'failed' %}
                                 <div class="processing-overlay">
@@ -723,5 +767,55 @@ html[data-bs-theme="light"] #embedModal .modal-content {
             deleteTargetCard = null;
         });
     });
+
+    // Video hover preview functionality
+    (function() {
+        const isMobile = !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        const thumbnailContainers = document.querySelectorAll('.thumbnail-container[data-video-src]');
+
+        if (isMobile) {
+            // Mobile: Use Intersection Observer for autoplay when visible
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const container = entry.target;
+                    const video = container.querySelector('.preview-video');
+                    if (!video) return;
+
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+                        container.classList.add('mobile-preview');
+                        video.play().catch(() => {});
+                    } else {
+                        container.classList.remove('mobile-preview');
+                        video.pause();
+                        video.currentTime = 0;
+                    }
+                });
+            }, { threshold: [0.5] });
+
+            thumbnailContainers.forEach(container => observer.observe(container));
+        } else {
+            // Desktop: Play on hover
+            thumbnailContainers.forEach(container => {
+                const video = container.querySelector('.preview-video');
+                if (!video) return;
+
+                let hoverTimeout;
+
+                container.addEventListener('mouseenter', () => {
+                    // Small delay before playing to avoid accidental triggers
+                    hoverTimeout = setTimeout(() => {
+                        video.currentTime = 0;
+                        video.play().catch(() => {});
+                    }, 200);
+                });
+
+                container.addEventListener('mouseleave', () => {
+                    clearTimeout(hoverTimeout);
+                    video.pause();
+                    video.currentTime = 0;
+                });
+            });
+        }
+    })();
 </script>
 {% endblock %}
