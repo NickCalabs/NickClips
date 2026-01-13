@@ -335,7 +335,11 @@ def extract_thumbnail(video_path, output_path, seek_time=None):
         return False
 
 def transcode_to_mp4(input_path, output_path, trim_start=None, trim_end=None):
-    """Transcode video to MP4 format - uses stream copy when possible for speed
+    """Transcode video to MP4 format with universal compatibility settings
+
+    Always transcodes to ensure consistent, web-optimized output that works
+    everywhere (iMessage, Discord, Twitter, etc). Uses H.264 Main profile
+    capped at 720p for maximum compatibility.
 
     Args:
         input_path: Path to input video file
@@ -349,70 +353,50 @@ def transcode_to_mp4(input_path, output_path, trim_start=None, trim_end=None):
         # Ensure the output directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        needs_reencode = trim_start or trim_end
+        if trim_start or trim_end:
+            logger.debug(f"Trimming from {trim_start}s to {trim_end}s")
 
-        # If no trimming, try fast stream copy first
-        if not needs_reencode:
-            logger.info("Attempting fast stream copy (no re-encoding)...")
-            cmd = [
-                'ffmpeg', '-y',
-                '-i', input_path,
-                '-c:v', 'copy',  # Copy video stream
-                '-c:a', 'copy',  # Copy audio stream
-                '-movflags', '+faststart',
-                output_path
-            ]
+        cmd = ['ffmpeg', '-y']
 
-            result = subprocess.run(cmd, capture_output=True, text=True)
+        # Add seek parameter for trimming (before input for faster seeking)
+        if trim_start and trim_start > 0:
+            cmd.extend(['-ss', str(trim_start)])
 
-            if result.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-                logger.info(f"Fast stream copy successful: {output_path}")
-                return True
-            else:
-                logger.info("Stream copy failed, falling back to re-encode...")
-                needs_reencode = True
+        cmd.extend(['-i', input_path])
 
-        # Re-encode if needed (trimming or stream copy failed)
-        if needs_reencode:
-            if trim_start or trim_end:
-                logger.debug(f"Trimming from {trim_start}s to {trim_end}s")
+        # Add duration parameter for trimming (after input)
+        if trim_end:
+            duration = trim_end - (trim_start or 0)
+            if duration > 0:
+                cmd.extend(['-t', str(duration)])
 
-            cmd = ['ffmpeg', '-y']
+        # Universal compatibility settings (like Streamable)
+        cmd.extend([
+            '-c:v', 'libx264',
+            '-profile:v', 'main',           # Main profile for wide compatibility
+            '-level', '3.1',                # Level 3.1 works on almost everything
+            '-vf', "scale='min(1280,iw)':-2",  # Cap at 720p width, maintain aspect ratio
+            '-preset', 'fast',              # Good speed/quality balance
+            '-crf', '23',                   # Good quality, reasonable file size
+            '-c:a', 'aac',
+            '-b:a', '128k',
+            '-movflags', '+faststart',      # Enable streaming before full download
+            '-pix_fmt', 'yuv420p',          # Standard pixel format for compatibility
+            output_path
+        ])
 
-            # Add seek parameter for trimming (before input for faster seeking)
-            if trim_start and trim_start > 0:
-                cmd.extend(['-ss', str(trim_start)])
+        logger.info(f"Transcoding with universal settings: {' '.join(cmd)}")
+        result = subprocess.run(cmd, capture_output=True, text=True)
 
-            cmd.extend(['-i', input_path])
+        if result.returncode != 0:
+            logger.warning(f"FFmpeg transcode failed: {result.stderr}")
+            raise Exception(f"ffmpeg error: {result.stderr}")
 
-            # Add duration parameter for trimming (after input)
-            if trim_end:
-                duration = trim_end - (trim_start or 0)
-                if duration > 0:
-                    cmd.extend(['-t', str(duration)])
+        if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+            raise Exception("Output file is empty or missing")
 
-            cmd.extend([
-                '-c:v', 'libx264',
-                '-preset', 'fast',  # Faster encoding
-                '-crf', '23',  # Slightly lower quality for speed
-                '-c:a', 'aac',
-                '-b:a', '128k',
-                '-movflags', '+faststart',
-                output_path
-            ])
-
-            logger.debug(f"Running re-encode: {' '.join(cmd)}")
-            result = subprocess.run(cmd, capture_output=True, text=True)
-
-            if result.returncode != 0:
-                logger.warning(f"FFmpeg re-encode failed: {result.stderr}")
-                raise Exception(f"ffmpeg error: {result.stderr}")
-
-            if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
-                raise Exception("Output file is empty or missing")
-
-            logger.info(f"Re-encode completed: {output_path}")
-            return True
+        logger.info(f"Transcode completed: {output_path}")
+        return True
 
     except Exception as e:
         logger.error(f"Error in transcode_to_mp4: {e}")
