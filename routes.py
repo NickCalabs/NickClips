@@ -402,11 +402,7 @@ def register_routes(app):
     def view_video(slug):
         """Public video view page"""
         video = Video.query.filter_by(slug=slug).first_or_404()
-        
-        # Increment view count
-        video.views += 1
-        db.session.commit()
-        
+        # View count is now tracked via API after engagement (see /api/video/<slug>/view)
         return render_template('video.html', video=video)
     
     @app.route('/api/video/<slug>')
@@ -415,7 +411,19 @@ def register_routes(app):
         """API endpoint to check video processing status"""
         video = Video.query.filter_by(slug=slug).first_or_404()
         return jsonify(video.to_dict())
-    
+
+    @app.route('/api/video/<slug>/view', methods=['POST'])
+    @csrf.exempt
+    def register_view(slug):
+        """Register a view after user engagement (25% watched or 3s on page)"""
+        video = Video.query.filter_by(slug=slug).first()
+        if not video:
+            return jsonify({'error': 'Video not found'}), 404
+
+        video.views += 1
+        db.session.commit()
+        return jsonify({'success': True, 'views': video.views})
+
     @app.route('/api/video/<slug>/update', methods=['POST'])
     @csrf.exempt
     @login_required
