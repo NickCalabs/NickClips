@@ -46,11 +46,6 @@
                     </button>
                 </div>
 
-                <!-- Sound toggle (shows when playing) -->
-                <button class="sound-btn" type="button" aria-label="Toggle sound">
-                    <i class="fas fa-volume-mute"></i>
-                </button>
-
                 <!-- Duration badge -->
                 {% if video.duration %}
                 <span class="video-duration badge bg-dark position-absolute" style="bottom: 8px; right: 8px;">
@@ -135,15 +130,8 @@
         pointer-events: auto;
     }
     .video-thumbnail-wrapper.playing .play-overlay {
-        opacity: 0;
-        pointer-events: none;
-    }
-    .video-thumbnail-wrapper.paused .play-overlay {
-        opacity: 1;
-        pointer-events: auto;
-    }
-    .video-thumbnail-wrapper.paused .play-overlay .play-btn i:before {
-        content: "\f04b"; /* play icon */
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
 
     /* Play button overlay */
@@ -195,9 +183,6 @@
     .play-btn i {
         margin-left: 3px; /* optical centering for play icon */
     }
-    .video-thumbnail-wrapper.playing .play-btn i {
-        margin-left: 0;
-    }
 
     /* Expand button */
     .expand-btn {
@@ -225,36 +210,6 @@
         background: rgba(0,0,0,0.9);
         color: #fff;
     }
-
-    /* Sound toggle button */
-    .sound-btn {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: none;
-        background: rgba(0,0,0,0.7);
-        color: #fff;
-        font-size: 0.9rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s ease, background 0.2s ease;
-        z-index: 10;
-    }
-    .video-thumbnail-wrapper.playing .sound-btn {
-        opacity: 1;
-    }
-    .sound-btn:hover {
-        background: rgba(0,0,0,0.9);
-    }
-    .sound-btn.unmuted i:before {
-        content: "\f028"; /* volume-up icon */
-    }
 </style>
 {% endblock %}
 
@@ -266,7 +221,6 @@ document.addEventListener('DOMContentLoaded', function() {
     wrappers.forEach(wrapper => {
         const video = wrapper.querySelector('.inline-video');
         const playBtn = wrapper.querySelector('.play-btn');
-        const soundBtn = wrapper.querySelector('.sound-btn');
 
         if (!video || !playBtn) return;
 
@@ -274,65 +228,33 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.video-thumbnail-wrapper.playing').forEach(other => {
                 if (other !== wrapper) {
                     const otherVideo = other.querySelector('.inline-video');
-                    if (otherVideo) {
-                        otherVideo.pause();
-                        otherVideo.muted = true;
-                    }
-                    other.classList.remove('playing', 'paused');
-                    const otherSoundBtn = other.querySelector('.sound-btn');
-                    if (otherSoundBtn) otherSoundBtn.classList.remove('unmuted');
+                    if (otherVideo) otherVideo.pause();
+                    other.classList.remove('playing');
                 }
             });
         }
 
-        function playVideo() {
-            pauseOthers();
-            video.play().then(() => {
-                wrapper.classList.add('playing');
-                wrapper.classList.remove('paused');
-            }).catch(() => {});
-        }
-
-        function pauseVideo() {
-            video.pause();
-            wrapper.classList.remove('playing');
-            wrapper.classList.add('paused');
-        }
-
-        // Play button click - start playback
+        // Play button click
         playBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            playVideo();
+            pauseOthers();
+            video.play().then(() => {
+                wrapper.classList.add('playing');
+            }).catch(() => {});
         });
 
-        // Tap on video to toggle play/pause
+        // Tap on video to pause
         video.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-
-            if (video.paused) {
-                playVideo();
-            } else {
-                pauseVideo();
-            }
+            video.pause();
+            wrapper.classList.remove('playing');
         });
 
-        // Sound toggle
-        if (soundBtn) {
-            soundBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                video.muted = !video.muted;
-                soundBtn.classList.toggle('unmuted', !video.muted);
-            });
-        }
-
-        // When video ends, show paused state
+        // When video ends, reset
         video.addEventListener('ended', function() {
             wrapper.classList.remove('playing');
-            wrapper.classList.add('paused');
             video.currentTime = 0;
         });
     });
