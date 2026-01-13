@@ -24,20 +24,40 @@
     {% for video in videos %}
     <div class="col">
         <div class="card h-100 video-card shadow-sm">
-            <a href="/video/{{ video.slug }}" class="video-thumbnail-link">
+            <div class="video-thumbnail-wrapper" data-slug="{{ video.slug }}">
                 {% if video.thumbnail_path %}
-                <img src="/uploads/{{ video.thumbnail_path }}" class="card-img-top" alt="{{ video.title or 'Video' }}">
+                <img src="/uploads/{{ video.thumbnail_path }}" class="card-img-top thumbnail-img" alt="{{ video.title or 'Video' }}">
                 {% else %}
-                <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="aspect-ratio: 16/9;">
+                <div class="card-img-top bg-dark d-flex align-items-center justify-content-center thumbnail-img" style="aspect-ratio: 16/9;">
                     <i class="fas fa-video text-muted" style="font-size: 2rem;"></i>
                 </div>
                 {% endif %}
+
+                {% if video.status == 'completed' and video.processed_path %}
+                <video class="card-img-top inline-video" muted playsinline preload="none" poster="/uploads/{{ video.thumbnail_path }}">
+                    <source src="/uploads/{{ video.processed_path }}" type="video/mp4">
+                </video>
+                {% endif %}
+
+                <!-- Play button overlay -->
+                <div class="play-overlay">
+                    <button class="play-btn" type="button" aria-label="Play video">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+
+                <!-- Duration badge -->
                 {% if video.duration %}
                 <span class="video-duration badge bg-dark position-absolute" style="bottom: 8px; right: 8px;">
                     {{ '%d:%02d'|format(video.duration // 60, video.duration % 60) }}
                 </span>
                 {% endif %}
-            </a>
+
+                <!-- Link to full page (bottom right) -->
+                <a href="/video/{{ video.slug }}" class="expand-btn" title="Open full page">
+                    <i class="fas fa-expand"></i>
+                </a>
+            </div>
             <div class="card-body">
                 <h6 class="card-title mb-1">
                     <a href="/video/{{ video.slug }}" class="text-decoration-none" style="color: inherit;">
@@ -73,23 +93,192 @@
         transition: transform 0.2s, box-shadow 0.2s;
     }
     .video-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
     }
-    .video-thumbnail-link {
+    .video-thumbnail-wrapper {
         position: relative;
         display: block;
         aspect-ratio: 16/9;
         overflow: hidden;
+        background: #000;
+        border-radius: var(--bs-card-border-radius) var(--bs-card-border-radius) 0 0;
     }
-    .video-thumbnail-link img {
+    .video-thumbnail-wrapper .thumbnail-img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.3s ease;
+        transition: opacity 0.2s ease;
     }
-    .video-thumbnail-link:hover img {
-        transform: scale(1.05);
+    .video-thumbnail-wrapper .inline-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+    .video-thumbnail-wrapper.playing .thumbnail-img {
+        opacity: 0;
+    }
+    .video-thumbnail-wrapper.playing .inline-video {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .video-thumbnail-wrapper.playing .play-overlay {
+        opacity: 0;
+    }
+    .video-thumbnail-wrapper.playing:hover .play-overlay,
+    .video-thumbnail-wrapper.playing.show-controls .play-overlay {
+        opacity: 1;
+    }
+    .video-thumbnail-wrapper.playing .play-overlay .play-btn i:before {
+        content: "\f04c"; /* pause icon */
+    }
+
+    /* Play button overlay */
+    .play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .video-thumbnail-wrapper:hover .play-overlay,
+    .video-thumbnail-wrapper:focus-within .play-overlay {
+        opacity: 1;
+    }
+    /* Always show on touch devices */
+    @media (hover: none) {
+        .play-overlay {
+            opacity: 1;
+            background: rgba(0,0,0,0.2);
+        }
+    }
+    .play-btn {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.95);
+        color: #333;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .play-btn:hover {
+        transform: scale(1.1);
+        background: #fff;
+    }
+    .play-btn:active {
+        transform: scale(0.95);
+    }
+    .play-btn i {
+        margin-left: 3px; /* optical centering for play icon */
+    }
+    .video-thumbnail-wrapper.playing .play-btn i {
+        margin-left: 0;
+    }
+
+    /* Expand button */
+    .expand-btn {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: rgba(0,0,0,0.7);
+        color: #fff;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease, background 0.2s ease;
+        text-decoration: none;
+    }
+    .video-thumbnail-wrapper:hover .expand-btn,
+    .video-thumbnail-wrapper.playing .expand-btn {
+        opacity: 1;
+    }
+    .expand-btn:hover {
+        background: rgba(0,0,0,0.9);
+        color: #fff;
     }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wrappers = document.querySelectorAll('.video-thumbnail-wrapper');
+
+    wrappers.forEach(wrapper => {
+        const video = wrapper.querySelector('.inline-video');
+        const playBtn = wrapper.querySelector('.play-btn');
+
+        if (!video || !playBtn) return;
+
+        // Toggle play/pause on play button click
+        playBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (wrapper.classList.contains('playing')) {
+                video.pause();
+                wrapper.classList.remove('playing');
+            } else {
+                // Pause any other playing videos
+                document.querySelectorAll('.video-thumbnail-wrapper.playing').forEach(other => {
+                    const otherVideo = other.querySelector('.inline-video');
+                    if (otherVideo) otherVideo.pause();
+                    other.classList.remove('playing');
+                });
+
+                video.play().then(() => {
+                    wrapper.classList.add('playing');
+                }).catch(() => {});
+            }
+        });
+
+        // Click on video to pause (mobile friendly)
+        video.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            video.pause();
+            wrapper.classList.remove('playing');
+        });
+
+        // When video ends, show thumbnail again
+        video.addEventListener('ended', function() {
+            wrapper.classList.remove('playing');
+            video.currentTime = 0;
+        });
+
+        // Show controls briefly on touch
+        let touchTimeout;
+        wrapper.addEventListener('touchstart', function() {
+            wrapper.classList.add('show-controls');
+            clearTimeout(touchTimeout);
+            touchTimeout = setTimeout(() => {
+                wrapper.classList.remove('show-controls');
+            }, 3000);
+        }, { passive: true });
+    });
+});
+</script>
 {% endblock %}
