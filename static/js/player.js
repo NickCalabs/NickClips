@@ -307,17 +307,68 @@ document.addEventListener('DOMContentLoaded', function() {
             pipButton.style.display = 'none';
         }
         
-        // Fullscreen
+        // Fullscreen - with iOS Safari support
         fullscreenBtn.addEventListener('click', function() {
-            if (!document.fullscreenElement) {
-                videoContainer.requestFullscreen().catch(err => {
-                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                });
+            // Check if we're in fullscreen (cross-browser)
+            const isFullscreen = document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement;
+
+            if (!isFullscreen) {
+                // Try to enter fullscreen
+                // iOS Safari requires webkitEnterFullscreen on the video element itself
+                if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
+                } else if (videoWrapper.requestFullscreen) {
+                    videoWrapper.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else if (videoWrapper.webkitRequestFullscreen) {
+                    videoWrapper.webkitRequestFullscreen();
+                } else if (videoWrapper.mozRequestFullScreen) {
+                    videoWrapper.mozRequestFullScreen();
+                } else if (videoWrapper.msRequestFullscreen) {
+                    videoWrapper.msRequestFullscreen();
+                }
                 fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
             } else {
-                document.exitFullscreen();
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
                 fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
             }
+        });
+
+        // Listen for fullscreen change to update button icon
+        function updateFullscreenIcon() {
+            const isFullscreen = document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement;
+            fullscreenBtn.innerHTML = isFullscreen ?
+                '<i class="fas fa-compress"></i>' :
+                '<i class="fas fa-expand"></i>';
+        }
+
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+
+        // iOS Safari fullscreen events on video element
+        video.addEventListener('webkitbeginfullscreen', function() {
+            fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        });
+        video.addEventListener('webkitendfullscreen', function() {
+            fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
         });
         
         // Progress bar update
@@ -347,19 +398,49 @@ document.addEventListener('DOMContentLoaded', function() {
         progressBar.addEventListener('mousemove', function(e) {
             const rect = progressBar.getBoundingClientRect();
             const pos = Math.min(Math.max(0, (e.clientX - rect.left) / rect.width), 1);
-            
+
             if (video.duration) {
                 // Calculate time at cursor position
                 const previewTime = pos * video.duration;
                 const previewMinutes = Math.floor(previewTime / 60);
                 const previewSeconds = Math.floor(previewTime % 60);
-                
+
                 // Update time preview text and position
                 timePreview.textContent = `${previewMinutes}:${previewSeconds < 10 ? '0' : ''}${previewSeconds}`;
                 timePreview.style.left = `${pos * 100}%`;
             }
         });
-        
+
+        // Touch support for progress bar scrubbing (mobile)
+        let isScrubbing = false;
+
+        function handleScrub(clientX) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = Math.min(Math.max(0, (clientX - rect.left) / rect.width), 1);
+            if (video.duration) {
+                video.currentTime = pos * video.duration;
+            }
+        }
+
+        progressBar.addEventListener('touchstart', function(e) {
+            isScrubbing = true;
+            const touch = e.touches[0];
+            handleScrub(touch.clientX);
+            e.preventDefault(); // Prevent scrolling while scrubbing
+        }, { passive: false });
+
+        progressBar.addEventListener('touchmove', function(e) {
+            if (isScrubbing) {
+                const touch = e.touches[0];
+                handleScrub(touch.clientX);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        progressBar.addEventListener('touchend', function() {
+            isScrubbing = false;
+        });
+
         // Check if HLS.js is supported
         if (Hls.isSupported()) {
             const hls = new Hls({
@@ -696,17 +777,68 @@ document.addEventListener('DOMContentLoaded', function() {
             pipButton.style.display = 'none';
         }
         
-        // Fullscreen
+        // Fullscreen - with iOS Safari support
         fullscreenBtn.addEventListener('click', function() {
-            if (!document.fullscreenElement) {
-                videoContainer.requestFullscreen().catch(err => {
-                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                });
+            // Check if we're in fullscreen (cross-browser)
+            const isFullscreen = document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement;
+
+            if (!isFullscreen) {
+                // Try to enter fullscreen
+                // iOS Safari requires webkitEnterFullscreen on the video element itself
+                if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
+                } else if (videoWrapper.requestFullscreen) {
+                    videoWrapper.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else if (videoWrapper.webkitRequestFullscreen) {
+                    videoWrapper.webkitRequestFullscreen();
+                } else if (videoWrapper.mozRequestFullScreen) {
+                    videoWrapper.mozRequestFullScreen();
+                } else if (videoWrapper.msRequestFullscreen) {
+                    videoWrapper.msRequestFullscreen();
+                }
                 fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
             } else {
-                document.exitFullscreen();
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
                 fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
             }
+        });
+
+        // Listen for fullscreen change to update button icon
+        function updateFullscreenIcon() {
+            const isFullscreen = document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement;
+            fullscreenBtn.innerHTML = isFullscreen ?
+                '<i class="fas fa-compress"></i>' :
+                '<i class="fas fa-expand"></i>';
+        }
+
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+        document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+
+        // iOS Safari fullscreen events on video element
+        video.addEventListener('webkitbeginfullscreen', function() {
+            fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        });
+        video.addEventListener('webkitendfullscreen', function() {
+            fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
         });
         
         // Progress bar update
@@ -736,19 +868,49 @@ document.addEventListener('DOMContentLoaded', function() {
         progressBar.addEventListener('mousemove', function(e) {
             const rect = progressBar.getBoundingClientRect();
             const pos = Math.min(Math.max(0, (e.clientX - rect.left) / rect.width), 1);
-            
+
             if (video.duration) {
                 // Calculate time at cursor position
                 const previewTime = pos * video.duration;
                 const previewMinutes = Math.floor(previewTime / 60);
                 const previewSeconds = Math.floor(previewTime % 60);
-                
+
                 // Update time preview text and position
                 timePreview.textContent = `${previewMinutes}:${previewSeconds < 10 ? '0' : ''}${previewSeconds}`;
                 timePreview.style.left = `${pos * 100}%`;
             }
         });
-        
+
+        // Touch support for progress bar scrubbing (mobile)
+        let isScrubbing = false;
+
+        function handleScrub(clientX) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = Math.min(Math.max(0, (clientX - rect.left) / rect.width), 1);
+            if (video.duration) {
+                video.currentTime = pos * video.duration;
+            }
+        }
+
+        progressBar.addEventListener('touchstart', function(e) {
+            isScrubbing = true;
+            const touch = e.touches[0];
+            handleScrub(touch.clientX);
+            e.preventDefault(); // Prevent scrolling while scrubbing
+        }, { passive: false });
+
+        progressBar.addEventListener('touchmove', function(e) {
+            if (isScrubbing) {
+                const touch = e.touches[0];
+                handleScrub(touch.clientX);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        progressBar.addEventListener('touchend', function() {
+            isScrubbing = false;
+        });
+
         // Show buffering indicator when waiting for data
         video.addEventListener('waiting', function() {
             bufferingIndicator.classList.remove('d-none');
