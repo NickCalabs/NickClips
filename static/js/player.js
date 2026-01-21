@@ -307,7 +307,30 @@ document.addEventListener('DOMContentLoaded', function() {
             pipButton.style.display = 'none';
         }
         
-        // Fullscreen - with iOS Safari support
+        // Fullscreen - with iOS Safari support and smart orientation lock
+        const isLandscapeVideo = videoWidth > videoHeight;
+
+        // Helper to lock screen orientation based on video aspect ratio
+        function lockOrientation() {
+            if (screen.orientation && screen.orientation.lock) {
+                const orientation = isLandscapeVideo ? 'landscape' : 'portrait';
+                screen.orientation.lock(orientation).catch(() => {
+                    // Silently fail - not all browsers/contexts support this
+                });
+            }
+        }
+
+        // Helper to unlock screen orientation
+        function unlockOrientation() {
+            if (screen.orientation && screen.orientation.unlock) {
+                try {
+                    screen.orientation.unlock();
+                } catch (e) {
+                    // Silently fail
+                }
+            }
+        }
+
         fullscreenBtn.addEventListener('click', function() {
             // Check if we're in fullscreen (cross-browser)
             const isFullscreen = document.fullscreenElement ||
@@ -320,20 +343,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 // iOS Safari requires webkitEnterFullscreen on the video element itself
                 if (video.webkitEnterFullscreen) {
                     video.webkitEnterFullscreen();
+                    // iOS handles orientation automatically for native fullscreen
                 } else if (videoWrapper.requestFullscreen) {
-                    videoWrapper.requestFullscreen().catch(err => {
+                    videoWrapper.requestFullscreen().then(() => {
+                        lockOrientation();
+                    }).catch(err => {
                         console.error(`Error attempting to enable fullscreen: ${err.message}`);
                     });
                 } else if (videoWrapper.webkitRequestFullscreen) {
                     videoWrapper.webkitRequestFullscreen();
+                    lockOrientation();
                 } else if (videoWrapper.mozRequestFullScreen) {
                     videoWrapper.mozRequestFullScreen();
+                    lockOrientation();
                 } else if (videoWrapper.msRequestFullscreen) {
                     videoWrapper.msRequestFullscreen();
+                    lockOrientation();
                 }
                 fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
             } else {
                 // Exit fullscreen
+                unlockOrientation();
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 } else if (document.webkitExitFullscreen) {
@@ -347,8 +377,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Listen for fullscreen change to update button icon
-        function updateFullscreenIcon() {
+        // Listen for fullscreen change to update button icon and handle orientation
+        function onFullscreenChange() {
             const isFullscreen = document.fullscreenElement ||
                 document.webkitFullscreenElement ||
                 document.mozFullScreenElement ||
@@ -356,12 +386,17 @@ document.addEventListener('DOMContentLoaded', function() {
             fullscreenBtn.innerHTML = isFullscreen ?
                 '<i class="fas fa-compress"></i>' :
                 '<i class="fas fa-expand"></i>';
+
+            // Unlock orientation when exiting fullscreen (e.g., via Escape key)
+            if (!isFullscreen) {
+                unlockOrientation();
+            }
         }
 
-        document.addEventListener('fullscreenchange', updateFullscreenIcon);
-        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
-        document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
-        document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        document.addEventListener('mozfullscreenchange', onFullscreenChange);
+        document.addEventListener('MSFullscreenChange', onFullscreenChange);
 
         // iOS Safari fullscreen events on video element
         video.addEventListener('webkitbeginfullscreen', function() {
@@ -777,7 +812,30 @@ document.addEventListener('DOMContentLoaded', function() {
             pipButton.style.display = 'none';
         }
         
-        // Fullscreen - with iOS Safari support
+        // Fullscreen - with iOS Safari support and smart orientation lock
+        const isLandscapeVideo = videoWidth > videoHeight;
+
+        // Helper to lock screen orientation based on video aspect ratio
+        function lockOrientation() {
+            if (screen.orientation && screen.orientation.lock) {
+                const orientation = isLandscapeVideo ? 'landscape' : 'portrait';
+                screen.orientation.lock(orientation).catch(() => {
+                    // Silently fail - not all browsers/contexts support this
+                });
+            }
+        }
+
+        // Helper to unlock screen orientation
+        function unlockOrientation() {
+            if (screen.orientation && screen.orientation.unlock) {
+                try {
+                    screen.orientation.unlock();
+                } catch (e) {
+                    // Silently fail
+                }
+            }
+        }
+
         fullscreenBtn.addEventListener('click', function() {
             // Check if we're in fullscreen (cross-browser)
             const isFullscreen = document.fullscreenElement ||
@@ -790,20 +848,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 // iOS Safari requires webkitEnterFullscreen on the video element itself
                 if (video.webkitEnterFullscreen) {
                     video.webkitEnterFullscreen();
+                    // iOS handles orientation automatically for native fullscreen
                 } else if (videoWrapper.requestFullscreen) {
-                    videoWrapper.requestFullscreen().catch(err => {
+                    videoWrapper.requestFullscreen().then(() => {
+                        lockOrientation();
+                    }).catch(err => {
                         console.error(`Error attempting to enable fullscreen: ${err.message}`);
                     });
                 } else if (videoWrapper.webkitRequestFullscreen) {
                     videoWrapper.webkitRequestFullscreen();
+                    lockOrientation();
                 } else if (videoWrapper.mozRequestFullScreen) {
                     videoWrapper.mozRequestFullScreen();
+                    lockOrientation();
                 } else if (videoWrapper.msRequestFullscreen) {
                     videoWrapper.msRequestFullscreen();
+                    lockOrientation();
                 }
                 fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
             } else {
                 // Exit fullscreen
+                unlockOrientation();
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 } else if (document.webkitExitFullscreen) {
@@ -817,8 +882,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Listen for fullscreen change to update button icon
-        function updateFullscreenIcon() {
+        // Listen for fullscreen change to update button icon and handle orientation
+        function onFullscreenChange() {
             const isFullscreen = document.fullscreenElement ||
                 document.webkitFullscreenElement ||
                 document.mozFullScreenElement ||
@@ -826,12 +891,17 @@ document.addEventListener('DOMContentLoaded', function() {
             fullscreenBtn.innerHTML = isFullscreen ?
                 '<i class="fas fa-compress"></i>' :
                 '<i class="fas fa-expand"></i>';
+
+            // Unlock orientation when exiting fullscreen (e.g., via Escape key)
+            if (!isFullscreen) {
+                unlockOrientation();
+            }
         }
 
-        document.addEventListener('fullscreenchange', updateFullscreenIcon);
-        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
-        document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
-        document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        document.addEventListener('mozfullscreenchange', onFullscreenChange);
+        document.addEventListener('MSFullscreenChange', onFullscreenChange);
 
         // iOS Safari fullscreen events on video element
         video.addEventListener('webkitbeginfullscreen', function() {
