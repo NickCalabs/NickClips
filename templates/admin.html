@@ -51,10 +51,68 @@
     </div>
 </div>
 
+<!-- Referral Codes Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>Referral Codes</h5>
+        <button class="btn btn-sm btn-primary" id="generate-code-btn">
+            <i class="fas fa-plus me-1"></i>Generate Code
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0" id="codes-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Created</th>
+                    <th>Created By</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for code in referral_codes %}
+                <tr data-code-id="{{ code.id }}">
+                    <td><code class="user-select-all">{{ code.code }}</code></td>
+                    <td>{{ code.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{% if code.created_by %}{{ code.created_by.username }}{% else %}-{% endif %}</td>
+                    <td>
+                        {% if code.used_by %}
+                        <span class="badge bg-secondary">Used by {{ code.used_by.username }}</span>
+                        {% else %}
+                        <span class="badge bg-success">Available</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not code.used_by %}
+                        <button class="btn btn-sm btn-outline-primary copy-code-btn" data-code="{{ code.code }}" title="Copy">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-code-btn" data-code-id="{{ code.id }}" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% else %}
+                        <span class="text-muted small">{{ code.used_at.strftime('%Y-%m-%d') if code.used_at else '' }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr id="no-codes-row">
+                    <td colspan="5" class="text-center text-muted py-3">No referral codes yet. Generate one to invite users.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <!-- Users Table -->
 <div class="card mb-4">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Users</h5>
+        <button class="btn btn-sm btn-primary" id="create-user-btn">
+            <i class="fas fa-user-plus me-1"></i>Create User
+        </button>
     </div>
     <div class="table-responsive">
         <table class="table table-sm mb-0">
@@ -85,9 +143,14 @@
                     <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
                     <td>
                         {% if user.id != current_user.id %}
-                        <button class="btn btn-sm btn-outline-danger delete-user-btn" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary reset-password-btn" data-user-id="{{ user.id }}" data-username="{{ user.username }}" title="Reset Password">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            <button class="btn btn-outline-danger delete-user-btn" data-user-id="{{ user.id }}" data-username="{{ user.username }}" title="Delete User">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                         {% endif %}
                     </td>
                 </tr>
@@ -248,6 +311,69 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Create User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="new-username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="new-username" minlength="3" maxlength="64" required>
+                </div>
+                <div class="mb-3">
+                    <label for="new-email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="new-email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="new-password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="new-password" minlength="8" required>
+                    <div class="form-text">Minimum 8 characters</div>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="new-is-admin">
+                    <label class="form-check-label" for="new-is-admin">Make admin</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-create-user">
+                    <i class="fas fa-user-plus me-1"></i>Create User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-key me-2"></i>Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Reset password for <strong id="reset-username"></strong></p>
+                <div class="mb-3">
+                    <label for="reset-password" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="reset-password" minlength="8" required>
+                    <div class="form-text">Minimum 8 characters</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-reset-password">
+                    <i class="fas fa-key me-1"></i>Reset Password
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -486,6 +612,208 @@ document.querySelectorAll('.delete-user-btn').forEach(btn => {
             this.innerHTML = '<i class="fas fa-trash"></i>';
             showToast('Error deleting user', 'danger');
         });
+    });
+});
+
+// Generate referral code
+document.getElementById('generate-code-btn').addEventListener('click', function() {
+    this.disabled = true;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Generating...';
+
+    fetch('/api/admin/generate-code', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-plus me-1"></i>Generate Code';
+
+        if (data.success) {
+            const code = data.code;
+            const tbody = document.querySelector('#codes-table tbody');
+
+            // Remove "no codes" row if it exists
+            const noCodesRow = document.getElementById('no-codes-row');
+            if (noCodesRow) noCodesRow.remove();
+
+            // Add new row at the top
+            const newRow = document.createElement('tr');
+            newRow.dataset.codeId = code.id;
+            newRow.innerHTML = `
+                <td><code class="user-select-all">${code.code}</code></td>
+                <td>${new Date().toISOString().slice(0, 16).replace('T', ' ')}</td>
+                <td>${code.created_by || '-'}</td>
+                <td><span class="badge bg-success">Available</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary copy-code-btn" data-code="${code.code}" title="Copy">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger delete-code-btn" data-code-id="${code.id}" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.insertBefore(newRow, tbody.firstChild);
+
+            // Add event listeners to new buttons
+            newRow.querySelector('.copy-code-btn').addEventListener('click', copyCodeHandler);
+            newRow.querySelector('.delete-code-btn').addEventListener('click', deleteCodeHandler);
+
+            showToast(`Code ${code.code} generated`, 'success');
+        } else {
+            showToast(data.error || 'Failed to generate code', 'danger');
+        }
+    })
+    .catch(() => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-plus me-1"></i>Generate Code';
+        showToast('Error generating code', 'danger');
+    });
+});
+
+// Copy code handler
+function copyCodeHandler() {
+    const code = this.dataset.code;
+    navigator.clipboard.writeText(code).then(() => {
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => { this.innerHTML = originalHTML; }, 1500);
+        showToast(`Code ${code} copied to clipboard`, 'success');
+    });
+}
+
+// Delete code handler
+function deleteCodeHandler() {
+    const codeId = this.dataset.codeId;
+    const row = this.closest('tr');
+    const btn = this;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    fetch(`/api/admin/codes/${codeId}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Code deleted', 'success');
+            removeRow(row);
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash"></i>';
+            showToast(data.error || 'Failed to delete code', 'danger');
+        }
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash"></i>';
+        showToast('Error deleting code', 'danger');
+    });
+}
+
+// Attach handlers to existing copy/delete code buttons
+document.querySelectorAll('.copy-code-btn').forEach(btn => btn.addEventListener('click', copyCodeHandler));
+document.querySelectorAll('.delete-code-btn').forEach(btn => btn.addEventListener('click', deleteCodeHandler));
+
+// Create User Modal
+const createUserModal = new bootstrap.Modal(document.getElementById('createUserModal'));
+document.getElementById('create-user-btn').addEventListener('click', () => {
+    document.getElementById('new-username').value = '';
+    document.getElementById('new-email').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('new-is-admin').checked = false;
+    createUserModal.show();
+});
+
+document.getElementById('confirm-create-user').addEventListener('click', function() {
+    const username = document.getElementById('new-username').value.trim();
+    const email = document.getElementById('new-email').value.trim();
+    const password = document.getElementById('new-password').value;
+    const isAdmin = document.getElementById('new-is-admin').checked;
+
+    if (!username || username.length < 3) {
+        showToast('Username must be at least 3 characters', 'danger');
+        return;
+    }
+    if (!email || !email.includes('@')) {
+        showToast('Valid email is required', 'danger');
+        return;
+    }
+    if (!password || password.length < 8) {
+        showToast('Password must be at least 8 characters', 'danger');
+        return;
+    }
+
+    this.disabled = true;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Creating...';
+
+    fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password, is_admin: isAdmin })
+    })
+    .then(r => r.json())
+    .then(data => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-user-plus me-1"></i>Create User';
+
+        if (data.success) {
+            createUserModal.hide();
+            showToast(`User "${username}" created successfully`, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(data.error || 'Failed to create user', 'danger');
+        }
+    })
+    .catch(() => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-user-plus me-1"></i>Create User';
+        showToast('Error creating user', 'danger');
+    });
+});
+
+// Reset Password Modal
+const resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+let resetPasswordUserId = null;
+
+document.querySelectorAll('.reset-password-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        resetPasswordUserId = this.dataset.userId;
+        document.getElementById('reset-username').textContent = this.dataset.username;
+        document.getElementById('reset-password').value = '';
+        resetPasswordModal.show();
+    });
+});
+
+document.getElementById('confirm-reset-password').addEventListener('click', function() {
+    const password = document.getElementById('reset-password').value;
+
+    if (!password || password.length < 8) {
+        showToast('Password must be at least 8 characters', 'danger');
+        return;
+    }
+
+    this.disabled = true;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Resetting...';
+
+    fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: resetPasswordUserId, password: password })
+    })
+    .then(r => r.json())
+    .then(data => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-key me-1"></i>Reset Password';
+
+        if (data.success) {
+            resetPasswordModal.hide();
+            showToast(data.message || 'Password reset successfully', 'success');
+        } else {
+            showToast(data.error || 'Failed to reset password', 'danger');
+        }
+    })
+    .catch(() => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-key me-1"></i>Reset Password';
+        showToast('Error resetting password', 'danger');
     });
 });
 </script>

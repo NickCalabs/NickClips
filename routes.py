@@ -6,7 +6,7 @@ import logging
 from flask import request, render_template, redirect, url_for, jsonify, flash, send_from_directory
 from werkzeug.utils import secure_filename
 from app import db, csrf
-from models import User, Video, ProcessingQueue
+from models import User, Video, ProcessingQueue, ReferralCode, generate_referral_code
 from downloader import validate_url, queue_download
 import video_processor
 from forms import LoginForm, RegistrationForm
@@ -15,6 +15,83 @@ from functools import wraps
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
+
+def process_expired_videos(upload_folder):
+    """Process videos that have expired based on their expiration_action"""
+    now = datetime.datetime.utcnow()
+    expired = Video.query.filter(
+        Video.expires_at <= now,
+        Video.expires_at.isnot(None)
+    ).all()
+
+    for video in expired:
+        try:
+            if video.expiration_action == 'delete':
+                # Delete files and DB record
+                logger.info(f"Deleting expired video: {video.slug}")
+                delete_video_files_helper(video, upload_folder)
+
+                # Delete queue items first
+                ProcessingQueue.query.filter_by(video_id=video.id).delete()
+                db.session.delete(video)
+            else:  # 'hide' or default
+                # Just hide the video
+                logger.info(f"Hiding expired video: {video.slug}")
+                video.is_public = False
+                video.expires_at = None  # Clear so it doesn't reprocess
+
+            db.session.commit()
+        except Exception as e:
+            logger.error(f"Error processing expired video {video.slug}: {e}")
+            db.session.rollback()
+
+    return len(expired)
+
+
+def delete_video_files_helper(video, upload_folder):
+    """Helper to delete all files associated with a video"""
+    import shutil
+
+    # Delete original file
+    if video.original_path:
+        try:
+            if os.path.isabs(video.original_path):
+                if os.path.exists(video.original_path):
+                    os.remove(video.original_path)
+            else:
+                path = os.path.join(upload_folder, 'original', os.path.basename(video.original_path))
+                if os.path.exists(path):
+                    os.remove(path)
+        except Exception as e:
+            logger.error(f"Error deleting original file: {e}")
+
+    # Delete processed file
+    if video.processed_path:
+        try:
+            path = os.path.join(upload_folder, video.processed_path)
+            if os.path.exists(path):
+                os.remove(path)
+        except Exception as e:
+            logger.error(f"Error deleting processed file: {e}")
+
+    # Delete thumbnail
+    if video.thumbnail_path:
+        try:
+            path = os.path.join(upload_folder, video.thumbnail_path)
+            if os.path.exists(path):
+                os.remove(path)
+        except Exception as e:
+            logger.error(f"Error deleting thumbnail: {e}")
+
+    # Delete HLS directory
+    if video.hls_path:
+        try:
+            hls_dir = os.path.join(upload_folder, 'hls', video.slug)
+            if os.path.exists(hls_dir):
+                shutil.rmtree(hls_dir)
+        except Exception as e:
+            logger.error(f"Error deleting HLS directory: {e}")
 
 def get_user_from_api_key():
     """Check for API key in request and return user if valid"""
@@ -60,8 +137,16 @@ def register_routes(app):
     @app.route('/dashboard')
     @login_required
     def dashboard():
-        """Admin dashboard to list, rename, and delete videos"""
+        """User dashboard to list, rename, and delete videos"""
         if current_user.is_authenticated:
+            # Process any expired videos
+            try:
+                expired_count = process_expired_videos(app.config.get('UPLOAD_FOLDER', 'uploads'))
+                if expired_count > 0:
+                    logger.info(f"Processed {expired_count} expired videos")
+            except Exception as e:
+                logger.error(f"Error processing expired videos: {e}")
+
             if current_user.is_admin:
                 # Admin sees all videos
                 videos = Video.query.order_by(Video.created_at.desc()).all()
@@ -110,6 +195,9 @@ def register_routes(app):
                     if os.path.isfile(fp):
                         total_storage += os.path.getsize(fp)
 
+        # Referral codes
+        referral_codes = ReferralCode.query.order_by(ReferralCode.created_at.desc()).all()
+
         return render_template('admin.html',
             users=users,
             total_videos=total_videos,
@@ -117,7 +205,8 @@ def register_routes(app):
             failed_videos=failed_videos,
             recent_videos=recent_videos,
             status_counts=status_counts,
-            total_storage=total_storage
+            total_storage=total_storage,
+            referral_codes=referral_codes
         )
 
     @app.route('/api/admin/claim-video', methods=['POST'])
@@ -218,6 +307,119 @@ def register_routes(app):
 
         db.session.commit()
         return jsonify({'success': True, 'deleted': len(failed)})
+
+    @app.route('/api/admin/generate-code', methods=['POST'])
+    @login_required
+    def generate_code():
+        """Generate a new referral code (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        # Generate a unique code
+        code = ReferralCode(
+            code=generate_referral_code(),
+            created_by_id=current_user.id
+        )
+        db.session.add(code)
+        db.session.commit()
+
+        return jsonify({'success': True, 'code': code.to_dict()})
+
+    @app.route('/api/admin/codes', methods=['GET'])
+    @login_required
+    def list_codes():
+        """List all referral codes (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        codes = ReferralCode.query.order_by(ReferralCode.created_at.desc()).all()
+        return jsonify({'codes': [c.to_dict() for c in codes]})
+
+    @app.route('/api/admin/codes/<int:code_id>', methods=['DELETE'])
+    @login_required
+    def delete_code(code_id):
+        """Delete an unused referral code (admin only)"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        code = ReferralCode.query.get_or_404(code_id)
+
+        if code.used_by_id is not None:
+            return jsonify({'error': 'Cannot delete a used referral code'}), 400
+
+        db.session.delete(code)
+        db.session.commit()
+
+        return jsonify({'success': True})
+
+    @app.route('/api/admin/reset-password', methods=['POST'])
+    @login_required
+    def admin_reset_password():
+        """Admin resets a user's password"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.json
+        user_id = data.get('user_id')
+        new_password = data.get('password')
+
+        if not user_id or not new_password:
+            return jsonify({'error': 'User ID and password are required'}), 400
+
+        if len(new_password) < 8:
+            return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
+        user = User.query.get_or_404(user_id)
+        user.set_password(new_password)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': f'Password reset for {user.username}'})
+
+    @app.route('/api/admin/create-user', methods=['POST'])
+    @login_required
+    def admin_create_user():
+        """Admin creates a new user without referral code"""
+        if not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.json
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        is_admin = data.get('is_admin', False)
+
+        # Validate inputs
+        if not username or len(username) < 3:
+            return jsonify({'error': 'Username must be at least 3 characters'}), 400
+
+        if not email or '@' not in email:
+            return jsonify({'error': 'Valid email is required'}), 400
+
+        if not password or len(password) < 8:
+            return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
+        # Check for existing user
+        if User.query.filter_by(username=username).first():
+            return jsonify({'error': 'Username already in use'}), 400
+
+        if User.query.filter_by(email=email).first():
+            return jsonify({'error': 'Email already registered'}), 400
+
+        # Create user
+        user = User(username=username, email=email, is_admin=is_admin)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_admin': user.is_admin
+            }
+        })
 
     def delete_video_files(video, upload_folder):
         """Helper to delete all files associated with a video"""
@@ -741,22 +943,30 @@ def register_routes(app):
         """User registration page"""
         if current_user.is_authenticated:
             return redirect(url_for('dashboard'))
-        
+
         form = RegistrationForm()
         if form.validate_on_submit():
             user = User(username=form.username.data, email=form.email.data)
             user.set_password(form.password.data)
-            
+
             # Make the first user an admin
             if User.query.count() == 0:
                 user.is_admin = True
-            
+
             db.session.add(user)
+            db.session.flush()  # Get the user ID before committing
+
+            # Mark the referral code as used
+            code = ReferralCode.query.filter_by(code=form.invite_code.data.upper().strip()).first()
+            if code:
+                code.used_by_id = user.id
+                code.used_at = datetime.datetime.utcnow()
+
             db.session.commit()
-            
+
             flash('Your account has been created! You can now log in.', 'success')
             return redirect(url_for('login'))
-            
+
         return render_template('register.html', form=form)
     
     @app.route('/logout')
@@ -838,3 +1048,51 @@ def register_routes(app):
     def settings():
         """User settings page with API key management"""
         return render_template('settings.html')
+
+    @app.route('/video/<slug>/settings')
+    @login_required
+    def video_settings(slug):
+        """Video settings page (owner only)"""
+        video = Video.query.filter_by(slug=slug).first_or_404()
+
+        # Check authorization
+        if not current_user.is_admin and video.user_id != current_user.id:
+            flash('Access denied', 'danger')
+            return redirect(url_for('view_video', slug=slug))
+
+        return render_template('video_settings.html', video=video)
+
+    @app.route('/api/video/<slug>/settings', methods=['POST'])
+    @csrf.exempt
+    @login_required
+    def update_video_settings(slug):
+        """Update video settings including expiration"""
+        video = Video.query.filter_by(slug=slug).first_or_404()
+
+        # Check authorization
+        if not current_user.is_admin and video.user_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.json
+
+        # Update basic fields
+        if 'title' in data:
+            video.title = data['title']
+        if 'description' in data:
+            video.description = data['description']
+        if 'is_public' in data:
+            video.is_public = bool(data['is_public'])
+
+        # Update expiration settings
+        if 'enable_expiration' in data:
+            if data['enable_expiration']:
+                # Calculate expiration date based on duration
+                expires_in = data.get('expires_in', 7)  # Default 7 days
+                video.expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=expires_in)
+                video.expiration_action = data.get('expiration_action', 'hide')
+            else:
+                video.expires_at = None
+                video.expiration_action = None
+
+        db.session.commit()
+        return jsonify({'success': True, 'video': video.to_dict()})
