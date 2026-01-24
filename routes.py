@@ -309,6 +309,7 @@ def register_routes(app):
         return jsonify({'success': True, 'deleted': len(failed)})
 
     @app.route('/api/admin/generate-code', methods=['POST'])
+    @csrf.exempt
     @login_required
     def generate_code():
         """Generate a new referral code (admin only)"""
@@ -326,6 +327,7 @@ def register_routes(app):
         return jsonify({'success': True, 'code': code.to_dict()})
 
     @app.route('/api/admin/codes', methods=['GET'])
+    @csrf.exempt
     @login_required
     def list_codes():
         """List all referral codes (admin only)"""
@@ -336,6 +338,7 @@ def register_routes(app):
         return jsonify({'codes': [c.to_dict() for c in codes]})
 
     @app.route('/api/admin/codes/<int:code_id>', methods=['DELETE'])
+    @csrf.exempt
     @login_required
     def delete_code(code_id):
         """Delete an unused referral code (admin only)"""
@@ -353,6 +356,7 @@ def register_routes(app):
         return jsonify({'success': True})
 
     @app.route('/api/admin/reset-password', methods=['POST'])
+    @csrf.exempt
     @login_required
     def admin_reset_password():
         """Admin resets a user's password"""
@@ -376,6 +380,7 @@ def register_routes(app):
         return jsonify({'success': True, 'message': f'Password reset for {user.username}'})
 
     @app.route('/api/admin/create-user', methods=['POST'])
+    @csrf.exempt
     @login_required
     def admin_create_user():
         """Admin creates a new user without referral code"""
