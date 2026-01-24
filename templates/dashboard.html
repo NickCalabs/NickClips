@@ -349,9 +349,13 @@ html[data-bs-theme="light"] #embedModal .modal-content {
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><button class="dropdown-item edit-video-page" data-slug="{{ video.slug }}">
-                                                <i class="fas fa-edit me-2"></i>Edit Details
-                                            </button></li>
+                                            <li><a class="dropdown-item" href="/video/{{ video.slug }}/settings">
+                                                <i class="fas fa-cog me-2"></i>Settings
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="/video/{{ video.slug }}/trim">
+                                                <i class="fas fa-cut me-2"></i>Trim Video
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
                                             <li><button class="dropdown-item delete-video text-danger" data-slug="{{ video.slug }}">
                                                 <i class="fas fa-trash me-2"></i>Delete Video
                                             </button></li>
@@ -500,14 +504,6 @@ html[data-bs-theme="light"] #embedModal .modal-content {
                     this.classList.add('btn-light');
                 }, 2000);
             });
-        });
-    });
-    
-    // Edit video on page
-    document.querySelectorAll('.edit-video-page').forEach(button => {
-        button.addEventListener('click', function() {
-            const slug = this.dataset.slug;
-            window.location.href = `/video/${slug}`;
         });
     });
     
