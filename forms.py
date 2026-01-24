@@ -1,8 +1,7 @@
-import os
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
-from models import User
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
+from models import User, ReferralCode
 
 class ThemePreferenceForm(FlaskForm):
     theme = RadioField(
@@ -57,8 +56,40 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Email already registered. Please use a different email or sign in.')
 
     def validate_invite_code(self, invite_code):
-        valid_code = os.environ.get('INVITE_CODE', '')
-        if not valid_code:
-            raise ValidationError('Registration is currently closed.')
-        if invite_code.data != valid_code:
+        """Validate referral code against database"""
+        code = ReferralCode.query.filter_by(code=invite_code.data.upper().strip()).first()
+        if not code:
             raise ValidationError('Invalid invite code.')
+        if code.used_by_id is not None:
+            raise ValidationError('This invite code has already been used.')
+
+
+class AdminCreateUserForm(FlaskForm):
+    """Form for admin to create users directly without referral code"""
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
+    email = StringField('Email', validators=[DataRequired(), Email(), Length(max=120)])
+    password = PasswordField('Password', validators=[
+        DataRequired(),
+        Length(min=8, message='Password must be at least 8 characters long')
+    ])
+    is_admin = BooleanField('Admin', default=False)
+    submit = SubmitField('Create User')
+
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user is not None:
+            raise ValidationError('Username already in use.')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError('Email already registered.')
+
+
+class AdminResetPasswordForm(FlaskForm):
+    """Form for admin to reset a user's password"""
+    new_password = PasswordField('New Password', validators=[
+        DataRequired(),
+        Length(min=8, message='Password must be at least 8 characters long')
+    ])
+    submit = SubmitField('Reset Password')

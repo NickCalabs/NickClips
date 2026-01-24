@@ -132,6 +132,10 @@ with app.app_context():
         tables = inspector.get_table_names()
         if 'user' in tables:
             safe_add_column('user', 'api_key', 'VARCHAR(64)')
+        # Add video expiration columns if video table exists
+        if 'video' in tables:
+            safe_add_column('video', 'expires_at', 'TIMESTAMP')
+            safe_add_column('video', 'expiration_action', 'VARCHAR(10)')
     except Exception as e:
         logging.debug(f"Migration check skipped: {e}")
 

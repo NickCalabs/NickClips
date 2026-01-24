@@ -1,5 +1,7 @@
 import uuid
 import datetime
+import random
+import string
 from app import db
 from sqlalchemy import Enum
 from flask_login import UserMixin
@@ -8,10 +10,17 @@ from werkzeug.security import generate_password_hash, check_password_hash
 def generate_slug():
     """Generate a random slug for video URLs"""
     return uuid.uuid4().hex[:8]
-    
+
 def generate_api_key():
     """Generate a random API key"""
     return 'nc_' + uuid.uuid4().hex
+
+def generate_referral_code():
+    """Generate a random referral code in format XXXX-XXXX"""
+    chars = string.ascii_uppercase + string.digits
+    part1 = ''.join(random.choices(chars, k=4))
+    part2 = ''.join(random.choices(chars, k=4))
+    return f"{part1}-{part2}"
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,6 +44,33 @@ class User(UserMixin, db.Model):
         """Generate a new API key for this user"""
         self.api_key = generate_api_key()
         return self.api_key
+
+
+class ReferralCode(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(20), unique=True, nullable=False, default=generate_referral_code)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    used_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    used_at = db.Column(db.DateTime, nullable=True)
+
+    created_by = db.relationship('User', foreign_keys=[created_by_id], backref='created_codes')
+    used_by = db.relationship('User', foreign_keys=[used_by_id], backref='used_code')
+
+    def __repr__(self):
+        return f'<ReferralCode {self.code}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'code': self.code,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'created_by': self.created_by.username if self.created_by else None,
+            'used_by': self.used_by.username if self.used_by else None,
+            'used_at': self.used_at.isoformat() if self.used_at else None,
+            'is_used': self.used_by_id is not None
+        }
+
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -87,6 +123,10 @@ class Video(db.Model):
     trim_start = db.Column(db.Float, nullable=True)  # Start time in seconds
     trim_end = db.Column(db.Float, nullable=True)    # End time in seconds
 
+    # Expiration settings
+    expires_at = db.Column(db.DateTime, nullable=True)
+    expiration_action = db.Column(db.String(10), nullable=True)  # 'delete' or 'hide'
+
     def __repr__(self):
         return f'<Video {self.id}: {self.title or "Untitled"}>'
     
@@ -107,13 +147,15 @@ class Video(db.Model):
             'is_public': self.is_public,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-            'user_id': self.user_id
+            'user_id': self.user_id,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'expiration_action': self.expiration_action
         }
-        
+
         # Add username if the video has an owner
         if self.owner:
             data['username'] = self.owner.username
-            
+
         return data
 
 class ProcessingQueue(db.Model):
