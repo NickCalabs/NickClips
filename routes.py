@@ -5,7 +5,7 @@ import datetime
 import logging
 from flask import request, render_template, redirect, url_for, jsonify, flash, send_from_directory
 from werkzeug.utils import secure_filename
-from app import db, csrf
+from app import db, csrf, limiter
 from models import User, Video, ProcessingQueue, ReferralCode, generate_referral_code
 from downloader import validate_url, queue_download
 import video_processor
@@ -95,7 +95,7 @@ def delete_video_files_helper(video, upload_folder):
 
 def get_user_from_api_key():
     """Check for API key in request and return user if valid"""
-    api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+    api_key = request.headers.get('X-API-Key')
     if api_key:
         user = User.query.filter_by(api_key=api_key).first()
         return user
@@ -473,6 +473,7 @@ def register_routes(app):
     @app.route('/api/upload', methods=['POST'])
     @api_auth_required
     @csrf.exempt
+    @limiter.limit('10 per hour')
     def upload_file():
         """Handle direct file upload (supports session auth or API key)"""
         try:
@@ -546,6 +547,7 @@ def register_routes(app):
     @app.route('/api/download', methods=['POST'])
     @api_auth_required
     @csrf.exempt
+    @limiter.limit('10 per hour')
     def download_video():
         """Handle video download from URL (supports session auth or API key)"""
         try:
@@ -559,7 +561,7 @@ def register_routes(app):
                 return jsonify({'error': 'No URL provided'}), 400
 
             # Skip if URL is from our own domain
-            if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
+            if 'nickclips.com' in url.lower():
                 return jsonify({'error': 'Cannot download from our own domain'}), 400
 
             # Validate URL
@@ -621,6 +623,7 @@ def register_routes(app):
 
     @app.route('/api/video/<slug>/view', methods=['POST'])
     @csrf.exempt
+    @limiter.limit('60 per hour')
     def register_view(slug):
         """Register a view after user engagement (25% watched or 3s on page)"""
         video = Video.query.filter_by(slug=slug).first()
@@ -780,6 +783,8 @@ def register_routes(app):
 
     @app.route('/share-target', methods=['GET', 'POST'])
     @csrf.exempt
+    @login_required
+    @limiter.limit('10 per hour')
     def share_target():
         """Handle incoming shares from mobile share sheet (PWA Share Target API)"""
         import re
@@ -920,6 +925,7 @@ def register_routes(app):
 
     # Authentication routes
     @app.route('/login', methods=['GET', 'POST'])
+    @limiter.limit('5 per minute')
     def login():
         """User login page"""
         if current_user.is_authenticated:
@@ -944,6 +950,7 @@ def register_routes(app):
         return render_template('login.html', form=form)
     
     @app.route('/register', methods=['GET', 'POST'])
+    @limiter.limit('3 per hour')
     def register():
         """User registration page"""
         if current_user.is_authenticated:

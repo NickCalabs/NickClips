@@ -135,15 +135,30 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def validate_url(url):
-    """Validate if a URL is supported by yt-dlp"""
-    # Basic URL validation
+    """Validate if a URL is from a supported video platform (strict whitelist only)"""
+    import ipaddress
     try:
         result = urlparse(url)
-        if not all([result.scheme, result.netloc]):
+
+        # Only allow http(s) schemes - blocks file://, ftp://, gopher://, etc.
+        if result.scheme not in ('http', 'https'):
             return False
-        
-        # Check if the URL is from a supported site
-        # This is a simple check for common video sites
+
+        if not result.netloc:
+            return False
+
+        # Block internal/private IP ranges (SSRF protection)
+        hostname = result.hostname
+        if hostname:
+            try:
+                ip = ipaddress.ip_address(hostname)
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                    logger.warning(f"Blocked internal IP in URL: {hostname}")
+                    return False
+            except ValueError:
+                pass  # Not an IP address, continue with domain check
+
+        # Strict whitelist of supported video platforms
         video_domains = [
             'youtube.com', 'youtu.be',
             'vimeo.com',
@@ -155,15 +170,13 @@ def validate_url(url):
             'twitch.tv',
             'reddit.com'
         ]
-        
-        domain = result.netloc.lower()
-        if any(video_domain in domain for video_domain in video_domains):
-            return True
-        
-        # For other URLs, we could do a more thorough check with yt-dlp
-        # but that would be slower, so for simplicity we'll just allow them
-        return True
-        
+
+        # Strip port from domain if present
+        domain = result.hostname.lower() if result.hostname else ''
+
+        # Exact match or proper subdomain match (not substring)
+        return any(domain == vd or domain.endswith('.' + vd) for vd in video_domains)
+
     except Exception:
         return False
 
@@ -188,7 +201,7 @@ def download_video(video_id, url):
             logger.info(f"Downloading video from URL: {url}")
             
             # Skip if URL is from our own domain
-            if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
+            if 'nickclips.com' in url.lower():
                 error_msg = "Cannot download videos from our own domain"
                 logger.error(error_msg)
                 video.status = 'failed'
@@ -430,7 +443,6 @@ def try_twitter_direct_download(url, output_path):
             "--format", "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best",
             "--merge-output-format", "mp4",
             "--no-playlist",
-            "--no-check-certificate",
             "--geo-bypass",
             "--socket-timeout", "60",
             "--retries", "10",
@@ -558,7 +570,7 @@ def get_video_info(url):
     """Get video information using yt-dlp without downloading with enhanced error handling"""
     try:
         # Skip if URL is from our own domain
-        if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
+        if 'nickclips.com' in url.lower():
             logger.error(f"Cannot get info from own domain: {url}")
             return None
             
@@ -598,7 +610,6 @@ def get_video_info(url):
             '--add-header', 'DNT: 1',
             '--skip-download',
             '--print-json',
-            '--no-check-certificate',
             '--geo-bypass',
             '--socket-timeout', '30',
             '--retries', '5',
@@ -641,7 +652,6 @@ def get_video_info(url):
                 '--add-header', 'DNT: 1',
                 '--skip-download',
                 '--print-json',
-                '--no-check-certificate',
                 '--geo-bypass',
                 '--socket-timeout', '30',
                 '--retries', '5',
@@ -668,7 +678,6 @@ def get_video_info(url):
                 '--add-header', 'Referer: https://twitter.com/',
                 '--skip-download',
                 '--print-json',
-                '--no-check-certificate',
                 '--geo-bypass',
                 '--socket-timeout', '30',
                 '--retries', '5',
@@ -772,7 +781,6 @@ def try_reddit_direct_download(url, output_path):
             "--format", "bestvideo+bestaudio/best",
             "--merge-output-format", "mp4",
             "--no-playlist",
-            "--no-check-certificate",
             "--geo-bypass",
             "--socket-timeout", "60",
             "--retries", "10",
@@ -957,7 +965,7 @@ def download_with_ytdlp(url, output_template):
     """
     try:
         # Skip if URL is from our own domain
-        if 'replit.dev' in url.lower() or 'repl.co' in url.lower():
+        if 'nickclips.com' in url.lower():
             logger.error(f"Cannot download from own domain: {url}")
             return None
 
@@ -975,7 +983,6 @@ def download_with_ytdlp(url, output_template):
             "--format", "bestvideo+bestaudio/best[ext=mp4]/best",
             "--merge-output-format", "mp4",
             "--no-playlist",
-            "--no-check-certificate",
             "--geo-bypass",
             "--socket-timeout", "60",
             "--retries", "10",
