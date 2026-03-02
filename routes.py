@@ -101,6 +101,24 @@ def get_user_from_api_key():
         return user
     return None
 
+def normalize_url_for_dedup(url):
+    """Normalize a URL for duplicate detection.
+
+    For YouTube watch URLs, preserves the video ID (?v= param) while stripping
+    tracking parameters. For all other URLs, strips all query parameters.
+    """
+    from urllib.parse import urlparse, parse_qs
+
+    parsed = urlparse(url)
+    base = f"{parsed.scheme}://{parsed.netloc}{parsed.path}".rstrip('/')
+
+    if parsed.netloc in ('www.youtube.com', 'youtube.com', 'm.youtube.com') and parsed.path == '/watch':
+        params = parse_qs(parsed.query)
+        if 'v' in params:
+            return f"{base}?v={params['v'][0]}"
+
+    return base
+
 def api_auth_required(f):
     """Decorator that allows either session auth or API key auth"""
     @wraps(f)
@@ -569,7 +587,7 @@ def register_routes(app):
                 return jsonify({'error': 'Invalid or unsupported URL'}), 400
 
             # Check for duplicate URL - normalize URL first
-            normalized_url = url.split('?')[0].rstrip('/')  # Remove query params and trailing slash
+            normalized_url = normalize_url_for_dedup(url)
             existing = Video.query.filter(
                 Video.source_url.ilike(f'%{normalized_url}%')
             ).first()
@@ -830,7 +848,7 @@ def register_routes(app):
             # Validate URL
             if validate_url(shared_url):
                 # Check for duplicate URL
-                normalized_url = shared_url.split('?')[0].rstrip('/')
+                normalized_url = normalize_url_for_dedup(shared_url)
                 existing = Video.query.filter(
                     Video.source_url.ilike(f'%{normalized_url}%')
                 ).first()
