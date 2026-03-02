@@ -351,7 +351,7 @@
         xhr.onload = function() {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
-                if (response.success) {
+                if (response.slug) {
                     uploadStatus.textContent = 'Upload complete!';
                     progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
                     progressBar.classList.add('bg-success');

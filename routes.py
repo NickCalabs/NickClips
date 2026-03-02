@@ -95,7 +95,7 @@ def delete_video_files_helper(video, upload_folder):
 
 def get_user_from_api_key():
     """Check for API key in request and return user if valid"""
-    api_key = request.headers.get('X-API-Key')
+    api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
     if api_key:
         user = User.query.filter_by(api_key=api_key).first()
         return user
@@ -619,7 +619,9 @@ def register_routes(app):
     def get_video_status(slug):
         """API endpoint to check video processing status"""
         video = Video.query.filter_by(slug=slug).first_or_404()
-        return jsonify(video.to_dict())
+        response = jsonify(video.to_dict())
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
 
     @app.route('/api/video/<slug>/view', methods=['POST'])
     @csrf.exempt
