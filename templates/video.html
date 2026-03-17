@@ -439,6 +439,27 @@
             });
         }
 
+        // Clipboard helper with fallback for non-HTTPS contexts
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return Promise.resolve();
+            } catch (err) {
+                document.body.removeChild(textarea);
+                return Promise.reject(err);
+            }
+        }
+
         // Copy link button functionality
         const copyLinkBtn = document.getElementById('copy-link-btn');
         if (copyLinkBtn) {
@@ -446,13 +467,7 @@
                 const videoUrlInput = document.getElementById('video-url');
                 const videoUrl = videoUrlInput?.value || window.location.href;
 
-                // Select the input text
-                if (videoUrlInput) {
-                    videoUrlInput.select();
-                    videoUrlInput.setSelectionRange(0, 99999);
-                }
-
-                navigator.clipboard.writeText(videoUrl).then(() => {
+                copyToClipboard(videoUrl).then(() => {
                     const originalHTML = this.innerHTML;
                     this.innerHTML = '<i class="fas fa-check"></i>';
                     this.classList.add('btn-success');
